@@ -150,10 +150,14 @@
     <ClCompile Include="Heap.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="Project Oceanside.cpp" />
+    <ClCompile Include="Room.cpp" />
+    <ClCompile Include="Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Heap.h" />
     <ClInclude Include="Node.h" />
+    <ClInclude Include="Room.h" />
+    <ClInclude Include="Scene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
