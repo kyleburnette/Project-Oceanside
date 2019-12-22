@@ -56,6 +56,22 @@ void Heap::Allocate(Node* node)
 	}
 }
 
+void Heap::LoadRoom(Room* room)
+{
+	for (Node* actor : room->GetActors())
+	{
+		Allocate(actor);
+	}
+}
+
+void Heap::UnloadRoom(Room* room)
+{
+	for (Node* actor : room->GetActors())
+	{
+		Deallocate(actor);
+	}
+}
+
 void Heap::Deallocate(Node* node)
 {
 	//TODO - figure out how to handle actual node deletion

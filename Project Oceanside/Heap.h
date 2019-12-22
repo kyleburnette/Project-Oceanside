@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 #include "Node.h"
+#include "Room.h"
 
 class Heap
 {
@@ -11,6 +12,8 @@ public:
 	~Heap();
 	void Allocate(Node* node);
 	void Deallocate(Node* node);
+	void LoadRoom(Room* room);
+	void UnloadRoom(Room* room);
 	void PrintHeap() const;
 	void DeleteHeap();
 	Node* FindSuitableGap(Node* newNode) const;

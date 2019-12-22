@@ -2,12 +2,15 @@
 
 #include <vector>
 #include "Room.h"
+#include "Node.h"
 
 class Scene
 {
 public:
-	Scene(bool clockReallocates, int roomCount);
-	int GetRoomCount();
+	Scene();
+	int GetRoomCount() const;
+	void PrintRooms() const;
+	Room* GetRoom(int roomNumber);
 private:
 	bool clockReallocates = false;
 	int roomCount = 0;

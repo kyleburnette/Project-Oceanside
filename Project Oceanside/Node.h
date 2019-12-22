@@ -1,12 +1,12 @@
 #pragma once
 
 #include <string>
-#include <memory>
 
 class Node
 {
 public:
 	Node();
+	Node(std::string actorID); ///going to handle this without a factory pattern for now
 	Node(int size, std::string actorID, char type, Node* overlay);
 	Node(int address, int size, Node* prev, Node* next, char type, std::string ID);
 	void SetAddress(int address);
@@ -27,9 +27,10 @@ private:
 	Node* prev = nullptr;
 	int address = 0;
 	int size = 0;
-	std::string ID = "";
+	std::string ID = "x";
 	char type = 'x';
 	Node* overlay = nullptr;
-	friend class Heap;
 };
+
+
 

@@ -5,6 +5,88 @@ Node::Node()
 
 }
 
+Node::Node(std::string actorID)
+{
+	//fix this ABSOLUTE DEGENERACY later
+	if (actorID == "0018")
+	{
+		this->size = 0x150;
+		this->ID = "0018";
+		this->type = 'a';
+		this->overlay = nullptr;
+	}
+	else if (actorID == "02A5")
+	{
+		this->size = 0x3F0;
+		this->ID = "02A5";
+		this->type = 'a';
+		this->overlay = new Node(0x2660, actorID, 'O', nullptr);
+	}
+	else if (actorID == "0082")
+	{
+		this->size = 0x1A0;
+		this->ID = "0082";
+		this->type = 'a';
+		this->overlay = new Node(0x2350, actorID, 'O', nullptr);
+	}
+	else if (actorID == "0210")
+	{
+		this->size = 0x250;
+		this->ID = "0210";
+		this->type = 'a';
+		this->overlay = new Node(0xB90, actorID, 'O', nullptr);
+	}
+	else if (actorID == "0050")
+	{
+		this->size = 0x4B0;
+		this->ID = "0050";
+		this->type = 'a';
+		this->overlay = new Node(0x3540, actorID, 'O', nullptr);
+	}
+	else if (actorID == "0125")
+	{
+		this->size = 0x300;
+		this->ID = "0125";
+		this->type = 'a';
+		this->overlay = new Node(0x1490, actorID, 'O', nullptr);
+	}
+	else if (actorID == "01E7")
+	{
+		this->size = 0x150;
+		this->ID = "01E7";
+		this->type = 'a';
+		this->overlay = new Node(0x450, actorID, 'O', nullptr);
+	}
+	else if (actorID == "01F4")
+	{
+		this->size = 0x2B0;
+		this->ID = "01F4";
+		this->type = 'a';
+		this->overlay = new Node(0x1EE0, actorID, 'O', nullptr);
+	}
+	else if (actorID == "020F")
+	{
+		this->size = 0x290;
+		this->ID = "020F";
+		this->type = 'a';
+		this->overlay = new Node(0x780, actorID, 'O', nullptr);
+	}
+	else if (actorID == "0024")
+	{
+		this->size = 0x550;
+		this->ID = "0024";
+		this->type = 'a';
+		this->overlay = new Node(0x28E0, actorID, 'O', nullptr);
+	}
+	else if (actorID == "0006")
+	{
+		this->size = 0x230;
+		this->ID = "0024";
+		this->type = 'a';
+		this->overlay = new Node(0x21C0, actorID, 'O', nullptr);
+	}
+} 
+
 Node::Node(int size, std::string ID, char type, Node* overlay)
 {
 	this->size = size;
