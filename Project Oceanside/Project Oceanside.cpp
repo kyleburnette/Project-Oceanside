@@ -1,20 +1,48 @@
 #include <iostream>
+#include <fstream>
 
-#include "Heap.h"
+#include "./Heap.h"
+#include "./Scene.h"
+#include "./json.hpp"
+
+const int START = 0x40b140;
+const int END = 0x5fffff;
+
+Scene* ParseAndConstructScene()
+{
+    using json = nlohmann::json;
+    json sceneJson;
+
+    //read in the scene data
+    try
+    {
+        std::ifstream f("scene.json");
+        sceneJson = json::parse(f);
+    }
+    catch (json::parse_error & e)
+    {
+        // output exception information
+        std::cout << "message: " << e.what() << '\n'
+            << "exception id: " << e.id << '\n'
+            << "byte position of error: " << e.byte << std::endl;
+        return nullptr;
+    }
+
+    Scene* scene = new Scene(sceneJson["clockReallocates"], sceneJson["roomCount"]);
+    return scene;
+
+}
 
 int main()
 {
-	const int START = 0x40b140;
-	const int END = 0x5fffff;
+    Scene* scene = ParseAndConstructScene();
+
 	Heap* heap = new Heap(START, END);
-	Node* smokeOverlay = new Node(0x5F80, "00A2", 'O', nullptr);
-	Node* smoke = new Node(0x2E90, "00A2", 'A', smokeOverlay);
-	Node* smoke2 = new Node(0x2E90, "00A2", 'A', smokeOverlay);
-	Node* thing = new Node(0x210, "003D", 'A', nullptr);
-	Node* otherThing = new Node(0x210, "0069", 'A', nullptr);
+    std::cout << scene->GetRoomCount() << std::endl;
 
 	heap->PrintHeap();
 
-	delete(heap);
-	heap = nullptr;
+    delete(scene);
+    delete(heap);
+    return 0;
 }

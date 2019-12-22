@@ -19,7 +19,7 @@ Heap::~Heap()
 
 void Heap::Allocate(Node* node)
 {
-	//I'm so sorry you're reading this function :/
+	//TODO - remove some repeated code
 
 	//if actor has an overlay we care about and the overlay isn't already loaded
 	if (node->GetOverlay() != nullptr && currentActorCount[node->GetID()] == 0)
@@ -59,8 +59,7 @@ void Heap::Allocate(Node* node)
 void Heap::Deallocate(Node* node)
 {
 	//TODO - figure out how to handle actual node deletion
-	//these are all the cases, but maybe a switch would be better here? Also maybe the nodes should
-	//take care of remembering who is ahead and behidn them, because the GetNext/Prev spam is real
+	//consider make heap a friend of node to remove the getter spam
 	if (node->GetPrev()->GetPrev() == nullptr && node->GetNext()->GetNext()->GetType() != LINK_TYPE)
 	{
 		head->SetNext(node->GetNext());

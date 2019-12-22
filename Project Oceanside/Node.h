@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 class Node
 {
@@ -29,5 +30,6 @@ private:
 	std::string ID = "";
 	char type = 'x';
 	Node* overlay = nullptr;
+	friend class Heap;
 };
 
