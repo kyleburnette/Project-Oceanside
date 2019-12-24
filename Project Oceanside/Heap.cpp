@@ -35,24 +35,35 @@ void Heap::Allocate(Node* node)
 
 			Node* actorGap = FindSuitableGap(node);
 
+			//insert new actor and update count
 			Insert(node, actorGap);
 			currentActorCount[node->GetID()]++;
-			Node* actorLink = new Node(LINK_SIZE, LINK_ID, LINK_TYPE, nullptr);
-			Insert(actorLink, node);
-			currentActorCount[LINK_ID]++;
 
+			//handle this better 
+			if (node->GetNext()->GetType() == LINK_TYPE && node->GetNext()->GetAddress() - node->GetAddress() > node->GetSize() + LINK_SIZE) 
+			{
+				Node* actorLink = new Node(LINK_SIZE, LINK_ID, LINK_TYPE, nullptr);
+				Insert(actorLink, node);
+				currentActorCount[LINK_ID]++;
+			}
 		}
 	}
 
 	//if actor does not have an overlay that matters (i.e. something allocated far past the part we care about)
 	else
 	{
-		Node* suitableGap = FindSuitableGap(node);
-		Node* link = new Node(LINK_SIZE, LINK_ID, LINK_TYPE, nullptr);
+		Node* suitableGap = FindSuitableGap(node); 
 		Insert(node, suitableGap);
 		currentActorCount[node->GetID()]++;
-		Insert(link, node);
-		currentActorCount[LINK_ID]++;
+
+		//check if a new LINK needs to be allocated
+		if (node->GetNext()->GetType() == LINK_TYPE && node->GetNext()->GetAddress() - node->GetAddress() > node->GetSize() + LINK_SIZE)
+		{
+			Node* link = new Node(LINK_SIZE, LINK_ID, LINK_TYPE, nullptr);
+			Insert(link, node);
+			currentActorCount[LINK_ID]++;
+		}
+		
 	}
 }
 
@@ -61,6 +72,44 @@ void Heap::LoadRoom(Room* room)
 	for (Node* actor : room->GetActors())
 	{
 		Allocate(actor);
+	}
+}
+
+void Heap::NextRoom(Scene* scene, Room* oldRoom, Room* newRoom)
+{
+	//allocate new room first
+	for (Node* actor : newRoom->GetActors())
+	{
+		if (actor->GetID() == "015A" && !scene->GetClockReallocates())
+		{
+			; //we do not want to allocate the new clock if it does not reallocate in this scene
+		}
+		else if (actor->GetID() == "0018")
+		{
+			; //TODO - handle not reallocating loading plane later
+		}
+		else
+		{
+			Allocate(actor);
+		}
+		
+	}
+
+	//deallocate old room next
+	for (Node* actor : oldRoom->GetActors())
+	{
+		if (actor->GetID() == "015A" && !scene->GetClockReallocates())
+		{
+			; //we do not want to allocate the new clock if it does not reallocate in this scene
+		}
+		else if (actor->GetID() == "0018")
+		{
+			; //TODO - handle not reallocating loading plane later
+		}
+		else
+		{
+			Deallocate(actor);
+		}
 	}
 }
 
@@ -74,8 +123,7 @@ void Heap::UnloadRoom(Room* room)
 
 void Heap::Deallocate(Node* node)
 {
-	//TODO - figure out how to handle actual node deletion
-	//consider make heap a friend of node to remove the getter spam
+	//first two are for deallocating things at the very beginning of the heap
 	if (node->GetPrev()->GetPrev() == nullptr && node->GetNext()->GetNext()->GetType() != LINK_TYPE)
 	{
 		head->SetNext(node->GetNext());
@@ -102,7 +150,8 @@ void Heap::Deallocate(Node* node)
 		node->GetPrev()->GetPrev()->SetNext(tail);
 	}
 
-	else if (node->GetNext()->GetNext()->GetID() == LINK_ID && node->GetPrev()->GetPrev()->GetID() == LINK_ID)
+	//this handles a situation where there are two nodes in front and two nodes behind
+	else if (node->GetNext()->GetNext()->GetType() == LINK_TYPE && node->GetPrev()->GetPrev()->GetType() == LINK_TYPE)
 	{
 		node->GetPrev()->GetPrev()->SetNext(node->GetNext()->GetNext());
 		node->GetNext()->GetNext()->SetPrev(node->GetPrev()->GetPrev());
@@ -131,11 +180,14 @@ void Heap::Deallocate(Node* node)
 		node->GetNext()->SetPrev(node->GetPrev());
 	}
 
-	currentActorCount[node->GetID()]--;
+	//deallocating the overlay should not decrease number of actors loaded
+	if (node->GetType() != OVERLAY_TYPE)
+	{
+		currentActorCount[node->GetID()]--;
+	}
 
 	if (currentActorCount[node->GetID()] == 0 && node->GetOverlay() != nullptr)
 	{
-
 		Deallocate(node->GetOverlay());
 	}
 }
@@ -154,7 +206,7 @@ void Heap::PrintHeap() const
 	Node* curr = head;
 	while (curr != nullptr)
 	{
-		std::cout << "Address: " << std::hex << "0x" << curr->GetAddress() << " Size: 0x" << curr->GetSize() << " " << curr->GetID() << " " << curr->GetType() << std::endl;
+		std::cout << "Address: " << std::hex << "0x" << curr->GetAddress() << " " << curr->GetSize() << " " << curr->GetID() << " " << curr->GetType() << std::dec << std::endl;
 		curr = curr->GetNext();
 	}
 }
@@ -164,7 +216,7 @@ void Heap::PrintHeapInReverse() const
 	Node* curr = tail;
 	while (curr != nullptr)
 	{
-		std::cout << "Address: " << std::hex << "0x" << curr->GetAddress() << " Size: 0x" << curr->GetSize() << " " << curr->GetID() << " " << curr->GetType() << std::endl;
+		std::cout << "Address: " << std::hex << "0x" << curr->GetAddress() << " " << curr->GetID() << " " << curr->GetType() << std::dec << std::endl;
 		curr = curr->GetPrev();
 	}
 }

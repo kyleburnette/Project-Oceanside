@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <map>
+#include "Scene.h"
 #include "Node.h"
 #include "Room.h"
 
@@ -14,6 +15,7 @@ public:
 	void Deallocate(Node* node);
 	void LoadRoom(Room* room);
 	void UnloadRoom(Room* room);
+	void NextRoom(Scene* scene, Room* oldRoom, Room* newRoom);
 	void PrintHeap() const;
 	void DeleteHeap();
 	Node* FindSuitableGap(Node* newNode) const;

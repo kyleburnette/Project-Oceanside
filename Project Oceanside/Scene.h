@@ -10,7 +10,9 @@ public:
 	Scene();
 	int GetRoomCount() const;
 	void PrintRooms() const;
-	Room* GetRoom(int roomNumber);
+	Room* GetRoom(int roomNumber) const;
+	bool GetClockReallocates() const;
+
 private:
 	bool clockReallocates = false;
 	int roomCount = 0;

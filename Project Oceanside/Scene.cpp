@@ -57,7 +57,12 @@ void Scene::PrintRooms() const
     }
 }
 
-Room* Scene::GetRoom(int roomNumber)
+Room* Scene::GetRoom(int roomNumber) const
 {
     return rooms[roomNumber];
+}
+
+bool Scene::GetClockReallocates() const
+{
+    return clockReallocates;
 }
