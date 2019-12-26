@@ -9,13 +9,13 @@
 class Heap
 {
 public:
-	Heap(int start, int end);
+	Heap(Scene* scene, int start, int end);
 	~Heap();
 	void Allocate(Node* node);
 	void Deallocate(Node* node);
-	void LoadRoom(Room* room);
+	void LoadRoom(int roomNumber);
 	void UnloadRoom(Room* room);
-	void NextRoom(Scene* scene, Room* oldRoom, Room* newRoom);
+	void ChangeRoom(int newRoomNumber);
 	void PrintHeap() const;
 	void DeleteHeap();
 	Node* FindSuitableGap(Node* newNode) const;
@@ -26,8 +26,10 @@ public:
 	void PrintCurrentActorCount() const;
 
 private:
+	Scene* scene;
 	Node* head;
 	Node* tail;
+	int currentRoomNumber = -1;
 	const int start_address;
 	const int end_address;
 	const int LINK_SIZE = 0x10;

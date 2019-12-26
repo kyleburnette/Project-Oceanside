@@ -1,6 +1,6 @@
 #include "Heap.h"
 
-Heap::Heap(int start, int end) : start_address(start), end_address(end)
+Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address(end), scene(scene)
 {
 	Node* headNode = new Node(start, LINK_SIZE, nullptr, nullptr, LINK_TYPE, LINK_ID);
 	Node* tailNode = new Node(end, LINK_SIZE, nullptr, nullptr, LINK_TYPE, LINK_ID);
@@ -67,16 +67,26 @@ void Heap::Allocate(Node* node)
 	}
 }
 
-void Heap::LoadRoom(Room* room)
+void Heap::LoadRoom(int roomNumber)
 {
+	Room* room = scene->GetRoom(roomNumber);
 	for (Node* actor : room->GetActors())
 	{
 		Allocate(actor);
 	}
+	this->currentRoomNumber = roomNumber;
 }
 
-void Heap::NextRoom(Scene* scene, Room* oldRoom, Room* newRoom)
+void Heap::ChangeRoom(int newRoomNumber)
 {
+	if (newRoomNumber == currentRoomNumber)
+	{
+		std::cerr << "Room number {" << newRoomNumber << "} is already loaded!";
+		return;
+	}
+	Room* oldRoom = scene->GetRoom(currentRoomNumber);
+	Room* newRoom = scene->GetRoom(newRoomNumber);
+
 	//allocate new room first
 	for (Node* actor : newRoom->GetActors())
 	{
@@ -111,6 +121,8 @@ void Heap::NextRoom(Scene* scene, Room* oldRoom, Room* newRoom)
 			Deallocate(actor);
 		}
 	}
+
+	this->currentRoomNumber = newRoomNumber;
 }
 
 void Heap::UnloadRoom(Room* room)
