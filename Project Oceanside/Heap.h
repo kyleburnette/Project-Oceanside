@@ -12,6 +12,7 @@ public:
 	Heap(Scene* scene, int start, int end);
 	~Heap();
 	void Allocate(Node* node);
+	void AllocateTemporaryActor(Node* node);
 	void Deallocate(Node* node);
 	void LoadRoom(int roomNumber);
 	void UnloadRoom(Room* room);

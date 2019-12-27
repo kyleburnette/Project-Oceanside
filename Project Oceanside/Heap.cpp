@@ -17,6 +17,12 @@ Heap::~Heap()
 	DeleteHeap();
 }
 
+void Heap::AllocateTemporaryActor(Node* actor)
+{
+	scene->GetRoom(currentRoomNumber)->AddTemporaryActor(actor);
+	Allocate(actor);
+}
+
 void Heap::Allocate(Node* node)
 {
 	//TODO - remove some repeated code
@@ -105,7 +111,14 @@ void Heap::ChangeRoom(int newRoomNumber)
 		
 	}
 
-	//deallocate old room next
+	//deallocate temporary actors from old room (bombs, bugs, etc.) and reset temp actor vector
+	for (Node* actor : oldRoom->GetTemporaryActors())
+	{
+		Deallocate(actor);
+	}
+	oldRoom->ClearTemporaryActors();
+
+	//deallocate old room's base/default actors
 	for (Node* actor : oldRoom->GetActors())
 	{
 		if (actor->GetID() == "015A" && !scene->GetClockReallocates())
@@ -122,6 +135,7 @@ void Heap::ChangeRoom(int newRoomNumber)
 		}
 	}
 
+	//update room number to room number of room we're changing to
 	this->currentRoomNumber = newRoomNumber;
 }
 

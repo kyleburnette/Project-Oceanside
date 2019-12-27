@@ -23,6 +23,7 @@ public:
 	Node* GetOverlay() const;
 	std::string GetID() const;
 	char GetType() const;
+	void SetType(char type);
 
 private:
 	Node* next = nullptr;

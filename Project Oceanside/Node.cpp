@@ -18,6 +18,7 @@ Node* test8 = new Node(0x1A80, "01F4", 'O', nullptr);
 Node* test9 = new Node(0x780, "020F", 'O', nullptr);
 Node* test10 = new Node(0x28E0, "0024", 'O', nullptr);
 Node* test11 = new Node(0x21C0, "0006", 'O', nullptr);
+Node* test12 = new Node(0x5F80, "00A2", 'O', nullptr);
 
 std::map<const std::string, Node*> overlayMap = {
 	{"02A5", test},
@@ -30,7 +31,8 @@ std::map<const std::string, Node*> overlayMap = {
 	{"01F4", test8},
 	{"020F", test9},
 	{"0024", test10},
-	{"0006", test11}
+	{"0006", test11},
+	{"00A2", test12}
 };
 
 Node::Node(std::string actorID)
@@ -44,6 +46,30 @@ Node::Node(std::string actorID)
 		this->type = 'a';
 		this->overlay = nullptr;
 	}
+	else if (actorID == "0009")
+	{
+		this->size = 0x210;
+		this->ID = "0009";
+		this->type = 'a';
+		this->overlay = nullptr;
+	}
+
+	else if (actorID == "003D")
+	{
+		this->size = 0x210;
+		this->ID = "003D";
+		this->type = 'a';
+		this->overlay = nullptr;
+	}
+
+	else if (actorID == "00A2")
+	{
+		this->size = 0x2E90;
+		this->ID = "00A2";
+		this->type = 'a';
+		this->overlay = overlayMap["00A2"];
+	}
+
 	else if (actorID == "02A5")
 	{
 		this->size = 0x3F0;
@@ -202,4 +228,9 @@ Node* Node::GetOverlay() const
 char Node::GetType() const
 {
 	return type;
+}
+
+void Node::SetType(char type)
+{
+	this->type = type;
 }
