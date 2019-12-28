@@ -18,6 +18,7 @@ int main()
     Heap* heap = new Heap(scene, START, END);
 
     heap->LoadRoom(0);
+    heap->ChangeRoom(1);
 	heap->PrintHeap();
 
     delete(scene);
