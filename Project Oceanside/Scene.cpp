@@ -3,7 +3,7 @@
 Scene::Scene()
 {
 	using json = nlohmann::json;
-    json sceneJson;
+	json sceneJson;
 
     //read in the scene data
     try

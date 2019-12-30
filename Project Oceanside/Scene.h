@@ -23,6 +23,5 @@ private:
 	int roomCount = 0;
 	std::vector<Room*> rooms;
 	nlohmann::json actorJson;
-
 };
 
