@@ -45,7 +45,7 @@ Scene::Scene()
 
         for (std::string actor : room["actorList"])
         {
-            Node* newActor = new Node(actor);
+            Node* newActor = new Node(actor, actorJson[actor]);
             newRoom->AddActor(newActor);
         }
 
