@@ -1,7 +1,9 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 #include <map>
+
 #include "Scene.h"
 #include "Node.h"
 #include "Room.h"
@@ -25,6 +27,7 @@ public:
 	Node* GetHead() const;
 	Node* GetTail() const;
 	void PrintCurrentActorCount() const;
+	
 
 private:
 	Scene* scene;

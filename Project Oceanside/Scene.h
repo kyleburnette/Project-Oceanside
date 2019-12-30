@@ -1,6 +1,11 @@
 #pragma once
 
+#include <fstream>
+#include <iostream>
 #include <vector>
+
+#include "./json.hpp"
+
 #include "Room.h"
 #include "Node.h"
 
@@ -17,6 +22,7 @@ private:
 	bool clockReallocates = false;
 	int roomCount = 0;
 	std::vector<Room*> rooms;
+	nlohmann::json actorJson;
 
 };
 

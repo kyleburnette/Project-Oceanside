@@ -1,6 +1,7 @@
+#include <chrono>
+
 #include "./Heap.h"
 #include "./Scene.h"
-#include <chrono>
 
 /*
 TODOs:
@@ -24,7 +25,8 @@ int main()
     heap->LoadRoom(0);
 
     auto start = std::chrono::high_resolution_clock::now();
-    for (int i = 1; i < 100000; i++)
+	int roomLoadsToTest = 1000000;
+    for (int i = 1; i < roomLoadsToTest; i++)
     {
         heap->ChangeRoom(i % 2);
     }
@@ -33,8 +35,8 @@ int main()
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 	heap->PrintHeap();
 
-    std::cout << "Operation of 100000 loads ran in: " << duration.count() << " milliseconds" << std::endl;
-    std::cout << "Average room load:  " << duration.count()/ 100000.0f << " milliseconds" << std::endl;
+    std::cout << "Operation of " << roomLoadsToTest << " loads ran in: " << duration.count() << " milliseconds" << std::endl;
+    std::cout << "Average room load:  " << duration.count()/ static_cast<float>(roomLoadsToTest) << " milliseconds" << std::endl;
 
     delete(scene);
     delete(heap);
