@@ -14,10 +14,13 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 	currentActorCount[LINK_ID] = 2;
 
 	//fix this later
-	possibleTemporaryActors[0x9] = new Node("0009", scene->GetActorJSON()["0009"]);
-	possibleTemporaryActors[0xA2] = new Node("00A2", scene->GetActorJSON()["00A2"]);
-	possibleTemporaryActors[0x3D] = new Node("003D", scene->GetActorJSON()["003D"]);
-	possibleTemporaryActors[0x17B] = new Node("017B", scene->GetActorJSON()["017B"]);
+	possibleTemporaryActors[0x0009] = new Node("0009", scene->GetActorJSON()["0009"], 0);
+	possibleTemporaryActors[0x00A2] = new Node("00A2", scene->GetActorJSON()["00A2"], 0);
+	possibleTemporaryActors[0x003D] = new Node("003D", scene->GetActorJSON()["003D"], 0);
+	possibleTemporaryActors[0x017B] = new Node("017B", scene->GetActorJSON()["017B"], 0);
+	possibleTemporaryActors[0x000F] = new Node("000F", scene->GetActorJSON()["000F"], 0);
+	possibleTemporaryActors[0x0035] = new Node("0035", scene->GetActorJSON()["0035"], 0);
+	possibleTemporaryActors[0x007B] = new Node("007B", scene->GetActorJSON()["007B"], 0);
 };
 
 Heap::~Heap()
@@ -32,6 +35,21 @@ void Heap::AllocateTemporaryActor(int actorID)
 	Node* newTempActor = new Node(*possibleTemporaryActors[actorID]);
 	temporaryActors.push_back(newTempActor);
 	Allocate(newTempActor);
+}
+
+void Heap::DeallocateTemporaryActor(std::string actorID)
+{
+	for (auto node : temporaryActors)
+	{
+		if (node->GetID() == actorID)
+		{
+			temporaryActors.erase(std::remove(temporaryActors.begin(),
+			temporaryActors.end(), node), temporaryActors.end());
+			Deallocate(node);
+		}
+		break;
+	}
+	
 }
 
 void Heap::ClearTemporaryActors()
@@ -97,8 +115,9 @@ void Heap::Allocate(Node* node)
 void Heap::LoadRoom(int roomNumber)
 {
 	Room* room = scene->GetRoom(roomNumber);
-	for (Node* actor : room->GetActors())
+	for (Node* actor : room->GetAllActors())
 	{
+		room->AddCurrentlyLoadedActor(actor);
 		Allocate(actor);
 	}
 	this->currentRoomNumber = roomNumber;
@@ -115,7 +134,7 @@ void Heap::ChangeRoom(int newRoomNumber)
 	Room* newRoom = scene->GetRoom(newRoomNumber);
 
 	//allocate new room first
-	for (Node* actor : newRoom->GetActors())
+	for (Node* actor : newRoom->GetAllActors())
 	{
 		if (actor->GetID() == "015A" && !scene->GetClockReallocates())
 		{
@@ -127,9 +146,9 @@ void Heap::ChangeRoom(int newRoomNumber)
 		}
 		else
 		{
+			newRoom->AddCurrentlyLoadedActor(actor);
 			Allocate(actor);
 		}
-		
 	}
 
 	//deallocate temporary actors from old room (bombs, bugs, etc.) and reset temp actor vector
@@ -141,7 +160,7 @@ void Heap::ChangeRoom(int newRoomNumber)
 	ClearTemporaryActors();
 
 	//deallocate old room's base/default actors
-	for (Node* actor : oldRoom->GetActors())
+	for (Node* actor : oldRoom->GetCurrentlyLoadedActors())
 	{
 		if (actor->GetID() == "015A" && !scene->GetClockReallocates())
 		{
@@ -157,16 +176,34 @@ void Heap::ChangeRoom(int newRoomNumber)
 		}
 	}
 
+	//clear old room's currently loaded actors (since they in fact are not currently loaded anymore)
+	oldRoom->GetCurrentlyLoadedActors().clear();
+
 	//update room number to room number of room we're changing to
 	this->currentRoomNumber = newRoomNumber;
 }
 
 void Heap::UnloadRoom(Room* room)
 {
-	for (Node* actor : room->GetActors())
+	for (Node* actor : room->GetCurrentlyLoadedActors())
 	{
 		Deallocate(actor);
 	}
+}
+
+void Heap::Deallocate(std::string actorID, int priority)
+{
+	Node* curr = head;
+	while (curr != nullptr)
+	{
+		if (curr->GetID() == actorID && curr->GetType() == 'a' && curr->GetPriority() == priority)
+		{
+			Deallocate(curr);
+		}
+
+		curr = curr->GetNext();
+	}
+	
 }
 
 void Heap::Deallocate(Node* node)
@@ -238,6 +275,8 @@ void Heap::Deallocate(Node* node)
 	{
 		Deallocate(node->GetOverlay());
 	}
+
+	scene->GetRoom(currentRoomNumber)->RemoveCurrentlyLoadedActor(node);
 }
 
 void Heap::Insert(Node* newNode, Node* oldNode)
@@ -254,7 +293,7 @@ void Heap::PrintHeap() const
 	Node* curr = head;
 	while (curr != nullptr)
 	{
-		std::cout << "Address: " << std::hex << "0x" << curr->GetAddress() << " " << curr->GetSize() << " " << curr->GetID() << " " << curr->GetType() << std::dec << std::endl;
+		std::cout << "Address: " << std::hex << "0x" << curr->GetAddress() << " " << curr->GetSize() << " " << curr->GetID() << " " << curr->GetType() << " Priority: " << curr->GetPriority() << std::dec << std::endl;
 		curr = curr->GetNext();
 	}
 }

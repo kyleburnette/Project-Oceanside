@@ -15,7 +15,9 @@ public:
 	~Heap();
 	void Allocate(Node* node);
 	void AllocateTemporaryActor(int actorID);
+	void Deallocate(std::string actorID, int priority);
 	void Deallocate(Node* node);
+	void DeallocateTemporaryActor(std::string actorID);
 	void LoadRoom(int roomNumber);
 	void UnloadRoom(Room* room);
 	void ChangeRoom(int newRoomNumber);

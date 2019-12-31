@@ -11,7 +11,7 @@ class Node
 public:
 	Node();
 	//going to handle this without a factory pattern for now
-	Node(std::string actorID, nlohmann::json& actorInfo);
+	Node(std::string actorID, nlohmann::json& actorInfo, int priority);
 	Node(const Node& copy);
 	Node(int size, std::string actorID, char type, Node* overlay);
 	Node(int address, int size, Node* prev, Node* next, char type, std::string ID);
@@ -28,6 +28,7 @@ public:
 	std::string GetID() const;
 	char GetType() const;
 	void SetType(char type);
+	int GetPriority() const;
 
 private:
 	Node* next = nullptr;
@@ -37,6 +38,7 @@ private:
 	std::string ID = "x";
 	char type = 'x';
 	Node* overlay = nullptr;
+	int priority = 0;
 };
 
 

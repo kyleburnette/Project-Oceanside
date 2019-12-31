@@ -38,6 +38,8 @@ Scene::Scene()
     //set scene variables
     this->clockReallocates = sceneJson["clockReallocates"];
 
+    std::map<std::string, char> actorCount; //use to assign priority
+
     //load actors, create nodes, create rooms, create node caches
     for (auto room : sceneJson["rooms"])
     {
@@ -45,13 +47,26 @@ Scene::Scene()
 
         for (std::string actor : room["actorList"])
         {
-            Node* newActor = new Node(actor, actorJson[actor]);
+            if (actorCount.count(actor) == 0)
+            {
+                actorCount[actor] = 0;
+            }
+            else
+            {
+                actorCount[actor]++;
+            }
+               
+            Node* newActor = new Node(actor, actorJson[actor], actorCount[actor]);
             newRoom->AddActor(newActor);
+
         }
 
+        //newRoom->Memes();
         rooms.push_back(newRoom);
         roomCount++;
     }
+
+    actorCount.clear();
 }
 
 Room* Scene::GetRoom(int roomNumber) const

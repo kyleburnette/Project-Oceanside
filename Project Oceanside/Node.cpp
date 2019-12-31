@@ -10,12 +10,13 @@ std::map<const std::string, Node*> overlayMap = {
 
 };
 
-Node::Node(std::string actorID, nlohmann::json& actorInfo)
+Node::Node(std::string actorID, nlohmann::json& actorInfo, int priority)
 {
 	std::string instanceSize = actorInfo["instanceSize"];
 	this->size = strtol(instanceSize.c_str(), nullptr, 16);
 	this->ID = actorID;
 	this->type = 'a';
+	this->priority = priority;
 
 	//if this actor has an overlay we care about AND its overlay hasn't been created yet
 	if (actorInfo["overlayType"] == 0 && overlayMap.count(actorID) == 0)
@@ -126,4 +127,9 @@ char Node::GetType() const
 void Node::SetType(char type)
 {
 	this->type = type;
+}
+
+int Node::GetPriority() const
+{
+	return priority;
 }
