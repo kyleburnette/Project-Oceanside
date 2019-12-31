@@ -294,8 +294,13 @@ void Heap::PrintHeap() const
 	Node* curr = head;
 	while (curr != nullptr)
 	{
-		std::cout << "Address: " << std::hex << "0x" << curr->GetAddress() << " " << curr->GetSize() << " " << curr->GetID() << " " << curr->GetType() << " Priority: " << curr->GetPriority() << std::dec << std::endl;
+		if (curr->GetID() != "LINK") 
+		{
+			std::cout << std::hex << curr->GetAddress() << ":" << curr->GetSize() << " " << curr->GetType() << " " << curr->GetID() << std::dec << std::endl;
+		}
+
 		curr = curr->GetNext();
+		
 	}
 }
 
