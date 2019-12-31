@@ -199,6 +199,7 @@ void Heap::Deallocate(std::string actorID, int priority)
 		if (curr->GetID() == actorID && curr->GetType() == 'a' && curr->GetPriority() == priority)
 		{
 			Deallocate(curr);
+			break;
 		}
 
 		curr = curr->GetNext();
@@ -244,14 +245,14 @@ void Heap::Deallocate(Node* node)
 		delete(node->GetPrev());
 		currentActorCount[LINK_ID] -= 2;
 	}
-	else if (node->GetNext()->GetNext()->GetID() == LINK_ID)
+	else if (node->GetNext()->GetNext()->GetType() == LINK_TYPE)
 	{
 		node->GetPrev()->SetNext(node->GetNext()->GetNext());
 		node->GetNext()->GetNext()->SetPrev(node->GetPrev());
 		delete(node->GetNext());
 		currentActorCount[LINK_ID] -= 1;
 	}
-	else if (node->GetPrev()->GetPrev()->GetID() == LINK_ID)
+	else if (node->GetPrev()->GetPrev()->GetType() == LINK_TYPE)
 	{
 		node->GetNext()->SetPrev(node->GetPrev()->GetPrev());
 		node->GetPrev()->GetPrev()->SetNext(node->GetNext());

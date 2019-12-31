@@ -40,7 +40,7 @@ int main()
     heap->AllocateTemporaryActor(0x0009);
     heap->AllocateTemporaryActor(0x0009);
 
-    heap->ChangeRoom(1);
+    /*heap->ChangeRoom(1);
 
     heap->AllocateTemporaryActor(0x0009);
     heap->AllocateTemporaryActor(0x00A2);
@@ -57,29 +57,24 @@ int main()
     
     heap->Deallocate("02A5", 0);
     heap->Deallocate("02A5", 2);
-   
+    heap->Deallocate("01E7", 0);
+    heap->Deallocate("01E7", 1);
     heap->Deallocate("01E7", 2);
     heap->Deallocate("01E7", 3);
-    heap->Deallocate("01E7", 1);
-    /*heap->Deallocate("01E7", 0);
-    
-    /*heap->AllocateTemporaryActor(0x0009);
+    heap->AllocateTemporaryActor(0x0009);
     heap->AllocateTemporaryActor(0x00A2);
     heap->DeallocateTemporaryActor("0009");
     heap->AllocateTemporaryActor(0x000F);
     heap->AllocateTemporaryActor(0x000F);
+
     heap->ChangeRoom(1);
+
     heap->AllocateTemporaryActor(0x0009);
     heap->AllocateTemporaryActor(0x00A2);
     heap->DeallocateTemporaryActor("0009");
     heap->AllocateTemporaryActor(0x003D);
-    heap->ChangeRoom(0);
-    heap->AllocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x00A2);
-    heap->DeallocateTemporaryActor("0009");
-    heap->ChangeRoom(1);
-    heap->ChangeRoom(0);
-    heap->ChangeRoom(1);*/
+
+    heap->ChangeRoom(0);*/
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
