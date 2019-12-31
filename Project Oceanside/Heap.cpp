@@ -1,5 +1,7 @@
 #include "Heap.h"
 
+
+
 Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address(end), scene(scene)
 {
 	Node* headNode = new Node(start, LINK_SIZE, nullptr, nullptr, LINK_TYPE, LINK_ID);
@@ -10,6 +12,12 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 	tail = tailNode;
 
 	currentActorCount[LINK_ID] = 2;
+
+	//fix this later
+	possibleTemporaryActors[0x9] = new Node("0009", scene->GetActorJSON()["0009"]);
+	possibleTemporaryActors[0xA2] = new Node("00A2", scene->GetActorJSON()["00A2"]);
+	possibleTemporaryActors[0x3D] = new Node("003D", scene->GetActorJSON()["003D"]);
+	possibleTemporaryActors[0x17B] = new Node("017B", scene->GetActorJSON()["017B"]);
 };
 
 Heap::~Heap()
@@ -17,10 +25,23 @@ Heap::~Heap()
 	DeleteHeap();
 }
 
-void Heap::AllocateTemporaryActor(Node* actor)
+void Heap::AllocateTemporaryActor(int actorID)
 {
-	scene->GetRoom(currentRoomNumber)->AddTemporaryActor(actor);
-	Allocate(actor);
+	//TODO - implement ISoT leak and scarecrow leak and arrow animation thing
+
+	Node* newTempActor = new Node(*possibleTemporaryActors[actorID]);
+	temporaryActors.push_back(newTempActor);
+	Allocate(newTempActor);
+}
+
+void Heap::ClearTemporaryActors()
+{
+	for (Node* actor : temporaryActors)
+	{
+		delete(actor);
+	}
+
+	temporaryActors.clear();
 }
 
 void Heap::Allocate(Node* node)
@@ -112,11 +133,12 @@ void Heap::ChangeRoom(int newRoomNumber)
 	}
 
 	//deallocate temporary actors from old room (bombs, bugs, etc.) and reset temp actor vector
-	for (Node* actor : oldRoom->GetTemporaryActors())
+	for (Node* actor : temporaryActors)
 	{
 		Deallocate(actor);
 	}
-	oldRoom->ClearTemporaryActors();
+
+	ClearTemporaryActors();
 
 	//deallocate old room's base/default actors
 	for (Node* actor : oldRoom->GetActors())

@@ -12,6 +12,7 @@ public:
 	Node();
 	//going to handle this without a factory pattern for now
 	Node(std::string actorID, nlohmann::json& actorInfo);
+	Node(const Node& copy);
 	Node(int size, std::string actorID, char type, Node* overlay);
 	Node(int address, int size, Node* prev, Node* next, char type, std::string ID);
 	void SetAddress(int address);

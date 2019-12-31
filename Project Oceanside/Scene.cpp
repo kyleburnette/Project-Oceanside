@@ -54,22 +54,6 @@ Scene::Scene()
     }
 }
 
-int Scene::GetRoomCount() const
-{
-	return roomCount;
-}
-
-void Scene::PrintRooms() const
-{
-    int counter = 0;
-    for (auto room : rooms)
-    {
-        std::cout << "Room " << counter << std::endl;
-        counter++;
-        room->PrintActors();
-    }
-}
-
 Room* Scene::GetRoom(int roomNumber) const
 {
     return rooms[roomNumber];
@@ -78,4 +62,9 @@ Room* Scene::GetRoom(int roomNumber) const
 bool Scene::GetClockReallocates() const
 {
     return clockReallocates;
+}
+
+nlohmann::json Scene::GetActorJSON() const
+{
+	return actorJson;
 }

@@ -14,7 +14,7 @@ public:
 	Heap(Scene* scene, int start, int end);
 	~Heap();
 	void Allocate(Node* node);
-	void AllocateTemporaryActor(Node* node);
+	void AllocateTemporaryActor(int actorID);
 	void Deallocate(Node* node);
 	void LoadRoom(int roomNumber);
 	void UnloadRoom(Room* room);
@@ -27,7 +27,7 @@ public:
 	Node* GetHead() const;
 	Node* GetTail() const;
 	void PrintCurrentActorCount() const;
-	
+	void ClearTemporaryActors();
 
 private:
 	Scene* scene;
@@ -41,5 +41,8 @@ private:
 	const char LINK_TYPE = 'L';
 	const char OVERLAY_TYPE = 'O';
 	std::map<std::string, int> currentActorCount;
+	std::vector<Node*> leakNodes;
+	std::vector<Node*> temporaryActors;
+	std::map<int, Node*> possibleTemporaryActors;
 };
 

@@ -41,6 +41,14 @@ Node::Node(std::string actorID, nlohmann::json& actorInfo)
 	
 }
 
+Node::Node(const Node& copy)
+{
+	this->size = copy.GetSize();
+	this->ID = copy.GetID();
+	this->type = copy.GetType();
+	this->overlay = copy.GetOverlay();
+}
+
 Node::Node(int size, std::string ID, char type, Node* overlay)
 {
 	this->size = size;

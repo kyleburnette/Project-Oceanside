@@ -22,14 +22,11 @@ int main()
     Scene* scene = new Scene();
     Heap* heap = new Heap(scene, START, END);
 
+	auto start = std::chrono::high_resolution_clock::now();
     heap->LoadRoom(0);
 
-    auto start = std::chrono::high_resolution_clock::now();
-	int roomLoadsToTest = 1000000;
-    for (int i = 1; i < roomLoadsToTest; i++)
-    {
-        heap->ChangeRoom(i % 2);
-    }
+	heap->AllocateTemporaryActor(0x9);
+	heap->AllocateTemporaryActor(0x9);
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);

@@ -13,10 +13,9 @@ class Scene
 {
 public:
 	Scene();
-	int GetRoomCount() const;
-	void PrintRooms() const;
 	Room* GetRoom(int roomNumber) const;
 	bool GetClockReallocates() const;
+	nlohmann::json GetActorJSON() const;
 
 private:
 	bool clockReallocates = false;
