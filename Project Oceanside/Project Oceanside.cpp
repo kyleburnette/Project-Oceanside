@@ -27,10 +27,11 @@ int main()
 	auto start = std::chrono::high_resolution_clock::now();
 
     heap->LoadRoom(0);
+    heap->ChangeRoom(1);
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-	heap->PrintHeap();
+    heap->PrintHeap(1);
 
     std::cout << "Operation ran in: " << duration.count() << " microseconds" << std::endl;
     //std::cout << "Average room load:  " << duration.count()/ static_cast<float>(roomLoadsToTest) << " milliseconds" << std::endl;

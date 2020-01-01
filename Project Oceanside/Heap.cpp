@@ -289,15 +289,24 @@ void Heap::Insert(Node* newNode, Node* oldNode)
 	oldNode->SetNext(newNode);
 }
 
-void Heap::PrintHeap() const
+void Heap::PrintHeap(char setting) const
 {
 	Node* curr = head;
 	while (curr != nullptr)
 	{
-		if (curr->GetID() != "LINK") 
+		if (setting == 0)
+		{
+			if (curr->GetID() != "LINK") 
+			{
+				std::cout << std::hex << curr->GetAddress() << ":" << curr->GetSize() << " " << curr->GetType() << " " << curr->GetID() << std::dec << std::endl;
+			}
+			
+		}
+		else if (setting == 1)
 		{
 			std::cout << std::hex << curr->GetAddress() << ":" << curr->GetSize() << " " << curr->GetType() << " " << curr->GetID() << std::dec << std::endl;
 		}
+		
 
 		curr = curr->GetNext();
 		

@@ -21,7 +21,7 @@ public:
 	void LoadRoom(int roomNumber);
 	void UnloadRoom(Room* room);
 	void ChangeRoom(int newRoomNumber);
-	void PrintHeap() const;
+	void PrintHeap(char setting) const;
 	void DeleteHeap();
 	Node* FindSuitableGap(Node* newNode) const;
 	void PrintHeapInReverse() const;
