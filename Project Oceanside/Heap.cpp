@@ -196,7 +196,7 @@ void Heap::Deallocate(int actorID, int priority)
 	Node* curr = head;
 	while (curr != nullptr)
 	{
-		if (curr->GetID() == actorID && curr->GetType() == 'a' && curr->GetPriority() == priority)
+		if (curr->GetID() == actorID && curr->GetType() == 'A' && curr->GetPriority() == priority)
 		{
 			Deallocate(curr);
 			break;

@@ -15,7 +15,7 @@ Node::Node(int actorID, nlohmann::json& actorInfo, int priority)
 	std::string instanceSize = actorInfo["instanceSize"];
 	this->size = strtol(instanceSize.c_str(), nullptr, 16);
 	this->ID = actorID;
-	this->type = 'a';
+	this->type = 'A';
 	this->priority = priority;
 
 	//if this actor has an overlay we care about AND its overlay hasn't been created yet
