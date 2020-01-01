@@ -43,13 +43,13 @@ void Heap::DeallocateTemporaryActor(std::string actorID)
 	{
 		if (node->GetID() == actorID)
 		{
-			temporaryActors.erase(std::remove(temporaryActors.begin(),
-			temporaryActors.end(), node), temporaryActors.end());
+			temporaryActors.erase(std::remove(temporaryActors.begin(), temporaryActors.end(), node), temporaryActors.end());
 			Deallocate(node);
+			return;
 		}
-		break;
 	}
-	
+
+	std::cerr << "Actor " << actorID << " is not loaded, deallocation failed." << std::endl;
 }
 
 void Heap::ClearTemporaryActors()

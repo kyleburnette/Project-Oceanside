@@ -7,7 +7,7 @@
 TODOs:
 *** maybe make temporary actors (bombs, etc.) go into currentlyLoadedActors instead of their
 own vector
-1. implement allocating new items that aren't part of the room (smoke, chus, arrows, bugs, fish, etc)
+1. [DONE] implement allocating new items that aren't part of the room (smoke, chus, arrows, bugs, fish, etc)
 2. implement checking system to compare addresses to a desired offset (i.e. 0x160 offset pot and chest)
 3. implement permutation generation and running those permutations
     -random? something else?
@@ -27,63 +27,6 @@ int main()
 	auto start = std::chrono::high_resolution_clock::now();
 
     heap->LoadRoom(0);
-    
-    heap->Deallocate("02A5", 0);
-    heap->Deallocate("02A5", 3);
-    heap->Deallocate("0082", 0);
-    heap->Deallocate("0082", 1);
-    heap->Deallocate("01E7", 0);
-    heap->Deallocate("01E7", 1);
-    heap->Deallocate("01E7", 2);
-    heap->AllocateTemporaryActor(0x000F);
-    heap->AllocateTemporaryActor(0x000F);
-    heap->AllocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x0009);
-
-    heap->ChangeRoom(1);
-
-    heap->AllocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x00A2);
-	heap->AllocateTemporaryActor(0x000F);
-	heap->AllocateTemporaryActor(0x000F);
-	heap->AllocateTemporaryActor(0x000F);
-    heap->DeallocateTemporaryActor("0009");
-    heap->AllocateTemporaryActor(0x0009);
-	heap->AllocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x0009);
-	heap->AllocateTemporaryActor(0x0035);
-    heap->AllocateTemporaryActor(0x007B);
-
-	heap->ChangeRoom(0);
-    
-	heap->Deallocate("02A5", 0);
-    heap->Deallocate("02A5", 2);
-    heap->Deallocate("01E7", 0);
-    heap->Deallocate("01E7", 1);
-    heap->Deallocate("01E7", 2);
-    heap->Deallocate("01E7", 3);
-	heap->AllocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x00A2);
-    heap->DeallocateTemporaryActor("0009");
-    heap->AllocateTemporaryActor(0x000F);
-    heap->AllocateTemporaryActor(0x000F);
-
-    heap->ChangeRoom(1);
-
-	heap->AllocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x00A2);
-    heap->DeallocateTemporaryActor("0009");
-    heap->AllocateTemporaryActor(0x003D);
-
-	heap->ChangeRoom(0);
-
-	heap->AllocateTemporaryActor(0x0009);
-	heap->AllocateTemporaryActor(0x00A2);
-	heap->DeallocateTemporaryActor("0009");
-
-	heap->ChangeRoom(1);
-	heap->ChangeRoom(0);
-	heap->ChangeRoom(1);
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
