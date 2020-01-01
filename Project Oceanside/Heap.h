@@ -15,9 +15,9 @@ public:
 	~Heap();
 	void Allocate(Node* node);
 	void AllocateTemporaryActor(int actorID);
-	void Deallocate(std::string actorID, int priority);
+	void Deallocate(int actorID, int priority);
 	void Deallocate(Node* node);
-	void DeallocateTemporaryActor(std::string actorID);
+	void DeallocateTemporaryActor(int actorID);
 	void LoadRoom(int roomNumber);
 	void UnloadRoom(Room* room);
 	void ChangeRoom(int newRoomNumber);
@@ -39,11 +39,10 @@ private:
 	const int start_address;
 	const int end_address;
 	const int LINK_SIZE = 0x10;
-	const std::string LINK_ID = "LINK";
+	const int LINK_ID = 0xffff;
 	const char LINK_TYPE = 'L';
 	const char OVERLAY_TYPE = 'O';
-	std::map<std::string, int> currentActorCount;
-	std::vector<Node*> leakNodes;
+	std::map<int, int> currentActorCount;
 	std::vector<Node*> temporaryActors;
 	std::map<int, Node*> possibleTemporaryActors;
 };

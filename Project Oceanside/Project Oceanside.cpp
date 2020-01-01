@@ -27,15 +27,71 @@ int main()
 	auto start = std::chrono::high_resolution_clock::now();
 
     heap->LoadRoom(0);
+    heap->Deallocate(0x02A5, 0);
+    heap->Deallocate(0x02A5, 3);
+    heap->Deallocate(0x0082, 0);
+    heap->Deallocate(0x0082, 1);
+    heap->Deallocate(0x01E7, 0);
+    heap->Deallocate(0x01E7, 1);
+    heap->Deallocate(0x01E7, 2);
+    heap->AllocateTemporaryActor(0x000F);
+    heap->AllocateTemporaryActor(0x000F);
+    heap->AllocateTemporaryActor(0x0009);
+    heap->AllocateTemporaryActor(0x0009);
+
+    heap->ChangeRoom(1);
+
+    heap->AllocateTemporaryActor(0x0009);
+    heap->AllocateTemporaryActor(0x00A2);
+    heap->AllocateTemporaryActor(0x000F);
+    heap->AllocateTemporaryActor(0x000F);
+    heap->AllocateTemporaryActor(0x000F);
+    heap->DeallocateTemporaryActor(0x0009);
+    heap->AllocateTemporaryActor(0x0009);
+    heap->AllocateTemporaryActor(0x0009);
+    heap->AllocateTemporaryActor(0x0009);
+    heap->AllocateTemporaryActor(0x0035);
+    heap->AllocateTemporaryActor(0x007B);
+
+    heap->ChangeRoom(0);
+
+    heap->Deallocate(0x02A5, 0);
+    heap->Deallocate(0x02A5, 2);
+    heap->Deallocate(0x01E7, 0);
+    heap->Deallocate(0x01E7, 1);
+    heap->Deallocate(0x01E7, 2);
+    heap->Deallocate(0x01E7, 3);
+    heap->AllocateTemporaryActor(0x0009);
+    heap->AllocateTemporaryActor(0x00A2);
+    heap->DeallocateTemporaryActor(0x009);
+    heap->AllocateTemporaryActor(0x000F);
+    heap->AllocateTemporaryActor(0x000F);
+
+    heap->ChangeRoom(1);
+
+    heap->AllocateTemporaryActor(0x0009);
+    heap->AllocateTemporaryActor(0x00A2);
+    heap->DeallocateTemporaryActor(0x0009);
+    heap->AllocateTemporaryActor(0x003D);
+
+    heap->ChangeRoom(0);
+
+    heap->AllocateTemporaryActor(0x0009);
+    heap->AllocateTemporaryActor(0x00A2);
+    heap->DeallocateTemporaryActor(0x0009);
+
+    heap->ChangeRoom(1);
+    heap->ChangeRoom(0);
     heap->ChangeRoom(1);
 
     auto end = std::chrono::high_resolution_clock::now();
+
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    heap->PrintHeap(1);
+
+	heap->PrintHeap(1);
 
     std::cout << "Operation ran in: " << duration.count() << " microseconds" << std::endl;
-    //std::cout << "Average room load:  " << duration.count()/ static_cast<float>(roomLoadsToTest) << " milliseconds" << std::endl;
-
+    
     delete(scene);
     delete(heap);
 

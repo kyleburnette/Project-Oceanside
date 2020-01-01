@@ -56,9 +56,8 @@ Scene::Scene()
                 actorCount[actor]++;
             }
                
-            Node* newActor = new Node(actor, actorJson[actor], actorCount[actor]);
+            Node* newActor = new Node(strtol(actor.c_str(), nullptr, 16), actorJson[actor], actorCount[actor]);
             newRoom->AddActor(newActor);
-
         }
 
         //newRoom->Memes();

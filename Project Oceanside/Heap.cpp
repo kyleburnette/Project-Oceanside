@@ -14,13 +14,13 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 	currentActorCount[LINK_ID] = 2;
 
 	//fix this later
-	possibleTemporaryActors[0x0009] = new Node("0009", scene->GetActorJSON()["0009"], 0);
-	possibleTemporaryActors[0x00A2] = new Node("00A2", scene->GetActorJSON()["00A2"], 0);
-	possibleTemporaryActors[0x003D] = new Node("003D", scene->GetActorJSON()["003D"], 0);
-	possibleTemporaryActors[0x017B] = new Node("017B", scene->GetActorJSON()["017B"], 0);
-	possibleTemporaryActors[0x000F] = new Node("000F", scene->GetActorJSON()["000F"], 0);
-	possibleTemporaryActors[0x0035] = new Node("0035", scene->GetActorJSON()["0035"], 0);
-	possibleTemporaryActors[0x007B] = new Node("007B", scene->GetActorJSON()["007B"], 0);
+	possibleTemporaryActors[0x0009] = new Node(0x0009, scene->GetActorJSON()["0009"], 0);
+	possibleTemporaryActors[0x00A2] = new Node(0x00A2, scene->GetActorJSON()["00A2"], 0);
+	possibleTemporaryActors[0x003D] = new Node(0x003D, scene->GetActorJSON()["003D"], 0);
+	possibleTemporaryActors[0x017B] = new Node(0x017B, scene->GetActorJSON()["017B"], 0);
+	possibleTemporaryActors[0x000F] = new Node(0x000F, scene->GetActorJSON()["000F"], 0);
+	possibleTemporaryActors[0x0035] = new Node(0x0035, scene->GetActorJSON()["0035"], 0);
+	possibleTemporaryActors[0x007B] = new Node(0x007B, scene->GetActorJSON()["007B"], 0);
 };
 
 Heap::~Heap()
@@ -37,7 +37,7 @@ void Heap::AllocateTemporaryActor(int actorID)
 	Allocate(newTempActor);
 }
 
-void Heap::DeallocateTemporaryActor(std::string actorID)
+void Heap::DeallocateTemporaryActor(int actorID)
 {
 	for (auto node : temporaryActors)
 	{
@@ -136,11 +136,11 @@ void Heap::ChangeRoom(int newRoomNumber)
 	//allocate new room first
 	for (Node* actor : newRoom->GetAllActors())
 	{
-		if (actor->GetID() == "015A" && !scene->GetClockReallocates())
+		if (actor->GetID() == 0x015A && !scene->GetClockReallocates())
 		{
 			; //we do not want to allocate the new clock if it does not reallocate in this scene
 		}
-		else if (actor->GetID() == "0018")
+		else if (actor->GetID() == 0x0018)
 		{
 			; //TODO - handle not reallocating loading plane later
 		}
@@ -162,11 +162,11 @@ void Heap::ChangeRoom(int newRoomNumber)
 	//deallocate old room's base/default actors
 	for (Node* actor : oldRoom->GetCurrentlyLoadedActors())
 	{
-		if (actor->GetID() == "015A" && !scene->GetClockReallocates())
+		if (actor->GetID() == 0x015A && !scene->GetClockReallocates())
 		{
 			; //we do not want to allocate the new clock if it does not reallocate in this scene
 		}
-		else if (actor->GetID() == "0018")
+		else if (actor->GetID() == 0x0018)
 		{
 			; //TODO - handle not reallocating loading plane later
 		}
@@ -191,7 +191,7 @@ void Heap::UnloadRoom(Room* room)
 	}
 }
 
-void Heap::Deallocate(std::string actorID, int priority)
+void Heap::Deallocate(int actorID, int priority)
 {
 	Node* curr = head;
 	while (curr != nullptr)
@@ -296,7 +296,7 @@ void Heap::PrintHeap(char setting) const
 	{
 		if (setting == 0)
 		{
-			if (curr->GetID() != "LINK") 
+			if (curr->GetID() != LINK_ID) 
 			{
 				std::cout << std::hex << curr->GetAddress() << ":" << curr->GetSize() << " " << curr->GetType() << " " << curr->GetID() << std::dec << std::endl;
 			}

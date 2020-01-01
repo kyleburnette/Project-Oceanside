@@ -6,11 +6,11 @@ Node::Node()
 }
 
 //TODO - probably handle this a bit better. MUCH BETTER than before, but still room for improvement
-std::map<const std::string, Node*> overlayMap = {
+std::map<int, Node*> overlayMap = {
 
 };
 
-Node::Node(std::string actorID, nlohmann::json& actorInfo, int priority)
+Node::Node(int actorID, nlohmann::json& actorInfo, int priority)
 {
 	std::string instanceSize = actorInfo["instanceSize"];
 	this->size = strtol(instanceSize.c_str(), nullptr, 16);
@@ -50,7 +50,7 @@ Node::Node(const Node& copy)
 	this->overlay = copy.GetOverlay();
 }
 
-Node::Node(int size, std::string ID, char type, Node* overlay)
+Node::Node(int size, int ID, char type, Node* overlay)
 {
 	this->size = size;
 	this->ID = ID;
@@ -58,7 +58,7 @@ Node::Node(int size, std::string ID, char type, Node* overlay)
 	this->overlay = overlay;
 }
 
-Node::Node(int address, int size, Node* prev, Node* next, char type, std::string ID)
+Node::Node(int address, int size, Node* prev, Node* next, char type, int ID)
 	: address(address), size(size), prev(prev), next(next), type(type), ID(ID)
 {
 
@@ -84,7 +84,7 @@ void Node::SetSize(int size)
 	this->size = size;
 }
 
-void Node::SetID(std::string ID)
+void Node::SetID(int ID)
 {
 	this->ID = ID;
 }
@@ -109,7 +109,7 @@ Node* Node::GetPrev() const
 	return prev;
 }
 
-std::string Node::GetID() const
+int Node::GetID() const
 {
 	return ID;
 }
