@@ -4,6 +4,7 @@
 #include "./Scene.h"
 
 /*
+FIX - debug mode doesn't work, probably because of my memory leak fix
 TODOs:
 1. [DONE] implement allocating new items that aren't part of the room (smoke, chus, arrows, bugs, fish, etc)
 2. implement checking system to compare addresses to a desired offset (i.e. 0x160 offset pot and chest)
@@ -24,7 +25,7 @@ int main()
 
 	auto start = std::chrono::high_resolution_clock::now();
 
-	int operations = 10000;
+	int operations = 1000000;
 	
 	std::cout << "Running " << operations << " permutations..." << std::endl;
 

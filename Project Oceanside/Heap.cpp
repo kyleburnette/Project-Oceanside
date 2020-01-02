@@ -225,7 +225,7 @@ void Heap::Deallocate(Node* node)
 		head->SetNext(node->GetNext()->GetNext());
 		node->GetNext()->GetNext()->SetPrev(head);
 		delete(node->GetNext());
-		//node->SetNext(nullptr); this doesn't work as intended, TODO
+		node->SetNext(nullptr);
 		currentActorCount[LINK_ID] -= 1;
 	}
 
@@ -396,6 +396,7 @@ void Heap::ResetHeap()
 		if (curr->GetID() == 0x15A && curr->GetType() == 'A' || curr->GetID() == 0x0018)
 		{
 			Deallocate(curr);
+			curr = head;
 		}
 
 		curr = curr->GetNext();
