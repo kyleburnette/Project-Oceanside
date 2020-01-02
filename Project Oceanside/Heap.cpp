@@ -373,3 +373,10 @@ void Heap::PrintCurrentActorCount() const
 		std::cout << i.first << " " << i.second << std::endl;
 	}
 }
+
+void Heap::ResetHeap()
+{
+	UnloadRoom(scene->GetRoom(currentRoomNumber));
+	ClearTemporaryActors();
+	currentRoomNumber = -1;
+}

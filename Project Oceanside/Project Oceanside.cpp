@@ -26,66 +26,72 @@ int main()
 
 	auto start = std::chrono::high_resolution_clock::now();
 
-    heap->LoadRoom(0);
-    heap->Deallocate(0x02A5, 0);
-    heap->Deallocate(0x02A5, 3);
-    heap->Deallocate(0x0082, 0);
-    heap->Deallocate(0x0082, 1);
-    heap->Deallocate(0x01E7, 0);
-    heap->Deallocate(0x01E7, 1);
-    heap->Deallocate(0x01E7, 2);
-    heap->AllocateTemporaryActor(0x000F);
-    heap->AllocateTemporaryActor(0x000F);
-    heap->AllocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x0009);
+	int operations = 1864; //FAILS AT 1865 WTF DUDE
+	for (int i = 0; i < operations; ++i)
+	{
+		heap->LoadRoom(0);
+		std::cout << i << std::endl;
+		heap->Deallocate(0x02A5, 0);
+		heap->Deallocate(0x02A5, 3);
+		heap->Deallocate(0x0082, 0);
+		heap->Deallocate(0x0082, 1);
+		heap->Deallocate(0x01E7, 0);
+		heap->Deallocate(0x01E7, 1);
+		heap->Deallocate(0x01E7, 2);
+		heap->AllocateTemporaryActor(0x000F);
+		heap->AllocateTemporaryActor(0x000F);
+		heap->AllocateTemporaryActor(0x0009);
+		heap->AllocateTemporaryActor(0x0009);
 
-    heap->ChangeRoom(1);
+		heap->ChangeRoom(1);
 
-    heap->AllocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x00A2);
-    heap->AllocateTemporaryActor(0x000F);
-    heap->AllocateTemporaryActor(0x000F);
-    heap->AllocateTemporaryActor(0x000F);
-    heap->DeallocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x0035);
-    heap->AllocateTemporaryActor(0x007B);
+		heap->AllocateTemporaryActor(0x0009);
+		heap->AllocateTemporaryActor(0x00A2);
+		heap->AllocateTemporaryActor(0x000F);
+		heap->AllocateTemporaryActor(0x000F);
+		heap->AllocateTemporaryActor(0x000F);
+		heap->DeallocateTemporaryActor(0x0009);
+		heap->AllocateTemporaryActor(0x0009);
+		heap->AllocateTemporaryActor(0x0009);
+		heap->AllocateTemporaryActor(0x0009);
+		heap->AllocateTemporaryActor(0x0035);
+		heap->AllocateTemporaryActor(0x007B);
 
-    heap->ChangeRoom(0);
+		heap->ChangeRoom(0);
 
-    heap->Deallocate(0x02A5, 0);
-    heap->Deallocate(0x02A5, 2);
-    heap->Deallocate(0x01E7, 0);
-    heap->Deallocate(0x01E7, 1);
-    heap->Deallocate(0x01E7, 2);
-    heap->Deallocate(0x01E7, 3);
-    heap->AllocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x00A2);
-    heap->DeallocateTemporaryActor(0x009);
-    heap->AllocateTemporaryActor(0x000F);
-    heap->AllocateTemporaryActor(0x000F);
+		heap->Deallocate(0x02A5, 0);
+		heap->Deallocate(0x02A5, 2);
+		heap->Deallocate(0x01E7, 0);
+		heap->Deallocate(0x01E7, 1);
+		heap->Deallocate(0x01E7, 2);
+		heap->Deallocate(0x01E7, 3);
+		heap->AllocateTemporaryActor(0x0009);
+		heap->AllocateTemporaryActor(0x00A2);
+		heap->DeallocateTemporaryActor(0x009);
+		heap->AllocateTemporaryActor(0x000F);
+		heap->AllocateTemporaryActor(0x000F);
 
-    heap->ChangeRoom(1);
+		heap->ChangeRoom(1);
 
-    heap->AllocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x00A2);
-    heap->DeallocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x003D);
+		heap->AllocateTemporaryActor(0x0009);
+		heap->AllocateTemporaryActor(0x00A2);
+		heap->DeallocateTemporaryActor(0x0009);
+		heap->AllocateTemporaryActor(0x003D);
 
-    heap->ChangeRoom(0);
+		heap->ChangeRoom(0);
 
-    heap->AllocateTemporaryActor(0x0009);
-    heap->AllocateTemporaryActor(0x00A2);
-    heap->DeallocateTemporaryActor(0x0009);
+		heap->AllocateTemporaryActor(0x0009);
+		heap->AllocateTemporaryActor(0x00A2);
+		heap->DeallocateTemporaryActor(0x0009);
 
-    heap->ChangeRoom(1);
-    heap->ChangeRoom(0);
-    heap->ChangeRoom(1);
+		heap->ChangeRoom(1);
+		heap->ChangeRoom(0);
+		heap->ChangeRoom(1);
 
+		heap->ResetHeap();
+	}
+    
     auto end = std::chrono::high_resolution_clock::now();
-
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
 	heap->PrintHeap(1);

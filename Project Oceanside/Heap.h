@@ -30,6 +30,7 @@ public:
 	Node* GetTail() const;
 	void PrintCurrentActorCount() const;
 	void ClearTemporaryActors();
+	void ResetHeap();
 
 private:
 	Scene* scene;
