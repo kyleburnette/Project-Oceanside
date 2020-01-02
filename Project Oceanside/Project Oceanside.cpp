@@ -24,7 +24,7 @@ int main()
 
 	auto start = std::chrono::high_resolution_clock::now();
 
-	int operations = 1000000;
+	int operations = 10000;
 	
 	std::cout << "Running " << operations << " permutations..." << std::endl;
 
