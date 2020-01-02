@@ -5,8 +5,6 @@
 
 /*
 TODOs:
-*** maybe make temporary actors (bombs, etc.) go into currentlyLoadedActors instead of their
-own vector
 1. [DONE] implement allocating new items that aren't part of the room (smoke, chus, arrows, bugs, fish, etc)
 2. implement checking system to compare addresses to a desired offset (i.e. 0x160 offset pot and chest)
 3. implement permutation generation and running those permutations
@@ -28,6 +26,8 @@ int main()
 
 	int operations = 10000;
 	
+	std::cout << "Running " << operations << " permutations..." << std::endl;
+
 	for (int i = 0; i < operations; ++i)
 	{
 		heap->LoadRoom(0);
@@ -93,8 +93,6 @@ int main()
     
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-
-	heap->PrintHeap(1);
 
     std::cout << operations << " Operations ran in: " << duration.count() << " microseconds" << std::endl;
 	std::cout << "Time per permutation: " << duration.count() / static_cast<float>(operations) << " microseconds"  << std::endl;
