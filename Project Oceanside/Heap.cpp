@@ -224,6 +224,9 @@ void Heap::Deallocate(Node* node)
 	{
 		head->SetNext(node->GetNext()->GetNext());
 		node->GetNext()->GetNext()->SetPrev(head);
+		delete(node->GetNext());
+		//node->SetNext(nullptr); this doesn't work as intended, TODO
+		currentActorCount[LINK_ID] -= 1;
 	}
 
 	//these next two should almost never happen unless the heap is VERY full
