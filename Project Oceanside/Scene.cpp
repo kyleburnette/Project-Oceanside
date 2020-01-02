@@ -60,7 +60,6 @@ Scene::Scene()
             newRoom->AddActor(newActor);
         }
 
-        //newRoom->Memes();
         rooms.push_back(newRoom);
         roomCount++;
     }

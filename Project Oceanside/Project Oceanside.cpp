@@ -26,11 +26,11 @@ int main()
 
 	auto start = std::chrono::high_resolution_clock::now();
 
-	int operations = 1864; //FAILS AT 1865 WTF DUDE
+	int operations = 10000;
+	
 	for (int i = 0; i < operations; ++i)
 	{
 		heap->LoadRoom(0);
-		std::cout << i << std::endl;
 		heap->Deallocate(0x02A5, 0);
 		heap->Deallocate(0x02A5, 3);
 		heap->Deallocate(0x0082, 0);
@@ -96,7 +96,8 @@ int main()
 
 	heap->PrintHeap(1);
 
-    std::cout << "Operation ran in: " << duration.count() << " microseconds" << std::endl;
+    std::cout << operations << " Operations ran in: " << duration.count() << " microseconds" << std::endl;
+	std::cout << "Time per permutation: " << duration.count() / static_cast<float>(operations) << " microseconds"  << std::endl;
     
     delete(scene);
     delete(heap);

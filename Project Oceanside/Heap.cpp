@@ -45,6 +45,7 @@ void Heap::DeallocateTemporaryActor(int actorID)
 		{
 			temporaryActors.erase(std::remove(temporaryActors.begin(), temporaryActors.end(), node), temporaryActors.end());
 			Deallocate(node);
+			delete(node);
 			return;
 		}
 	}
@@ -377,6 +378,21 @@ void Heap::PrintCurrentActorCount() const
 void Heap::ResetHeap()
 {
 	UnloadRoom(scene->GetRoom(currentRoomNumber));
+
+	Node* curr = head;
+
+	//handle this better later
+	while (curr->GetNext() != nullptr)
+	{
+		if (curr->GetID() == 0x15A && curr->GetType() == 'A' || curr->GetID() == 0x0018)
+		{
+			Deallocate(curr);
+		}
+
+		curr = curr->GetNext();
+	}
+
 	ClearTemporaryActors();
 	currentRoomNumber = -1;
+
 }
