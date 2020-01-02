@@ -46,6 +46,7 @@ void Heap::DeallocateTemporaryActor(int actorID)
 			temporaryActors.erase(std::remove(temporaryActors.begin(), temporaryActors.end(), node), temporaryActors.end());
 			Deallocate(node);
 			delete(node);
+			node = nullptr;
 			return;
 		}
 	}
@@ -58,6 +59,7 @@ void Heap::ClearTemporaryActors()
 	for (Node* actor : temporaryActors)
 	{
 		delete(actor);
+		actor = nullptr;
 	}
 
 	temporaryActors.clear();
@@ -243,7 +245,9 @@ void Heap::Deallocate(Node* node)
 		node->GetPrev()->GetPrev()->SetNext(node->GetNext()->GetNext());
 		node->GetNext()->GetNext()->SetPrev(node->GetPrev()->GetPrev());
 		delete(node->GetNext());
+		node->SetNext(nullptr);
 		delete(node->GetPrev());
+		node->SetPrev(nullptr);
 		currentActorCount[LINK_ID] -= 2;
 	}
 	else if (node->GetNext()->GetNext()->GetType() == LINK_TYPE)
@@ -251,6 +255,7 @@ void Heap::Deallocate(Node* node)
 		node->GetPrev()->SetNext(node->GetNext()->GetNext());
 		node->GetNext()->GetNext()->SetPrev(node->GetPrev());
 		delete(node->GetNext());
+		node->SetNext(nullptr);
 		currentActorCount[LINK_ID] -= 1;
 	}
 	else if (node->GetPrev()->GetPrev()->GetType() == LINK_TYPE)
@@ -258,6 +263,7 @@ void Heap::Deallocate(Node* node)
 		node->GetNext()->SetPrev(node->GetPrev()->GetPrev());
 		node->GetPrev()->GetPrev()->SetNext(node->GetNext());
 		delete(node->GetPrev());
+		node->SetPrev(nullptr);
 		currentActorCount[LINK_ID] -= 1;
 	}
 
@@ -382,7 +388,7 @@ void Heap::ResetHeap()
 	Node* curr = head;
 
 	//handle this better later
-	while (curr->GetNext() != nullptr)
+	while (curr != nullptr)
 	{
 		if (curr->GetID() == 0x15A && curr->GetType() == 'A' || curr->GetID() == 0x0018)
 		{
@@ -391,6 +397,8 @@ void Heap::ResetHeap()
 
 		curr = curr->GetNext();
 	}
+
+	scene->GetRoom(0)->ResetCurrentlyLoadedActors();
 
 	ClearTemporaryActors();
 	currentRoomNumber = -1;

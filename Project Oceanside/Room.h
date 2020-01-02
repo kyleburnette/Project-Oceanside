@@ -18,6 +18,8 @@ public:
 	void Memes();
 	void RemoveCurrentlyLoadedActor(Node* node);
 	void PrintCurrentlyLoadedActors() const;
+	void PrintSize() const;
+	void ResetCurrentlyLoadedActors();
 	
 private:
 	std::vector<Node*> allActors;

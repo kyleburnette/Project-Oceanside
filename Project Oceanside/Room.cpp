@@ -43,3 +43,13 @@ void Room::PrintCurrentlyLoadedActors() const
 		std::cout << node->GetID() << " " << node->GetPriority() << std::endl;
 	}
 }
+
+void Room::PrintSize() const
+{
+	std::cout << currentlyLoadedActors.size() << std::endl;
+}
+
+void Room::ResetCurrentlyLoadedActors()
+{
+	currentlyLoadedActors.clear();
+}
