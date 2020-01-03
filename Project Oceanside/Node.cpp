@@ -133,3 +133,13 @@ int Node::GetPriority() const
 {
 	return priority;
 }
+
+void Node::SetSpawnerOffspring(Node* node)
+{
+	spawnerOffspring.push_back(node);
+}
+
+std::vector<Node*> Node::GetSpawnerOffspring()
+{
+	return spawnerOffspring;
+}

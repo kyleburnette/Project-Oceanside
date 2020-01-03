@@ -113,6 +113,11 @@ void Heap::Allocate(Node* node)
 		}
 		
 	}
+
+	if (!node->GetSpawnerOffspring().empty())
+	{
+		spawnersToAllocate.push_back(node);
+	}
 }
 
 void Heap::LoadRoom(int roomNumber)
@@ -122,7 +127,24 @@ void Heap::LoadRoom(int roomNumber)
 	{
 		room->AddCurrentlyLoadedActor(actor);
 		Allocate(actor);
+
+		if (!actor->GetSpawnerOffspring().empty())
+		{
+			spawnersToAllocate.push_back(actor);
+		}
 	}
+
+	for (Node* actor : spawnersToAllocate)
+	{
+		for (Node* offspring : actor->GetSpawnerOffspring())
+		{
+			room->AddCurrentlyLoadedActor(offspring);
+			Allocate(offspring);
+		}
+	}
+
+	spawnersToAllocate.clear();
+
 	this->currentRoomNumber = roomNumber;
 }
 
@@ -153,6 +175,18 @@ void Heap::ChangeRoom(int newRoomNumber)
 			Allocate(actor);
 		}
 	}
+
+	//allocate spawner stuff
+	for (Node* spawner : spawnersToAllocate)
+	{
+		for (Node* offspring : spawner->GetSpawnerOffspring())
+		{
+			newRoom->AddCurrentlyLoadedActor(offspring);
+			Allocate(offspring);
+		}
+	}
+
+	spawnersToAllocate.clear();
 
 	//deallocate temporary actors from old room (bombs, bugs, etc.) and reset temp actor vector
 	for (Node* actor : temporaryActors)

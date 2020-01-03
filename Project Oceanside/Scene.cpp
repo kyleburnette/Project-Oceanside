@@ -55,9 +55,61 @@ Scene::Scene()
             {
                 actorCount[actor]++;
             }
-               
-            Node* newActor = new Node(strtol(actor.c_str(), nullptr, 16), actorJson[actor], actorCount[actor]);
-            newRoom->AddActor(newActor);
+
+			//This is VERY spaghetti right now, TODO - fix
+			if (actor == "00B3g")
+			{
+				if (actorCount.count("00B3") == 0)
+				{
+					actorCount["00B3"] = 0;
+				}
+				else
+				{
+					actorCount["00B3"]++;
+				}
+
+				std::string parentString = "00B3";
+				std::string offspringString = "0090";
+
+				Node* newActor = new Node(strtol(parentString.c_str(), nullptr, 16), actorJson[parentString], actorCount[parentString]);
+				for (int i = 0; i <= 8; ++i)
+				{
+					Node* newOffspring = new Node(strtol(offspringString.c_str(), nullptr, 16), actorJson["0090"], actorCount["0090"]);
+					newActor->SetSpawnerOffspring(newOffspring);
+				}
+
+				newRoom->AddActor(newActor);
+			}
+
+			else if (actor == "00B3r")
+			{
+				if (actorCount.count("00B3") == 0)
+				{
+					actorCount["00B3"] = 0;
+				}
+				else
+				{
+					actorCount["00B3"]++;
+				}
+
+				std::string parentString = "00B3";
+				std::string offspringString = "00B0";
+				Node* newActor = new Node(strtol(parentString.c_str(), nullptr, 16), actorJson[parentString], actorCount[parentString]);
+				for (int i = 0; i <= 9; ++i)
+				{
+					Node* newOffspring = new Node(strtol(offspringString.c_str(), nullptr, 16), actorJson[offspringString], actorCount[offspringString]);
+					newActor->SetSpawnerOffspring(newOffspring);
+				}
+
+				newRoom->AddActor(newActor);
+			}
+             
+			else
+			{
+				Node* newActor = new Node(strtol(actor.c_str(), nullptr, 16), actorJson[actor], actorCount[actor]);
+				newRoom->AddActor(newActor);
+			}
+            
         }
 
         rooms.push_back(newRoom);

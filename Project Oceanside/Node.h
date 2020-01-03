@@ -29,6 +29,8 @@ public:
 	char GetType() const;
 	void SetType(char type);
 	int GetPriority() const;
+	void SetSpawnerOffspring(Node* node);
+	std::vector<Node*> GetSpawnerOffspring();
 
 private:
 	Node* next = nullptr;
@@ -39,6 +41,7 @@ private:
 	char type = 'x';
 	Node* overlay = nullptr;
 	int priority = 0;
+	std::vector<Node*> spawnerOffspring;
 };
 
 

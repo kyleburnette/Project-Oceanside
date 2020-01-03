@@ -46,5 +46,6 @@ private:
 	std::map<int, int> currentActorCount;
 	std::vector<Node*> temporaryActors;
 	std::map<int, Node*> possibleTemporaryActors;
+	std::vector<Node*> spawnersToAllocate;
 };
 
