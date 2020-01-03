@@ -122,6 +122,11 @@ void Heap::Allocate(Node* node)
 
 void Heap::LoadRoom(int roomNumber)
 {
+	if (currentRoomNumber != -1)
+	{
+		std::cerr << "This function can only be used before a room is initially loaded.";
+		return;
+	}
 	Room* room = scene->GetRoom(roomNumber);
 	for (Node* actor : room->GetAllActors())
 	{

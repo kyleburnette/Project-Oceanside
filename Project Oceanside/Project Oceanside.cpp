@@ -29,9 +29,7 @@ int main()
 	
 	std::cout << "Running " << operations << " permutations..." << std::endl;
 
-	heap->LoadRoom(1);
-
-	/*for (int i = 0; i < operations; ++i)
+	for (int i = 0; i < operations; ++i)
 	{
 		heap->LoadRoom(0);
 		heap->Deallocate(0x02A5, 0);
@@ -92,7 +90,7 @@ int main()
 		heap->ChangeRoom(1);
 
 		heap->ResetHeap();
-	}*/
+	}
     
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
