@@ -151,6 +151,18 @@ void Heap::LoadRoom(int roomNumber)
 		{
 			extraStalchildren.push_back(actor);
 		}
+		else if (actor->GetID() == 0x00ED)
+		{
+			room->AddCurrentlyLoadedActor(actor);
+			Allocate(actor);
+			deallocatableActors.push_back(actor);
+		}
+		else if (actor->GetID() == 0x0265)
+		{
+			room->AddCurrentlyLoadedActor(actor);
+			Allocate(actor);
+			deallocatableActors.push_back(actor);
+		}
 		else
 		{
 			room->AddCurrentlyLoadedActor(actor);
@@ -195,6 +207,8 @@ void Heap::ChangeRoom(int newRoomNumber)
 	Node* newClock = nullptr;
 	Node* newDampe = nullptr;
 
+	deallocatableActors.clear();
+
 	//allocate new room first
 	for (Node* actor : newRoom->GetAllActors())
 	{
@@ -218,6 +232,13 @@ void Heap::ChangeRoom(int newRoomNumber)
 		else if (actor->GetID() == 0x0018)
 		{
 			; //TODO - handle not reallocating loading planes later
+		}
+
+		else if (actor->GetID() == 0x0265 || actor->GetID() == 0x00ED)
+		{
+			newRoom->AddCurrentlyLoadedActor(actor);
+			Allocate(actor);
+			deallocatableActors.push_back(actor);
 		}
 
 		else
@@ -289,12 +310,29 @@ void Heap::ChangeRoom(int newRoomNumber)
 	{
 		newRoom->AddCurrentlyLoadedActor(offspring);
 		Allocate(offspring);
+		deallocatableActors.push_back(offspring);
 	}
 
 	offspringToAllocate.clear();
 
 	//update room number to room number of room we're changing to
 	this->currentRoomNumber = newRoomNumber;
+}
+
+std::pair<int, int> Heap::DeallocateRandomActor()
+{
+	srand(time(NULL));
+	char rng = rand() % deallocatableActors.size();
+
+	Node* nodeToDeallocate = deallocatableActors[rng];
+
+	Deallocate(deallocatableActors[rng]);
+	deallocatableActors.erase(std::remove(deallocatableActors.begin(), deallocatableActors.end(), nodeToDeallocate), deallocatableActors.end());
+
+	std::pair<int, int> pair;
+	pair.first = nodeToDeallocate->GetID();
+	pair.second = nodeToDeallocate->GetPriority();
+	return pair;
 }
 
 void Heap::UnloadRoom(int roomNumber)

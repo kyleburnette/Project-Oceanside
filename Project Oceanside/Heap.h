@@ -3,6 +3,8 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <random>
+#include <time.h>
 
 #include "Scene.h"
 #include "Node.h"
@@ -32,6 +34,7 @@ public:
 	void PrintCurrentActorCount() const;
 	void ClearTemporaryActors();
 	void ResetHeap();
+	std::pair<int, int> DeallocateRandomActor();
 
 private:
 	Scene* scene;
@@ -49,5 +52,6 @@ private:
 	std::vector<Node*> temporaryActors;
 	std::map<int, Node*> possibleTemporaryActors;
 	std::vector<Node*> offspringToAllocate;
+	std::vector<Node*> deallocatableActors;
 };
 
