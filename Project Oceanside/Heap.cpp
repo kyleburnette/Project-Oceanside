@@ -126,6 +126,8 @@ void Heap::Allocate(Node* node)
 
 void Heap::LoadRoom(int roomNumber)
 {
+	/*HARDCODING THIS SPECIFICALLY FOR NIGHT 1 GRAVEYARD FOR NOW!*/
+
 	if (currentRoomNumber != -1)
 	{
 		std::cerr << "This function can only be used before a room is initially loaded.";
@@ -134,11 +136,41 @@ void Heap::LoadRoom(int roomNumber)
 
 	Room* room = scene->GetRoom(roomNumber);
 
+	char stalchildCount = 0;
+	std::vector<Node*> extraStalchildren;
 	//load room's actors
 	for (Node* actor : room->GetAllActors())
 	{
-		room->AddCurrentlyLoadedActor(actor);
-		Allocate(actor);
+		if (actor->GetID() == 0x0212 && stalchildCount < 1)
+		{
+			room->AddCurrentlyLoadedActor(actor);
+			Allocate(actor);
+			stalchildCount++;
+		}
+		else if (actor->GetID() == 0x212 && stalchildCount >= 1)
+		{
+			extraStalchildren.push_back(actor);
+		}
+		else
+		{
+			room->AddCurrentlyLoadedActor(actor);
+			Allocate(actor);
+		}
+
+		if (actor->IsDeallocatable())
+		{
+			deallocatableActors.push_back(actor);
+		}
+	}
+
+	for (Node* stalchild : extraStalchildren)
+	{
+		room->AddCurrentlyLoadedActor(stalchild);
+		Allocate(stalchild);
+		if (stalchild->IsDeallocatable())
+		{
+			deallocatableActors.push_back(stalchild);
+		}
 	}
 
 	//allocate spawner offspring actors
@@ -146,11 +178,18 @@ void Heap::LoadRoom(int roomNumber)
 	{
 		room->AddCurrentlyLoadedActor(offspring);
 		Allocate(offspring);
+
+		deallocatableActors.push_back(offspring);
 	}
 
 	offspringToAllocate.clear();
 	this->initiallyLoadedRoomNumber = roomNumber;
 	this->currentRoomNumber = roomNumber;
+
+	for (auto actor : deallocatableActors)
+	{
+		std::cout << actor->GetID() << std::endl;
+	}
 }
 
 void Heap::ChangeRoom(int newRoomNumber)
@@ -175,19 +214,18 @@ void Heap::ChangeRoom(int newRoomNumber)
 	//allocate new room first
 	for (Node* actor : newRoom->GetAllActors())
 	{
-		if (actor->GetID() == 0x015A && !scene->GetClockReallocates() || actor->GetID() == 0x015A && newRoomNumber == initiallyLoadedRoomNumber)
+		if (actor->GetID() == 0x015A && !scene->GetClockReallocates())
 		{
 			; //we do not want to allocate the new clock if it does not reallocate in this scene OR if it does reallocate and we're
 				//going back into the first room that was loaded
 		}
 
-		else if (actor->GetID() == 0x015A && scene->GetClockReallocates() && newRoomNumber != initiallyLoadedRoomNumber)
+		else if (actor->GetID() == 0x015A && scene->GetClockReallocates())
 		{
 			newClock = new Node(*actor);
 			Allocate(newClock);
 		}
-
-		else if (actor->GetID() == 0x01CA && newRoomNumber == initiallyLoadedRoomNumber)
+		else if (actor->GetID() == 0x01CA)
 		{
 			newDampe = new Node(*actor);
 			Allocate(newDampe);
@@ -205,29 +243,19 @@ void Heap::ChangeRoom(int newRoomNumber)
 		}
 	}
 
-	//allocate spawner stuff
-	for (Node* offspring : offspringToAllocate)
-	{
-		newRoom->AddCurrentlyLoadedActor(offspring);
-		Allocate(offspring);
-	}
-
-	offspringToAllocate.clear();
-
 	//deallocate new clock 
-	if (scene->GetClockReallocates() && newRoomNumber != initiallyLoadedRoomNumber)
+	if (newClock != nullptr)
 	{
-		std::cout << "clock deleted" << std::endl;
 		Deallocate(newClock);
 		delete(newClock);
 		newClock = nullptr;
 	}
 
 	//deallocate new dampe 
-	if (newDampe != nullptr && newRoomNumber != initiallyLoadedRoomNumber)
+	if (newDampe != nullptr)
 	{
-		std::cout << "new dampe deleted" << std::endl;
 		Deallocate(newDampe);
+		delete(newDampe);
 		newDampe = nullptr;
 	}
 
@@ -242,6 +270,7 @@ void Heap::ChangeRoom(int newRoomNumber)
 	//deallocate old room's base/default actors
 	for (Node* actor : oldRoom->GetCurrentlyLoadedActors())
 	{
+		//super spaghetti, I'll clean this up later
 		if (actor->GetID() == 0x015A && !scene->GetClockReallocates())
 		{
 			; //we do not want to allocate the new clock if it does not reallocate in this scene
@@ -250,7 +279,11 @@ void Heap::ChangeRoom(int newRoomNumber)
 		{
 			; //we do not want to allocate the new clock if it does not reallocate in this scene
 		}
-		else if (actor->GetID() == 0x015A && newRoomNumber == initiallyLoadedRoomNumber)
+		else if (actor->GetID() == 0x015A && newRoomNumber != initiallyLoadedRoomNumber)
+		{
+			; //we do not want to allocate the new clock if it does not reallocate in this scene
+		}
+		else if (actor->GetID() == 0x01CA && newRoomNumber != initiallyLoadedRoomNumber)
 		{
 			; //we do not want to allocate the new clock if it does not reallocate in this scene
 		}
@@ -266,6 +299,15 @@ void Heap::ChangeRoom(int newRoomNumber)
 
 	//clear old room's currently loaded actors (since they in fact are not currently loaded anymore)
 	oldRoom->GetCurrentlyLoadedActors().clear();
+
+	//allocate spawner stuff
+	for (Node* offspring : offspringToAllocate)
+	{
+		newRoom->AddCurrentlyLoadedActor(offspring);
+		Allocate(offspring);
+	}
+
+	offspringToAllocate.clear();
 
 	//update room number to room number of room we're changing to
 	this->currentRoomNumber = newRoomNumber;
