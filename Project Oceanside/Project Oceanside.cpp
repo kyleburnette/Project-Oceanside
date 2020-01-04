@@ -11,7 +11,7 @@ TODOs:
 3. implement permutation generation and running those permutations
     -random? something else?
 4. implement ISoT and scarecrow memory leaks
-5. implement spawner behavior
+5. [DONE] implement spawner behavior
 6. implement enemies or whatever dying and dropping things (tokens, magic drops, etc.)
 */
 
@@ -29,7 +29,11 @@ int main()
 	
 	std::cout << "Running " << operations << " permutations..." << std::endl;
 
-	for (int i = 0; i < operations; ++i)
+	heap->LoadRoom(0);
+	heap->ChangeRoom(1);
+	heap->ChangeRoom(0);
+
+	/*for (int i = 0; i < operations; ++i)
 	{
 		heap->LoadRoom(0);
 		heap->Deallocate(0x02A5, 0);
@@ -90,12 +94,12 @@ int main()
 		heap->ChangeRoom(1);
 
 		heap->ResetHeap();
-	}
+	}*/
     
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
-	heap->PrintHeap(1);
+	heap->PrintHeap(0);
 
     std::cout << operations << " Operations ran in: " << duration.count() << " microseconds" << std::endl;
 	std::cout << "Time per permutation: " << duration.count() / static_cast<float>(operations) << " microseconds"  << std::endl;

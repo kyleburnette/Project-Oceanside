@@ -95,7 +95,7 @@ Scene::Scene()
 				std::string parentString = "00B3";
 				std::string offspringString = "00B0";
 				Node* newActor = new Node(strtol(parentString.c_str(), nullptr, 16), actorJson[parentString], actorCount[parentString]);
-				for (int i = 0; i <= 9; ++i)
+				for (int i = 0; i < 8; ++i)
 				{
 					Node* newOffspring = new Node(strtol(offspringString.c_str(), nullptr, 16), actorJson[offspringString], actorCount[offspringString]);
 					newActor->SetSpawnerOffspring(newOffspring);
