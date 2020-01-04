@@ -38,6 +38,7 @@ private:
 	Node* head;
 	Node* tail;
 	int currentRoomNumber = -1;
+	int initiallyLoadedRoomNumber = -1;
 	const int start_address;
 	const int end_address;
 	const int LINK_SIZE = 0x10;

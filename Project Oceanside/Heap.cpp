@@ -21,6 +21,7 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 	possibleTemporaryActors[0x000F] = new Node(0x000F, scene->GetActorJSON()["000F"], 0);
 	possibleTemporaryActors[0x0035] = new Node(0x0035, scene->GetActorJSON()["0035"], 0);
 	possibleTemporaryActors[0x007B] = new Node(0x007B, scene->GetActorJSON()["007B"], 0);
+	possibleTemporaryActors[0x015A] = new Node(0x015A, scene->GetActorJSON()["015A"], 0);
 };
 
 Heap::~Heap()
@@ -148,6 +149,7 @@ void Heap::LoadRoom(int roomNumber)
 	}
 
 	offspringToAllocate.clear();
+	this->initiallyLoadedRoomNumber = roomNumber;
 	this->currentRoomNumber = roomNumber;
 }
 
@@ -167,18 +169,35 @@ void Heap::ChangeRoom(int newRoomNumber)
 
 	Room* oldRoom = scene->GetRoom(currentRoomNumber);
 	Room* newRoom = scene->GetRoom(newRoomNumber);
+	Node* newClock = nullptr;
+	Node* newDampe = nullptr;
 
 	//allocate new room first
 	for (Node* actor : newRoom->GetAllActors())
 	{
-		if (actor->GetID() == 0x015A && !scene->GetClockReallocates())
+		if (actor->GetID() == 0x015A && !scene->GetClockReallocates() || actor->GetID() == 0x015A && newRoomNumber == initiallyLoadedRoomNumber)
 		{
-			; //we do not want to allocate the new clock if it does not reallocate in this scene
+			; //we do not want to allocate the new clock if it does not reallocate in this scene OR if it does reallocate and we're
+				//going back into the first room that was loaded
 		}
+
+		else if (actor->GetID() == 0x015A && scene->GetClockReallocates() && newRoomNumber != initiallyLoadedRoomNumber)
+		{
+			newClock = new Node(*actor);
+			Allocate(newClock);
+		}
+
+		else if (actor->GetID() == 0x01CA && newRoomNumber == initiallyLoadedRoomNumber)
+		{
+			newDampe = new Node(*actor);
+			Allocate(newDampe);
+		}
+
 		else if (actor->GetID() == 0x0018)
 		{
-			; //TODO - handle not reallocating loading plane later
+			; //TODO - handle not reallocating loading planes later
 		}
+
 		else
 		{
 			newRoom->AddCurrentlyLoadedActor(actor);
@@ -195,6 +214,23 @@ void Heap::ChangeRoom(int newRoomNumber)
 
 	offspringToAllocate.clear();
 
+	//deallocate new clock 
+	if (scene->GetClockReallocates() && newRoomNumber != initiallyLoadedRoomNumber)
+	{
+		std::cout << "clock deleted" << std::endl;
+		Deallocate(newClock);
+		delete(newClock);
+		newClock = nullptr;
+	}
+
+	//deallocate new dampe 
+	if (newDampe != nullptr && newRoomNumber != initiallyLoadedRoomNumber)
+	{
+		std::cout << "new dampe deleted" << std::endl;
+		Deallocate(newDampe);
+		newDampe = nullptr;
+	}
+
 	//deallocate temporary actors from old room (bombs, bugs, etc.) and reset temp actor vector
 	for (Node* actor : temporaryActors)
 	{
@@ -203,12 +239,18 @@ void Heap::ChangeRoom(int newRoomNumber)
 
 	ClearTemporaryActors();
 
-	
-
 	//deallocate old room's base/default actors
 	for (Node* actor : oldRoom->GetCurrentlyLoadedActors())
 	{
 		if (actor->GetID() == 0x015A && !scene->GetClockReallocates())
+		{
+			; //we do not want to allocate the new clock if it does not reallocate in this scene
+		}
+		else if (actor->GetID() == 0x015A && scene->GetClockReallocates())
+		{
+			; //we do not want to allocate the new clock if it does not reallocate in this scene
+		}
+		else if (actor->GetID() == 0x015A && newRoomNumber == initiallyLoadedRoomNumber)
 		{
 			; //we do not want to allocate the new clock if it does not reallocate in this scene
 		}

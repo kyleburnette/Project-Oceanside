@@ -31,7 +31,6 @@ int main()
 
 	heap->LoadRoom(0);
 	heap->ChangeRoom(1);
-	heap->ChangeRoom(0);
 
 	/*for (int i = 0; i < operations; ++i)
 	{
@@ -101,7 +100,7 @@ int main()
 
 	heap->PrintHeap(0);
 
-    std::cout << operations << " Operations ran in: " << duration.count() << " microseconds" << std::endl;
+	std::cout << operations << " Operations ran in: " << duration.count() << " microseconds" << std::endl;
 	std::cout << "Time per permutation: " << duration.count() / static_cast<float>(operations) << " microseconds"  << std::endl;
     
     delete(scene);
