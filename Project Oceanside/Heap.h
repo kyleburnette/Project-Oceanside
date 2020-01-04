@@ -17,9 +17,10 @@ public:
 	void AllocateTemporaryActor(int actorID);
 	void Deallocate(int actorID, int priority);
 	void Deallocate(Node* node);
+	void DeallocateClockAndPlane(Node* node);
 	void DeallocateTemporaryActor(int actorID);
 	void LoadRoom(int roomNumber);
-	void UnloadRoom(Room* room);
+	void UnloadRoom(int roomNumber);
 	void ChangeRoom(int newRoomNumber);
 	void PrintHeap(char setting) const;
 	void DeleteHeap();
@@ -46,6 +47,6 @@ private:
 	std::map<int, int> currentActorCount;
 	std::vector<Node*> temporaryActors;
 	std::map<int, Node*> possibleTemporaryActors;
-	std::vector<Node*> spawnersToAllocate;
+	std::vector<Node*> offspringToAllocate;
 };
 

@@ -114,9 +114,12 @@ void Heap::Allocate(Node* node)
 		
 	}
 
-	if (!node->GetSpawnerOffspring().empty())
+	if (!node->GetOffspring().empty())
 	{
-		spawnersToAllocate.push_back(node);
+		for (Node* offspring : node->GetOffspring())
+		{
+			offspringToAllocate.push_back(offspring);
+		}
 	}
 }
 
@@ -127,29 +130,24 @@ void Heap::LoadRoom(int roomNumber)
 		std::cerr << "This function can only be used before a room is initially loaded.";
 		return;
 	}
+
 	Room* room = scene->GetRoom(roomNumber);
+
+	//load room's actors
 	for (Node* actor : room->GetAllActors())
 	{
 		room->AddCurrentlyLoadedActor(actor);
 		Allocate(actor);
-
-		if (!actor->GetSpawnerOffspring().empty())
-		{
-			spawnersToAllocate.push_back(actor);
-		}
 	}
 
-	for (Node* actor : spawnersToAllocate)
+	//allocate spawner offspring actors
+	for (Node* offspring : offspringToAllocate)
 	{
-		for (Node* offspring : actor->GetSpawnerOffspring())
-		{
-			room->AddCurrentlyLoadedActor(offspring);
-			Allocate(offspring);
-		}
+		room->AddCurrentlyLoadedActor(offspring);
+		Allocate(offspring);
 	}
 
-	spawnersToAllocate.clear();
-
+	offspringToAllocate.clear();
 	this->currentRoomNumber = roomNumber;
 }
 
@@ -157,9 +155,16 @@ void Heap::ChangeRoom(int newRoomNumber)
 {
 	if (newRoomNumber == currentRoomNumber)
 	{
-		std::cerr << "Room number {" << newRoomNumber << "} is already loaded!";
+		std::cerr << "Room number {" << newRoomNumber << "} is already loaded!" << std::endl;
 		return;
 	}
+
+	else if (currentRoomNumber == -1)
+	{
+		std::cerr << "ChangeRoom(int newRoomNumber) can only be used if a room is already loaded." << std::endl;
+		return;
+	}
+
 	Room* oldRoom = scene->GetRoom(currentRoomNumber);
 	Room* newRoom = scene->GetRoom(newRoomNumber);
 
@@ -182,16 +187,13 @@ void Heap::ChangeRoom(int newRoomNumber)
 	}
 
 	//allocate spawner stuff
-	for (Node* spawner : spawnersToAllocate)
+	for (Node* offspring : offspringToAllocate)
 	{
-		for (Node* offspring : spawner->GetSpawnerOffspring())
-		{
-			newRoom->AddCurrentlyLoadedActor(offspring);
-			Allocate(offspring);
-		}
+		newRoom->AddCurrentlyLoadedActor(offspring);
+		Allocate(offspring);
 	}
 
-	spawnersToAllocate.clear();
+	offspringToAllocate.clear();
 
 	//deallocate temporary actors from old room (bombs, bugs, etc.) and reset temp actor vector
 	for (Node* actor : temporaryActors)
@@ -200,6 +202,8 @@ void Heap::ChangeRoom(int newRoomNumber)
 	}
 
 	ClearTemporaryActors();
+
+	
 
 	//deallocate old room's base/default actors
 	for (Node* actor : oldRoom->GetCurrentlyLoadedActors())
@@ -225,12 +229,20 @@ void Heap::ChangeRoom(int newRoomNumber)
 	this->currentRoomNumber = newRoomNumber;
 }
 
-void Heap::UnloadRoom(Room* room)
+void Heap::UnloadRoom(int roomNumber)
 {
-	for (Node* actor : room->GetCurrentlyLoadedActors())
+	if (roomNumber != currentRoomNumber)
+	{
+		std::cerr << "Room " << roomNumber << " is not loaded, so it cannot be unloaded." << std::endl;
+		return;
+	}
+
+	for (Node* actor : scene->GetRoom(roomNumber)->GetCurrentlyLoadedActors())
 	{
 		Deallocate(actor);
 	}
+
+	currentRoomNumber = -1;
 }
 
 void Heap::Deallocate(int actorID, int priority)
@@ -329,6 +341,85 @@ void Heap::Deallocate(Node* node)
 	scene->GetRoom(currentRoomNumber)->RemoveCurrentlyLoadedActor(node);
 }
 
+//fix this later
+void Heap::DeallocateClockAndPlane(Node* node)
+{
+	//first two are for deallocating things at the very beginning of the heap
+	if (node->GetPrev()->GetPrev() == nullptr && node->GetNext()->GetNext()->GetType() != LINK_TYPE)
+	{
+		head->SetNext(node->GetNext());
+		node->GetNext()->SetPrev(head);
+
+	}
+
+	else if (node->GetPrev()->GetPrev() == nullptr && node->GetNext()->GetNext()->GetType() == LINK_TYPE)
+	{
+		head->SetNext(node->GetNext()->GetNext());
+		node->GetNext()->GetNext()->SetPrev(head);
+		delete(node->GetNext());
+		node->SetNext(nullptr);
+		currentActorCount[LINK_ID] -= 1;
+	}
+
+	//these next two should almost never happen unless the heap is VERY full
+	else if (node->GetNext()->GetNext() == nullptr && node->GetPrev()->GetPrev()->GetType() != LINK_TYPE)
+	{
+		tail->SetPrev(node->GetPrev());
+		node->GetPrev()->SetNext(tail);
+	}
+
+	else if (node->GetNext()->GetNext() == nullptr && node->GetPrev()->GetPrev()->GetType() == LINK_TYPE)
+	{
+		tail->SetPrev(node->GetPrev()->GetPrev());
+		node->GetPrev()->GetPrev()->SetNext(tail);
+	}
+
+	//this handles a situation where there are two nodes in front and two nodes behind
+	else if (node->GetNext()->GetNext()->GetType() == LINK_TYPE && node->GetPrev()->GetPrev()->GetType() == LINK_TYPE)
+	{
+		node->GetPrev()->GetPrev()->SetNext(node->GetNext()->GetNext());
+		node->GetNext()->GetNext()->SetPrev(node->GetPrev()->GetPrev());
+		delete(node->GetNext());
+		node->SetNext(nullptr);
+		delete(node->GetPrev());
+		node->SetPrev(nullptr);
+		currentActorCount[LINK_ID] -= 2;
+	}
+	else if (node->GetNext()->GetNext()->GetType() == LINK_TYPE)
+	{
+		node->GetPrev()->SetNext(node->GetNext()->GetNext());
+		node->GetNext()->GetNext()->SetPrev(node->GetPrev());
+		delete(node->GetNext());
+		node->SetNext(nullptr);
+		currentActorCount[LINK_ID] -= 1;
+	}
+	else if (node->GetPrev()->GetPrev()->GetType() == LINK_TYPE)
+	{
+		node->GetNext()->SetPrev(node->GetPrev()->GetPrev());
+		node->GetPrev()->GetPrev()->SetNext(node->GetNext());
+		delete(node->GetPrev());
+		node->SetPrev(nullptr);
+		currentActorCount[LINK_ID] -= 1;
+	}
+
+	else
+	{
+		node->GetPrev()->SetNext(node->GetNext());
+		node->GetNext()->SetPrev(node->GetPrev());
+	}
+
+	//deallocating the overlay should not decrease number of actors loaded
+	if (node->GetType() != OVERLAY_TYPE)
+	{
+		currentActorCount[node->GetID()]--;
+	}
+
+	if (currentActorCount[node->GetID()] == 0 && node->GetOverlay() != nullptr)
+	{
+		DeallocateClockAndPlane(node->GetOverlay());
+	}
+}
+
 void Heap::Insert(Node* newNode, Node* oldNode)
 {
 	newNode->SetNext(oldNode->GetNext());
@@ -425,7 +516,7 @@ void Heap::PrintCurrentActorCount() const
 
 void Heap::ResetHeap()
 {
-	UnloadRoom(scene->GetRoom(currentRoomNumber));
+	UnloadRoom(currentRoomNumber);
 
 	Node* curr = head;
 
@@ -434,7 +525,7 @@ void Heap::ResetHeap()
 	{
 		if (curr->GetID() == 0x15A && curr->GetType() == 'A' || curr->GetID() == 0x0018)
 		{
-			Deallocate(curr);
+			DeallocateClockAndPlane(curr);
 			curr = head;
 		}
 

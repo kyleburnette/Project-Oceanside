@@ -30,7 +30,7 @@ public:
 	void SetType(char type);
 	int GetPriority() const;
 	void SetSpawnerOffspring(Node* node);
-	std::vector<Node*> GetSpawnerOffspring();
+	std::vector<Node*> GetOffspring();
 
 private:
 	Node* next = nullptr;

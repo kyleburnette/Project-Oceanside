@@ -139,7 +139,7 @@ void Node::SetSpawnerOffspring(Node* node)
 	spawnerOffspring.push_back(node);
 }
 
-std::vector<Node*> Node::GetSpawnerOffspring()
+std::vector<Node*> Node::GetOffspring()
 {
 	return spawnerOffspring;
 }
