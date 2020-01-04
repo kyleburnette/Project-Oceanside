@@ -21,7 +21,9 @@ int main()
     Scene* scene = new Scene();
     Heap* heap = new Heap(scene, START, END);
 
-	heap->LoadRoom(1);
+	heap->LoadRoom(0);
+
+	heap->PrintHeap(0);
 
     delete(scene);
     delete(heap);

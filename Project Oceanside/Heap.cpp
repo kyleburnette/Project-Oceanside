@@ -156,21 +156,12 @@ void Heap::LoadRoom(int roomNumber)
 			room->AddCurrentlyLoadedActor(actor);
 			Allocate(actor);
 		}
-
-		if (actor->IsDeallocatable())
-		{
-			deallocatableActors.push_back(actor);
-		}
 	}
 
 	for (Node* stalchild : extraStalchildren)
 	{
 		room->AddCurrentlyLoadedActor(stalchild);
 		Allocate(stalchild);
-		if (stalchild->IsDeallocatable())
-		{
-			deallocatableActors.push_back(stalchild);
-		}
 	}
 
 	//allocate spawner offspring actors
@@ -178,18 +169,11 @@ void Heap::LoadRoom(int roomNumber)
 	{
 		room->AddCurrentlyLoadedActor(offspring);
 		Allocate(offspring);
-
-		deallocatableActors.push_back(offspring);
 	}
 
 	offspringToAllocate.clear();
 	this->initiallyLoadedRoomNumber = roomNumber;
 	this->currentRoomNumber = roomNumber;
-
-	for (auto actor : deallocatableActors)
-	{
-		std::cout << actor->GetID() << std::endl;
-	}
 }
 
 void Heap::ChangeRoom(int newRoomNumber)
