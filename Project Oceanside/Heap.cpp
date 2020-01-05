@@ -33,6 +33,16 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 		}
 	}
 
+	auto finalThing = scene->GetRoom(0)->GetAllActors();
+
+	for (auto actor : finalThing)
+	{
+		if (actor->GetID() == 0x00B1)
+		{
+			allFlowers.push_back(actor);
+		}
+	}
+
 	currentActorCount[LINK_ID] = 2;
 
 	//fix this later
@@ -202,12 +212,6 @@ void Heap::LoadRoom(int roomNumber)
 			Allocate(actor);
 			deallocatableActors.push_back(actor);
 		}
-		else if (actor->GetID() == 0x00B1)
-		{
-			room->AddCurrentlyLoadedActor(actor);
-			Allocate(actor);
-			allFlowers.push_back(actor);
-		}
 		else
 		{
 			room->AddCurrentlyLoadedActor(actor);
@@ -253,7 +257,6 @@ void Heap::ChangeRoom(int newRoomNumber)
 	Node* newClock = nullptr;
 	Node* newDampe = nullptr;
 
-	allFlowers.clear();
 	deallocatableActors.clear();
 
 	//allocate new room first
@@ -287,14 +290,6 @@ void Heap::ChangeRoom(int newRoomNumber)
 			Allocate(actor);
 			deallocatableActors.push_back(actor);
 		}
-
-		else if (actor->GetID() == 0x00B1)
-		{
-			newRoom->AddCurrentlyLoadedActor(actor);
-			Allocate(actor);
-			allFlowers.push_back(actor);
-		}
-
 		else
 		{
 			newRoom->AddCurrentlyLoadedActor(actor);

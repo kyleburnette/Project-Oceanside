@@ -32,9 +32,23 @@ int main()
     
     std::vector<std::pair<int, int>> solution;
 
+    /*heap->LoadRoom(0);
+    heap->Deallocate(0xed, 0);
+    heap->Deallocate(0x265, 1);
+    heap->Deallocate(0xed, 2);
+    heap->Deallocate(0xed, 1);
+    heap->Deallocate(0x265, 0);
+
+    heap->AllocateTemporaryActor(0x0009);
+    heap->AllocateTemporaryActor(0x003D);
+
+    heap->ChangeRoom(1);
+
+    heap->PrintHeap(1);*/ 
+
     while (true)
     {
-        roomLoads = (2 * (rand() % 5)) + 1; //max room loads = 5, always odd so we end up in chest room
+        roomLoads = (2 * (rand() % 4)) + 1; //max room loads = 5, always odd so we end up in chest room
         //std::cout << "Total number of room loads: " << roomLoads << std::endl;
         char rng = 0;
 
@@ -117,6 +131,8 @@ int main()
         if ((heap->chestOverlay->GetAddress() & 0xFF0000) == (heap->flowerOverlay->GetAddress() & 0xFF0000))
         {
 
+            std::cout << std::hex << heap->chestOverlay->GetAddress() << " " << heap->flowerOverlay->GetAddress() << std::dec << std::endl;
+
            //std::cout << "Overlays match." << std::endl;
            for (auto flower : heap->allFlowers)
            {
@@ -175,11 +191,11 @@ int main()
         //std::cout << "Heap reset." << std::endl;
         solution.clear();
         totalPermutations++;
-        if (totalPermutations % 25000 == 0)
+        if (totalPermutations % 50000 == 0)
         {
             std::cout << std::dec << "Total permutations: " << totalPermutations << " | Total Solutions: " << totalSolutions << std::endl;
         }
-    }
+    }*/
     
     delete(scene);
     delete(heap);
