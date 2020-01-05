@@ -34,7 +34,7 @@ int main()
 
     while (true)
     {
-        roomLoads = (2 * (rand() % 5)) + 1; //max room loads = 9, always odd so we end up in chest room
+        roomLoads = (2 * (rand() % 4)) + 1; //max room loads = 9, always odd so we end up in chest room
         //std::cout << "Total number of room loads: " << roomLoads << std::endl;
         char rng = 0;
 
@@ -54,7 +54,7 @@ int main()
 
             rng = rand() % 2;
 
-            if (rng == 0)
+            if (rng == 0 && heap->GetRoomNumber() == 1)
             {
                 heap->AllocateTemporaryActor(0x0009);
                 heap->AllocateTemporaryActor(0x00A2);
