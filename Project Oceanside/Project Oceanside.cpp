@@ -27,7 +27,7 @@ int main()
     int roomLoads = 0;
     int deallocations = 0;
     int allocations = 0;
-    unsigned int totalPermutations = 0;
+    uint64_t totalPermutations = 0;
     unsigned int totalSolutions = 0;
     
     std::vector<std::pair<int, int>> solution;
