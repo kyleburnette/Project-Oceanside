@@ -84,6 +84,7 @@ void Heap::DeallocateTemporaryActor(int actorID)
 		{
 			temporaryActors.erase(std::remove(temporaryActors.begin(), temporaryActors.end(), node), temporaryActors.end());
 			Deallocate(node);
+			//std::cout << std::hex << "Deallocated temporary actor: " << node->GetID() << std::endl;
 			delete(node);
 			node = nullptr;
 			return;
@@ -201,6 +202,12 @@ void Heap::LoadRoom(int roomNumber)
 			Allocate(actor);
 			deallocatableActors.push_back(actor);
 		}
+		else if (actor->GetID() == 0x00B1)
+		{
+			room->AddCurrentlyLoadedActor(actor);
+			Allocate(actor);
+			allFlowers.push_back(actor);
+		}
 		else
 		{
 			room->AddCurrentlyLoadedActor(actor);
@@ -246,6 +253,7 @@ void Heap::ChangeRoom(int newRoomNumber)
 	Node* newClock = nullptr;
 	Node* newDampe = nullptr;
 
+	allFlowers.clear();
 	deallocatableActors.clear();
 
 	//allocate new room first
@@ -278,6 +286,13 @@ void Heap::ChangeRoom(int newRoomNumber)
 			newRoom->AddCurrentlyLoadedActor(actor);
 			Allocate(actor);
 			deallocatableActors.push_back(actor);
+		}
+
+		else if (actor->GetID() == 0x00B1)
+		{
+			newRoom->AddCurrentlyLoadedActor(actor);
+			Allocate(actor);
+			allFlowers.push_back(actor);
 		}
 
 		else
@@ -363,42 +378,36 @@ void Heap::ChangeRoom(int newRoomNumber)
 
 std::pair<int, int> Heap::DeallocateRandomActor()
 {
-	for (auto thing : deallocatableActors)
-	{
-		std::cout << std::hex << thing->GetID() << " " << thing->GetPriority() << std::endl;
-	}
-
 	if (deallocatableActors.empty())
 	{
 		std::pair<int, int> yep;
 		yep.first = 0;
 		yep.second = 0;
+		std::cout << std::hex << "Allocated no random actor." << std::endl;
 		return yep;
 	}
 
-	srand(time(NULL));
 	char rng = rand() % deallocatableActors.size();
 
 	Node* nodeToDeallocate = deallocatableActors[rng];
 
 	Deallocate(deallocatableActors[rng]);
+	//std::cout << std::hex << "Deallocated random actor: " << deallocatableActors[rng]->GetID() << std::endl;
 	deallocatableActors.erase(std::remove(deallocatableActors.begin(), deallocatableActors.end(), nodeToDeallocate), deallocatableActors.end());
 
 	std::pair<int, int> pair;
 	pair.first = nodeToDeallocate->GetID();
 	pair.second = nodeToDeallocate->GetPriority();
-	std::cout << nodeToDeallocate->GetID() << " " << nodeToDeallocate->GetPriority() << std::endl;
 	return pair;
 }
 
 int Heap::AllocateRandomActor()
 {
-
-	srand(time(NULL));
 	int rng = rand() % possibleRandomAllocatableActors.size();
 
+//	std::cout << std::hex << "Allocated random actor: " << possibleRandomAllocatableActors[rng] << std::endl;
 	AllocateTemporaryActor(possibleRandomAllocatableActors[rng]);
-	std::cout << std::hex << "Allocated random actor: " << possibleRandomAllocatableActors[rng] << std::endl;
+
 	return possibleRandomAllocatableActors[rng];
 }
 

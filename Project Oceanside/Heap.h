@@ -42,6 +42,9 @@ public:
 	Node* flowerOverlay = nullptr;
 	std::vector<std::tuple<int, int, int>> frozenRocksAndGrass;
 	std::vector<Node*> rocksAndGrass;
+	std::vector<Node*> allFlowers;
+	std::vector<Node*> deallocatableActors;
+	std::map<int, int> possibleRandomAllocatableActors;
 
 private:
 	Scene* scene;
@@ -58,9 +61,8 @@ private:
 	std::map<int, int> currentActorCount;
 	std::vector<Node*> temporaryActors;
 	std::map<int, Node*> possibleTemporaryActors;
-	std::map<int, int> possibleRandomAllocatableActors;
 	std::vector<Node*> offspringToAllocate;
-	std::vector<Node*> deallocatableActors;
+	
 	
 };
 
