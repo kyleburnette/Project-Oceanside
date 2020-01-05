@@ -57,7 +57,7 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 
 	possibleRandomAllocatableActorsRoom1[0] = 0x0009;
 	possibleRandomAllocatableActorsRoom1[1] = 0x000F;
-	possibleRandomAllocatableActorsRoom1[2] = 0x006A;
+	//possibleRandomAllocatableActorsRoom1[2] = 0x006A;
 
 	possibleRandomAllocatableActorsRoom0[0] = 0x0009;
 };
