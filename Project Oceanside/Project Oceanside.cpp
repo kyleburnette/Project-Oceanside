@@ -195,7 +195,7 @@ int main()
         {
             std::cout << std::dec << "Total permutations: " << totalPermutations << " | Total Solutions: " << totalSolutions << std::endl;
         }
-    }*/
+    }
     
     delete(scene);
     delete(heap);

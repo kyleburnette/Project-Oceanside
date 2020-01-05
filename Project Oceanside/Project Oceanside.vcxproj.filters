@@ -46,6 +46,9 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="scene.json" />
+    <CopyFileToFolders Include="scene.json" />
+    <CopyFileToFolders Include="mm_j_actors.json" />
+    <CopyFileToFolders Include="mm_u_actors.json" />
+    <CopyFileToFolders Include="oot_actors.json" />
   </ItemGroup>
 </Project>
