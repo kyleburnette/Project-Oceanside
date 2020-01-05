@@ -37,6 +37,7 @@ public:
 	std::pair<int, int> DeallocateRandomActor();
 	int AllocateRandomActor();
 	void FreezeRocksAndGrass();
+	int GetRoomNumber() const;
 
 	Node* chestOverlay = nullptr;
 	Node* flowerOverlay = nullptr;

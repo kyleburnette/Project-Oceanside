@@ -730,3 +730,8 @@ void Heap::ResetHeap()
 	currentRoomNumber = -1;
 
 }
+
+int Heap::GetRoomNumber() const
+{
+	return currentRoomNumber;
+}
