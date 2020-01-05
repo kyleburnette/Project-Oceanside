@@ -1,5 +1,5 @@
 #include <fstream>
-
+#include <chrono>
 #include "./Heap.h"
 #include "./Scene.h"
 
@@ -17,10 +17,12 @@ TODOs:
 
 const int START = 0x40b140;
 const int END = 0x5fffff;
-
+unsigned int seed = time(NULL);
 int main()
-{
-    srand(time(NULL));
+{   
+    
+    srand(seed);
+    std::cout << std::to_string(seed) << std::endl;
     Scene* scene = new Scene();
     Heap* heap = new Heap(scene, START, END);
 
@@ -105,7 +107,7 @@ int main()
                        totalSolutions++;
 
                        std::ofstream outputFile;
-                       std::string outputFileName = "solution" + std::to_string(totalSolutions) + ".txt";
+                       std::string outputFileName = "solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
                        outputFile.open(outputFileName);
 
                        for (auto step : solution)
