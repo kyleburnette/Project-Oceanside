@@ -44,7 +44,8 @@ public:
 	std::vector<Node*> rocksAndGrass;
 	std::vector<Node*> allFlowers;
 	std::vector<Node*> deallocatableActors;
-	std::map<int, int> possibleRandomAllocatableActors;
+	std::map<int, int> possibleRandomAllocatableActorsRoom1;
+	std::map<int, int> possibleRandomAllocatableActorsRoom0;
 
 private:
 	Scene* scene;
