@@ -21,10 +21,11 @@ int main()
     Scene* scene = new Scene();
     Heap* heap = new Heap(scene, START, END);
 
-	heap->LoadRoom(0);
+    heap->LoadRoom(0);
+    heap->AllocateRandomActor();
 
-	heap->PrintHeap(0);
-
+    heap->PrintHeap(1);
+    
     delete(scene);
     delete(heap);
 

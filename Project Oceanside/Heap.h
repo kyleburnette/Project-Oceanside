@@ -35,6 +35,13 @@ public:
 	void ClearTemporaryActors();
 	void ResetHeap();
 	std::pair<int, int> DeallocateRandomActor();
+	int AllocateRandomActor();
+	void FreezeRocksAndGrass();
+
+	Node* chestOverlay = nullptr;
+	Node* flowerOverlay = nullptr;
+	std::vector<std::tuple<int, int, int>> frozenRocksAndGrass;
+	std::vector<Node*> rocksAndGrass;
 
 private:
 	Scene* scene;
@@ -51,7 +58,9 @@ private:
 	std::map<int, int> currentActorCount;
 	std::vector<Node*> temporaryActors;
 	std::map<int, Node*> possibleTemporaryActors;
+	std::map<int, int> possibleRandomAllocatableActors;
 	std::vector<Node*> offspringToAllocate;
 	std::vector<Node*> deallocatableActors;
+	
 };
 

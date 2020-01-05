@@ -11,6 +11,28 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 	head = headNode;
 	tail = tailNode;
 
+	//placeholder and hardcoded
+	auto thing = scene->GetRoom(1)->GetAllActors();
+
+	for (auto actor : thing)
+	{
+		if (actor->GetID() == 0x0006)
+		{
+			chestOverlay = actor->GetOverlay();
+		}
+	}
+
+	auto otherThing = scene->GetRoom(0)->GetAllActors();
+	
+	for (auto actor : otherThing)
+	{
+		if (actor->GetID() == 0x00B1)
+		{
+			flowerOverlay = actor->GetOverlay();
+			break;
+		}
+	}
+
 	currentActorCount[LINK_ID] = 2;
 
 	//fix this later
@@ -21,12 +43,28 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 	possibleTemporaryActors[0x000F] = new Node(0x000F, scene->GetActorJSON()["000F"], 0);
 	possibleTemporaryActors[0x0035] = new Node(0x0035, scene->GetActorJSON()["0035"], 0);
 	possibleTemporaryActors[0x007B] = new Node(0x007B, scene->GetActorJSON()["007B"], 0);
-	possibleTemporaryActors[0x015A] = new Node(0x015A, scene->GetActorJSON()["015A"], 0);
+	possibleTemporaryActors[0x006A] = new Node(0x006A, scene->GetActorJSON()["006A"], 0);
+
+	possibleRandomAllocatableActors[0] = 0x0009;
+	possibleRandomAllocatableActors[1] = 0x000F;
+	possibleRandomAllocatableActors[2] = 0x006A;
 };
 
 Heap::~Heap()
 {
 	DeleteHeap();
+}
+
+void Heap::FreezeRocksAndGrass() 
+{
+	for (auto rockOrGrass : rocksAndGrass)
+	{
+		std::tuple<int, int, int> thingToInsert;
+		std::get<0>(thingToInsert) = rockOrGrass->GetID();
+		std::get<1>(thingToInsert) = rockOrGrass->GetAddress();
+		std::get<2>(thingToInsert) = rockOrGrass->GetPriority();
+		frozenRocksAndGrass.push_back(thingToInsert);
+	}
 }
 
 void Heap::AllocateTemporaryActor(int actorID)
@@ -180,6 +218,7 @@ void Heap::LoadRoom(int roomNumber)
 	for (Node* offspring : offspringToAllocate)
 	{
 		room->AddCurrentlyLoadedActor(offspring);
+		rocksAndGrass.push_back(offspring);
 		Allocate(offspring);
 	}
 
@@ -305,12 +344,15 @@ void Heap::ChangeRoom(int newRoomNumber)
 	//clear old room's currently loaded actors (since they in fact are not currently loaded anymore)
 	oldRoom->GetCurrentlyLoadedActors().clear();
 
+	rocksAndGrass.clear();
+
 	//allocate spawner stuff
 	for (Node* offspring : offspringToAllocate)
 	{
 		newRoom->AddCurrentlyLoadedActor(offspring);
 		Allocate(offspring);
 		deallocatableActors.push_back(offspring);
+		rocksAndGrass.push_back(offspring);
 	}
 
 	offspringToAllocate.clear();
@@ -321,6 +363,19 @@ void Heap::ChangeRoom(int newRoomNumber)
 
 std::pair<int, int> Heap::DeallocateRandomActor()
 {
+	for (auto thing : deallocatableActors)
+	{
+		std::cout << std::hex << thing->GetID() << " " << thing->GetPriority() << std::endl;
+	}
+
+	if (deallocatableActors.empty())
+	{
+		std::pair<int, int> yep;
+		yep.first = 0;
+		yep.second = 0;
+		return yep;
+	}
+
 	srand(time(NULL));
 	char rng = rand() % deallocatableActors.size();
 
@@ -332,7 +387,19 @@ std::pair<int, int> Heap::DeallocateRandomActor()
 	std::pair<int, int> pair;
 	pair.first = nodeToDeallocate->GetID();
 	pair.second = nodeToDeallocate->GetPriority();
+	std::cout << nodeToDeallocate->GetID() << " " << nodeToDeallocate->GetPriority() << std::endl;
 	return pair;
+}
+
+int Heap::AllocateRandomActor()
+{
+
+	srand(time(NULL));
+	int rng = rand() % possibleRandomAllocatableActors.size();
+
+	AllocateTemporaryActor(possibleRandomAllocatableActors[rng]);
+	std::cout << std::hex << "Allocated random actor: " << possibleRandomAllocatableActors[rng] << std::endl;
+	return possibleRandomAllocatableActors[rng];
 }
 
 void Heap::UnloadRoom(int roomNumber)
@@ -544,13 +611,13 @@ void Heap::PrintHeap(char setting) const
 		{
 			if (curr->GetID() != LINK_ID) 
 			{
-				std::cout << std::hex << curr->GetAddress() << ":" << curr->GetSize() << " " << curr->GetType() << " " << curr->GetID() << std::dec << std::endl;
+				std::cout << std::hex << curr->GetAddress() << ":" << curr->GetSize() << " " << curr->GetType() << " " << curr->GetID() << " " << curr->GetPriority() << std::dec << std::endl;
 			}
 			
 		}
 		else if (setting == 1)
 		{
-			std::cout << std::hex << curr->GetAddress() << ":" << curr->GetSize() << " " << curr->GetType() << " " << curr->GetID() << std::dec << std::endl;
+			std::cout << std::hex << curr->GetAddress() << ":" << curr->GetSize() << " " << curr->GetType() << " " << curr->GetID() << " " <<curr->GetPriority() << std::dec << std::endl;
 		}
 		
 
@@ -629,7 +696,7 @@ void Heap::ResetHeap()
 	//handle this better later
 	while (curr != nullptr)
 	{
-		if (curr->GetID() == 0x15A && curr->GetType() == 'A' || curr->GetID() == 0x0018)
+		if (curr->GetID() == 0x15A && curr->GetType() == 'A' || curr->GetID() == 0x0018 || curr->GetID() == 0x1CA && curr->GetType() == 'A')
 		{
 			DeallocateClockAndPlane(curr);
 			curr = head;
@@ -639,6 +706,8 @@ void Heap::ResetHeap()
 	}
 
 	scene->GetRoom(0)->ResetCurrentlyLoadedActors();
+
+	frozenRocksAndGrass.clear();
 
 	ClearTemporaryActors();
 	currentRoomNumber = -1;

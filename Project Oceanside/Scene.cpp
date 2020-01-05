@@ -74,7 +74,7 @@ Scene::Scene()
 				Node* newActor = new Node(strtol(parentString.c_str(), nullptr, 16), actorJson[parentString], actorCount[parentString]);
 				for (int i = 0; i <= 8; ++i)
 				{
-					Node* newOffspring = new Node(strtol(offspringString.c_str(), nullptr, 16), actorJson["0090"], actorCount["0090"]);
+					Node* newOffspring = new Node(strtol(offspringString.c_str(), nullptr, 16), actorJson["0090"], 100 + i);
 					newActor->SetSpawnerOffspring(newOffspring);
 				}
 
@@ -97,7 +97,7 @@ Scene::Scene()
 				Node* newActor = new Node(strtol(parentString.c_str(), nullptr, 16), actorJson[parentString], actorCount[parentString]);
 				for (int i = 0; i < 8; ++i)
 				{
-					Node* newOffspring = new Node(strtol(offspringString.c_str(), nullptr, 16), actorJson[offspringString], actorCount[offspringString]);
+					Node* newOffspring = new Node(strtol(offspringString.c_str(), nullptr, 16), actorJson[offspringString], 100 + i);
 					newActor->SetSpawnerOffspring(newOffspring);
 				}
 
