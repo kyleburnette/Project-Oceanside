@@ -59,21 +59,6 @@ int main()
                 solution.push_back(std::make_pair(0xffff, heap->AllocateRandomActor()));
             }
 
-            rng = rand() % 3;
-
-            if (rng == 0)
-            {
-                heap->AllocateTemporaryActor(0x003D);
-                solution.push_back(std::make_pair(0xdddd, 0x003D));
-            }
-
-            else if (rng == 1)
-            {
-                heap->AllocateTemporaryActor(0x0035);
-                heap->AllocateTemporaryActor(0x007B);
-                solution.push_back(std::make_pair(0xdddd, 0x007B));
-            }
-
             heap->ChangeRoom(i % 2);
             solution.push_back(std::make_pair(0xcccc, i % 2));
             //std::cout << "loaded room " << i % 2 << std::endl;
