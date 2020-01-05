@@ -55,9 +55,11 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 	possibleTemporaryActors[0x007B] = new Node(0x007B, scene->GetActorJSON()["007B"], 0);
 	possibleTemporaryActors[0x006A] = new Node(0x006A, scene->GetActorJSON()["006A"], 0);
 
-	possibleRandomAllocatableActors[0] = 0x0009;
-	possibleRandomAllocatableActors[1] = 0x000F;
-	possibleRandomAllocatableActors[2] = 0x006A;
+	possibleRandomAllocatableActorsRoom1[0] = 0x0009;
+	possibleRandomAllocatableActorsRoom1[1] = 0x000F;
+	possibleRandomAllocatableActorsRoom1[2] = 0x006A;
+
+	possibleRandomAllocatableActorsRoom0[0] = 0x0009;
 };
 
 Heap::~Heap()
@@ -397,11 +399,24 @@ std::pair<int, int> Heap::DeallocateRandomActor()
 
 int Heap::AllocateRandomActor()
 {
-	int rng = rand() % possibleRandomAllocatableActors.size();
-//	std::cout << std::hex << "Allocated random actor: " << possibleRandomAllocatableActors[rng] << std::endl;
-	AllocateTemporaryActor(possibleRandomAllocatableActors[rng]);
+	if (currentRoomNumber == 1)
+	{
+		int rng = rand() % possibleRandomAllocatableActorsRoom1.size();
+		//	std::cout << std::hex << "Allocated random actor: " << possibleRandomAllocatableActors[rng] << std::endl;
+		AllocateTemporaryActor(possibleRandomAllocatableActorsRoom1[rng]);
 
-	return possibleRandomAllocatableActors[rng];
+		return possibleRandomAllocatableActorsRoom1[rng];
+	}
+
+	else if (currentRoomNumber == 0)
+	{
+		int rng = rand() % possibleRandomAllocatableActorsRoom0.size();
+		//	std::cout << std::hex << "Allocated random actor: " << possibleRandomAllocatableActors[rng] << std::endl;
+		AllocateTemporaryActor(possibleRandomAllocatableActorsRoom0[rng]);
+
+		return possibleRandomAllocatableActorsRoom0[rng];
+	}
+	
 }
 
 void Heap::UnloadRoom(int roomNumber)
