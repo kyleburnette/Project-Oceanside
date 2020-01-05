@@ -383,7 +383,6 @@ std::pair<int, int> Heap::DeallocateRandomActor()
 		std::pair<int, int> yep;
 		yep.first = 0;
 		yep.second = 0;
-		std::cout << std::hex << "Allocated no random actor." << std::endl;
 		return yep;
 	}
 
@@ -404,7 +403,6 @@ std::pair<int, int> Heap::DeallocateRandomActor()
 int Heap::AllocateRandomActor()
 {
 	int rng = rand() % possibleRandomAllocatableActors.size();
-
 //	std::cout << std::hex << "Allocated random actor: " << possibleRandomAllocatableActors[rng] << std::endl;
 	AllocateTemporaryActor(possibleRandomAllocatableActors[rng]);
 
