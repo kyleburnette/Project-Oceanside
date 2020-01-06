@@ -34,9 +34,10 @@ int main()
     
     std::vector<std::pair<int, int>> solution;
 
+
     while (true)
     {
-        roomLoads = (2 * (rand() % 3)) + 1; //max room loads = 5, always odd so we end up in chest room
+        roomLoads = (2 * (rand() % 4)) + 1; //max room loads = 5, always odd so we end up in chest room
         //std::cout << "Total number of room loads: " << roomLoads << std::endl;
         char rng = 0;
 
@@ -59,6 +60,24 @@ int main()
             for (int k = 0; k < allocations; k++)
             {
                 solution.push_back(std::make_pair(0xffff, heap->AllocateRandomActor()));
+            }
+            
+            if (heap->GetRoomNumber() && rand() % 1) { //If in room 1 AND futhington is not banned
+                if (rand() % 1)
+                {
+                    heap->AllocateTemporaryActor(0x003D);
+                    solution.push_back(std::make_pair(0xffff, 0x003D)); //Hookshot
+                }
+                else
+                {
+                    heap->AllocateTemporaryActor(0x0035);
+                    heap->AllocateTemporaryActor(0x007B);
+                    solution.push_back(std::make_pair(0xffff, 0x0035)); //Spin Attack 1
+                    solution.push_back(std::make_pair(0xffff, 0x007B)); //Spin Attack 2
+                }
+
+
+
             }
 
             heap->ChangeRoom(i % 2);
@@ -101,7 +120,7 @@ int main()
                for (auto roag : heap->frozenRocksAndGrass)
                {
                    //std::cout << std::hex << flower->GetAddress() << " " << std::get<1>(roag) << std::endl;
-                   if (flower->GetAddress() == std::get<1>(roag))
+                   if ( std::get<1>(roag) - flower->GetAddress() == 0x80 )
                    {
                        std::cout << "SOLUTION FOUND" << std::endl;
                        totalSolutions++;
