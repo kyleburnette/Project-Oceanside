@@ -66,14 +66,14 @@ int main()
                 if (rand() % 1)
                 {
                     heap->AllocateTemporaryActor(0x003D);
-                    solution.push_back(std::make_pair(0xffff, 0x003D)); //Hookshot
+                    solution.push_back(std::make_pair(0xdddd, 0x003D)); //Hookshot
                 }
                 else
                 {
                     heap->AllocateTemporaryActor(0x0035);
                     heap->AllocateTemporaryActor(0x007B);
                     solution.push_back(std::make_pair(0xffff, 0x0035)); //Spin Attack 1
-                    solution.push_back(std::make_pair(0xffff, 0x007B)); //Spin Attack 2
+                    solution.push_back(std::make_pair(0xdddd, 0x007B)); //Spin Attack 2
                 }
 
 
@@ -160,7 +160,8 @@ int main()
                                outputFile << std::hex << "Deallocate: " << step.first << " | Priority: " << step.second << std::endl;
                            }
                        }
-
+                       outputFile << std::dec << " Flower - Priority:" << flower->GetPriority() << std::endl;
+                       outputFile << std::dec << "RB - Type: " << std::get<0>(roag) << " Priority: "  << std::get<1>(roag) << std::endl;
                        outputFile.close();
                    }
                }
