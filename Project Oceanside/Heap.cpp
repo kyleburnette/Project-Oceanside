@@ -352,6 +352,7 @@ void Heap::ChangeRoom(int newRoomNumber)
 		case 0x0018: //Loading plane
 			break;
 		case 0xF001: //ISot Memory Leak
+			break;
 		default:
 
 			Deallocate(actor);

@@ -1,5 +1,7 @@
 #include <fstream>
+
 #include <chrono>
+#include "windows.h"
 #include "./Heap.h"
 #include "./Scene.h"
 
@@ -17,7 +19,9 @@ TODOs:
 
 const int START = 0x40b140;
 const int END = 0x5fffff;
-unsigned int seed = time(NULL);
+
+uint64_t seed = GetTickCount64();
+
 int main()
 {   
     
@@ -30,6 +34,7 @@ int main()
     int deallocations = 0;
     int allocations = 0;
     uint64_t totalPermutations = 0;
+    auto time1 = std::chrono::steady_clock::now();
     unsigned int totalSolutions = 0;
     
     std::vector<std::pair<int, int>> solution;
@@ -44,12 +49,7 @@ int main()
         //std::cout << "Loaded room 0." << std::endl;
         heap->LoadRoom(0);
         solution.push_back(std::make_pair(0xcccc, 0x0));
-        if (rand() % 1)
-        {
-            heap->AllocateTemporaryActor(0x018C);
-            solution.push_back(std::make_pair(0xdddd, 0x18C));
-
-        }
+ 
         for (int i = 1; i <= roomLoads; i++)
         {
             deallocations = rand() % heap->deallocatableActors.size();
@@ -62,8 +62,11 @@ int main()
 
             if (rand() % 1)
             {
+                heap->AllocateTemporaryActor(0x0009);
                 heap->AllocateTemporaryActor(0x00A2);
+                heap->DeallocateTemporaryActor(0x0009);
                 solution.push_back(std::make_pair(0xdddd, 0x00A2)); //Smoke
+
             }
             
             allocations = rand() % 4;
@@ -188,9 +191,13 @@ int main()
         //std::cout << "Heap reset." << std::endl;
         solution.clear();
         totalPermutations++;
+        
         if (totalPermutations % 50000 == 0)
         {
+            std::chrono::duration<double> time_span = std::chrono::steady_clock::now() - time1;
+            
             std::cout << std::dec << "Total permutations: " << totalPermutations << " | Total Solutions: " << totalSolutions << std::endl;
+            std::printf("Permuations Per Second: %f\n",totalPermutations/((time_span.count())));
         }
     }
     
