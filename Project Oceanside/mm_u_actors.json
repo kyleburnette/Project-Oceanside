@@ -3448,5 +3448,10 @@
     "instanceSize": "0x1F0",
     "overlaySize": "0x360",
     "overlayType": 0
+  },
+  "F001": {
+    "instanceSize": "0x300",
+    "overlaySize": "0x0",
+    "overlayType": 3 
   }
 }

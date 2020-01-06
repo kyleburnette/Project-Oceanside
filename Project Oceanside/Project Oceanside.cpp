@@ -44,7 +44,12 @@ int main()
         //std::cout << "Loaded room 0." << std::endl;
         heap->LoadRoom(0);
         solution.push_back(std::make_pair(0xcccc, 0x0));
+        if (rand() % 1)
+        {
+            heap->AllocateTemporaryActor(0x018C);
+            solution.push_back(std::make_pair(0xdddd, 0x18C));
 
+        }
         for (int i = 1; i <= roomLoads; i++)
         {
             deallocations = rand() % heap->deallocatableActors.size();
@@ -55,6 +60,12 @@ int main()
                 solution.push_back(heap->DeallocateRandomActor());
             }
 
+            if (rand() % 1)
+            {
+                heap->AllocateTemporaryActor(0x00A2);
+                solution.push_back(std::make_pair(0xdddd, 0x00A2)); //Smoke
+            }
+            
             allocations = rand() % 4;
                 
             for (int k = 0; k < allocations; k++)
@@ -154,6 +165,10 @@ int main()
                            else if (step.first == 0xdddd && step.second == 0x00A2)
                            {
                                outputFile << std::hex << "Allocate: smoke (let bomb unload)" << std::endl;
+                           }
+                           else if (step.first == 0xdddd && step.second == 0x018C)
+                           {
+                               outputFile << std::hex << "Leak: ISoT" << std::endl;
                            }
                            else
                            {

@@ -54,6 +54,8 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 	possibleTemporaryActors[0x0035] = new Node(0x0035, scene->GetActorJSON()["0035"], 0); //Spin Attack1
 	possibleTemporaryActors[0x007B] = new Node(0x007B, scene->GetActorJSON()["007B"], 0); //Spin Attack 2
 	possibleTemporaryActors[0x006A] = new Node(0x006A, scene->GetActorJSON()["006A"], 0); //Chu
+	possibleTemporaryActors[0x018c] = new Node(0x018C, scene->GetActorJSON()["018C"], 0); //ISoT
+	possibleTemporaryActors[0xF001] = new Node(0xF001, scene->GetActorJSON()["F001"], 0); //ISoT Memory Leak
 
 	possibleRandomAllocatableActorsRoom1[0] = 0x0009;
 	possibleRandomAllocatableActorsRoom1[1] = 0x000F;
@@ -86,6 +88,11 @@ void Heap::AllocateTemporaryActor(int actorID)
 	Node* newTempActor = new Node(*possibleTemporaryActors[actorID]);
 	temporaryActors.push_back(newTempActor);
 	Allocate(newTempActor);
+	if (actorID == 0x18C) 
+	{
+		Allocate(new Node(*possibleTemporaryActors[0xF001]));
+		Deallocate(newTempActor);
+	}
 }
 
 void Heap::DeallocateTemporaryActor(int actorID)
@@ -344,7 +351,7 @@ void Heap::ChangeRoom(int newRoomNumber)
 			}
 		case 0x0018: //Loading plane
 			break;
-
+		case 0xF001: //ISot Memory Leak
 		default:
 
 			Deallocate(actor);
