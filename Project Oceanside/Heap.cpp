@@ -86,13 +86,41 @@ void Heap::AllocateTemporaryActor(int actorID)
 	//TODO - implement ISoT leak and scarecrow leak and arrow animation thing
 
 	Node* newTempActor = new Node(*possibleTemporaryActors[actorID]);
+	
 	temporaryActors.push_back(newTempActor);
-	Allocate(newTempActor);
-	if (actorID == 0x18C) 
+	switch (actorID) {
+	case 0x00A2: 
 	{
-		Allocate(new Node(*possibleTemporaryActors[0xF001]));
+		Node* t = new Node(*possibleTemporaryActors[0x0009]);
+		Allocate(t);
+		Allocate(newTempActor);
+		Deallocate(t);
+		delete t;
+	}
+		break;
+
+	case 0x18C:
+	{
+		Allocate(newTempActor);
+		AllocateTemporaryActor(0xF001);
+	
 		Deallocate(newTempActor);
 	}
+		break;
+	case 0x0035:
+	{
+
+		Allocate(newTempActor);
+		AllocateTemporaryActor(0x007B);
+		
+	}
+		break;
+
+	default:
+		Allocate(newTempActor);
+	}
+	
+	
 }
 
 void Heap::DeallocateTemporaryActor(int actorID)

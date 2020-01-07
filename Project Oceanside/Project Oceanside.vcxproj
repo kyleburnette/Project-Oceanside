@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -148,6 +148,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ActorList.cpp" />
     <ClCompile Include="Heap.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="Project Oceanside.cpp" />
@@ -155,6 +156,7 @@
     <ClCompile Include="Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ActorList.h" />
     <ClInclude Include="Heap.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="Room.h" />
@@ -173,6 +175,11 @@
       <FileType>Document</FileType>
     </CopyFileToFolders>
     <CopyFileToFolders Include="oot_actors.json">
+      <FileType>Document</FileType>
+    </CopyFileToFolders>
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="actorList.json">
       <FileType>Document</FileType>
     </CopyFileToFolders>
   </ItemGroup>
