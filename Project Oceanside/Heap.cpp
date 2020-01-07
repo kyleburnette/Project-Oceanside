@@ -102,7 +102,7 @@ void Heap::AllocateTemporaryActor(int actorID)
 	case 0x18C:
 	{
 		Allocate(newTempActor);
-		AllocateTemporaryActor(0xF001);
+		Allocate(new Node(*possibleTemporaryActors[0xF001]));
 	
 		Deallocate(newTempActor);
 	}
