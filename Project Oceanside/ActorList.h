@@ -9,7 +9,8 @@ class ActorList
 {
 	public:
 		ActorList();
-		std::vector<std::pair<int,int>> actorList;
+		std::vector<std::pair<int,int>> actorList0;
+		std::vector<std::pair<int,int>> actorList1;
 		int roomLoads;
 	private:
 		nlohmann::json actorJson;

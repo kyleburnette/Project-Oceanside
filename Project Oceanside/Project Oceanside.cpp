@@ -49,6 +49,7 @@ int main()
 
 	ActorList list;
 
+
 	SolverTypes Solver = KyleSolver2;
 	switch (Solver)
 	{
@@ -70,15 +71,27 @@ int main()
 					solution.push_back(heap->DeallocateRandomActor());
 				}
 				//Lets Generate perms
-				for (auto i : list.actorList)
-				{
-					rng = (rand() % (i.second + 1));
-					for (int c = 0; c < rng; c++) {
-						heap->AllocateTemporaryActor(i.first);
-						solution.push_back(std::make_pair(0xFFFF, i.first));
+				if (heap->GetRoomNumber()) {
+					for (auto i : list.actorList1)
+					{
+						rng = (rand() % (i.second + 1));
+						for (int c = 0; c < rng; c++) {
+							heap->AllocateTemporaryActor(i.first);
+							solution.push_back(std::make_pair(0xFFFF, i.first));
+						}
 					}
 				}
-
+				else
+				{
+					for (auto i : list.actorList0)
+					{
+						rng = (rand() % (i.second + 1));
+						for (int c = 0; c < rng; c++) {
+							heap->AllocateTemporaryActor(i.first);
+							solution.push_back(std::make_pair(0xFFFF, i.first));
+						}
+					}
+				}
 				heap->ChangeRoom(i % 2);
 				solution.push_back(std::make_pair(0xcccc, i % 2));
 			}
