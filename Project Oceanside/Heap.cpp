@@ -656,6 +656,13 @@ void Heap::Insert(Node* newNode, Node* oldNode)
 void Heap::PrintHeap(char setting) const
 {
 	Node* curr = head;
+	if (!setting) {
+		std::cout << "-----HEAP OUTPUT-----" << std::endl;
+		
+	}
+	else {
+		std::cout << "-----HEAP OUTPUT With Links-----" << std::endl;;
+	}
 	while (curr != nullptr)
 	{
 		if (setting == 0)

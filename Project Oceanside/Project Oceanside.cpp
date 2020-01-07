@@ -34,6 +34,7 @@ int main()
 
 	srand(seed);
 	std::cout << std::to_string(seed) << std::endl;
+	std::cout << std::showbase;
 	Scene* scene = new Scene();
 	Heap* heap = new Heap(scene, START, END);
 
@@ -153,12 +154,18 @@ int main()
 							}
 							outputFile << std::hex << " Flower - Priority:" << flower->GetPriority() << std::endl;
 							outputFile << std::hex << "RB - Address: " << std::get<0>(roag) << " Priority: " << std::get<2>(roag) << std::endl;
+							std::streambuf* coutbuf = std::cout.rdbuf(); //save old buf
+							std::cout.rdbuf(outputFile.rdbuf());
+
+							heap->PrintHeap(1);
+							std::cout.rdbuf(coutbuf);
 							outputFile.close();
 						}
 					}
 
 				}
 			}
+
 			heap->ResetHeap();
 			//std::cout << "Heap reset." << std::endl;
 			solution.clear();
@@ -314,6 +321,11 @@ int main()
 							}
 							outputFile << std::dec << " Flower - Priority:" << flower->GetPriority() << std::endl;
 							outputFile << std::dec << "RB - Type: " << std::get<0>(roag) << " Priority: " << std::get<1>(roag) << std::endl;
+							std::streambuf* coutbuf = std::cout.rdbuf(); //save old buf
+							std::cout.rdbuf(outputFile.rdbuf());
+
+							heap->PrintHeap(1);
+							std::cout.rdbuf(coutbuf);
 							outputFile.close();
 						}
 					}
