@@ -46,18 +46,20 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 	currentActorCount[LINK_ID] = 2;
 
 	//fix this later
-	possibleTemporaryActors[0x0009] = new Node(0x0009, scene->GetActorJSON()["0009"], 0);
-	possibleTemporaryActors[0x00A2] = new Node(0x00A2, scene->GetActorJSON()["00A2"], 0);
-	possibleTemporaryActors[0x003D] = new Node(0x003D, scene->GetActorJSON()["003D"], 0);
-	possibleTemporaryActors[0x017B] = new Node(0x017B, scene->GetActorJSON()["017B"], 0);
-	possibleTemporaryActors[0x000F] = new Node(0x000F, scene->GetActorJSON()["000F"], 0);
-	possibleTemporaryActors[0x0035] = new Node(0x0035, scene->GetActorJSON()["0035"], 0);
-	possibleTemporaryActors[0x007B] = new Node(0x007B, scene->GetActorJSON()["007B"], 0);
-	possibleTemporaryActors[0x006A] = new Node(0x006A, scene->GetActorJSON()["006A"], 0);
+	possibleTemporaryActors[0x0009] = new Node(0x0009, scene->GetActorJSON()["0009"], 0); //Bomb
+	possibleTemporaryActors[0x00A2] = new Node(0x00A2, scene->GetActorJSON()["00A2"], 0); //Smoke
+	possibleTemporaryActors[0x003D] = new Node(0x003D, scene->GetActorJSON()["003D"], 0); //HookShot
+	possibleTemporaryActors[0x017B] = new Node(0x017B, scene->GetActorJSON()["017B"], 0); //Bugs
+	possibleTemporaryActors[0x000F] = new Node(0x000F, scene->GetActorJSON()["000F"], 0); //Arrow
+	possibleTemporaryActors[0x0035] = new Node(0x0035, scene->GetActorJSON()["0035"], 0); //Spin Attack1
+	possibleTemporaryActors[0x007B] = new Node(0x007B, scene->GetActorJSON()["007B"], 0); //Spin Attack 2
+	possibleTemporaryActors[0x006A] = new Node(0x006A, scene->GetActorJSON()["006A"], 0); //Chu
+	possibleTemporaryActors[0x018c] = new Node(0x018C, scene->GetActorJSON()["018C"], 0); //ISoT
+	possibleTemporaryActors[0xF001] = new Node(0xF001, scene->GetActorJSON()["F001"], 0); //ISoT Memory Leak
 
 	possibleRandomAllocatableActorsRoom1[0] = 0x0009;
 	possibleRandomAllocatableActorsRoom1[1] = 0x000F;
-	//possibleRandomAllocatableActorsRoom1[2] = 0x006A;
+
 
 	possibleRandomAllocatableActorsRoom0[0] = 0x0009;
 };
@@ -84,8 +86,41 @@ void Heap::AllocateTemporaryActor(int actorID)
 	//TODO - implement ISoT leak and scarecrow leak and arrow animation thing
 
 	Node* newTempActor = new Node(*possibleTemporaryActors[actorID]);
+	
 	temporaryActors.push_back(newTempActor);
-	Allocate(newTempActor);
+	switch (actorID) {
+	case 0x00A2: 
+	{
+		Node* t = new Node(*possibleTemporaryActors[0x0009]);
+		Allocate(t);
+		Allocate(newTempActor);
+		Deallocate(t);
+		delete t;
+	}
+		break;
+
+	case 0x18C:
+	{
+		Allocate(newTempActor);
+		Allocate(new Node(*possibleTemporaryActors[0xF001]));
+	
+		Deallocate(newTempActor);
+	}
+		break;
+	case 0x0035:
+	{
+
+		Allocate(newTempActor);
+		AllocateTemporaryActor(0x007B);
+		
+	}
+		break;
+
+	default:
+		Allocate(newTempActor);
+	}
+	
+	
 }
 
 void Heap::DeallocateTemporaryActor(int actorID)
@@ -326,29 +361,28 @@ void Heap::ChangeRoom(int newRoomNumber)
 	//deallocate old room's base/default actors
 	for (Node* actor : oldRoom->GetCurrentlyLoadedActors())
 	{
-		//super spaghetti, I'll clean this up later
-		if (actor->GetID() == 0x015A && !scene->GetClockReallocates())
-		{
-			; //we do not want to allocate the new clock if it does not reallocate in this scene
-		}
-		else if (actor->GetID() == 0x015A && scene->GetClockReallocates())
-		{
-			; //we do not want to allocate the new clock if it does not reallocate in this scene
-		}
-		else if (actor->GetID() == 0x015A && newRoomNumber != initiallyLoadedRoomNumber)
-		{
-			; //we do not want to allocate the new clock if it does not reallocate in this scene
-		}
-		else if (actor->GetID() == 0x01CA && newRoomNumber != initiallyLoadedRoomNumber)
-		{
-			; //we do not want to allocate the new clock if it does not reallocate in this scene
-		}
-		else if (actor->GetID() == 0x0018)
-		{
-			; //TODO - handle not reallocating loading plane later
-		}
-		else
-		{
+		switch (actor->GetID()) {
+		case 0x15A:  //Clock
+			if (scene->GetClockReallocates() || !scene->GetClockReallocates())
+			{
+				break; //we do not want to allocate the new clock if it does not reallocate in this scene	 
+			}
+			else if (newRoomNumber != initiallyLoadedRoomNumber)
+			{
+				break; //we do not want to allocate the new clock if it does not reallocate in this scene
+			}
+			
+		case 0x01CA: //Dampe
+			if(newRoomNumber != initiallyLoadedRoomNumber)
+			{
+				break;
+			}
+		case 0x0018: //Loading plane
+			break;
+		case 0xF001: //ISot Memory Leak
+			break;
+		default:
+
 			Deallocate(actor);
 		}
 	}
@@ -622,6 +656,13 @@ void Heap::Insert(Node* newNode, Node* oldNode)
 void Heap::PrintHeap(char setting) const
 {
 	Node* curr = head;
+	if (!setting) {
+		std::cout << "-----HEAP OUTPUT-----" << std::endl;
+		
+	}
+	else {
+		std::cout << "-----HEAP OUTPUT With Links-----" << std::endl;;
+	}
 	while (curr != nullptr)
 	{
 		if (setting == 0)

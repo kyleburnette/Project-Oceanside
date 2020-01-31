@@ -30,6 +30,9 @@
     <ClCompile Include="Scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ActorList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Heap.h">
@@ -44,8 +47,17 @@
     <ClInclude Include="Scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ActorList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="scene.json" />
+    <CopyFileToFolders Include="scene.json" />
+    <CopyFileToFolders Include="mm_j_actors.json" />
+    <CopyFileToFolders Include="mm_u_actors.json" />
+    <CopyFileToFolders Include="oot_actors.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="actorList.json" />
   </ItemGroup>
 </Project>
