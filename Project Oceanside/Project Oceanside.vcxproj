@@ -163,7 +163,7 @@
     <ClInclude Include="Scene.h" />
   </ItemGroup>
   <ItemGroup>
-    <CopyFileToFolders Include="scene.json">
+    <CopyFileToFolders Include="Graveyard.json">
       <FileType>Document</FileType>
     </CopyFileToFolders>
   </ItemGroup>
@@ -180,6 +180,11 @@
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="actorList.json">
+      <FileType>Document</FileType>
+    </CopyFileToFolders>
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="scene.json">
       <FileType>Document</FileType>
     </CopyFileToFolders>
   </ItemGroup>

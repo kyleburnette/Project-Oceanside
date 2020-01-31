@@ -56,6 +56,8 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 	possibleTemporaryActors[0x006A] = new Node(0x006A, scene->GetActorJSON()["006A"], 0); //Chu
 	possibleTemporaryActors[0x018c] = new Node(0x018C, scene->GetActorJSON()["018C"], 0); //ISoT
 	possibleTemporaryActors[0xF001] = new Node(0xF001, scene->GetActorJSON()["F001"], 0); //ISoT Memory Leak
+	possibleTemporaryActors[0xF002] = new Node(0xF002, scene->GetActorJSON()["F002"], 0); //SC Memory Leak
+	
 
 	possibleRandomAllocatableActorsRoom1[0] = 0x0009;
 	possibleRandomAllocatableActorsRoom1[1] = 0x000F;
@@ -248,7 +250,7 @@ void Heap::LoadRoom(int roomNumber)
 			room->AddCurrentlyLoadedActor(actor);
 			Allocate(actor);
 			deallocatableActors.push_back(actor);
-		}
+		} 
 		else
 		{
 			room->AddCurrentlyLoadedActor(actor);
@@ -268,6 +270,15 @@ void Heap::LoadRoom(int roomNumber)
 		room->AddCurrentlyLoadedActor(offspring);
 		rocksAndGrass.push_back(offspring);
 		Allocate(offspring);
+	}
+
+	//If we have a Scarecrow After room load allocate Leaks
+	for (Node* hunt : room->GetCurrentlyLoadedActors()) {  
+		if (hunt->GetID() == 0x00CA) {
+			Allocate(new Node(*possibleTemporaryActors[0xF002]));
+			Allocate(new Node(*possibleTemporaryActors[0xF002]));
+			break;
+		}
 	}
 
 	offspringToAllocate.clear();
@@ -327,12 +338,23 @@ void Heap::ChangeRoom(int newRoomNumber)
 			Allocate(actor);
 			deallocatableActors.push_back(actor);
 		}
+		/* Allocate Leaks on scarecrow load during room change
+		 * Scarecrow is loaded into execution immeditily Load leaks soon as actor is instantiated 
+		 */
+		
+		else if (actor->GetID() == 0x0CA) {  
+			newRoom->AddCurrentlyLoadedActor(actor);
+			Allocate(actor);
+			Allocate(new Node(*possibleTemporaryActors[0xF002]));
+			Allocate(new Node(*possibleTemporaryActors[0xF002]));
+		}
 		else
 		{
 			newRoom->AddCurrentlyLoadedActor(actor);
 			Allocate(actor);
 		}
 	}
+
 
 	//deallocate new clock 
 	if (newClock != nullptr)
@@ -381,6 +403,8 @@ void Heap::ChangeRoom(int newRoomNumber)
 			break;
 		case 0xF001: //ISot Memory Leak
 			break;
+		case 0xF002: //SC Memory Leak 
+			break;
 		default:
 
 			Deallocate(actor);
@@ -403,7 +427,10 @@ void Heap::ChangeRoom(int newRoomNumber)
 
 	offspringToAllocate.clear();
 
+
+
 	//update room number to room number of room we're changing to
+
 	this->currentRoomNumber = newRoomNumber;
 }
 
@@ -669,13 +696,23 @@ void Heap::PrintHeap(char setting) const
 		{
 			if (curr->GetID() != LINK_ID) 
 			{
-				std::cout << std::hex << curr->GetAddress() << ":" << curr->GetSize() << " " << curr->GetType() << " " << curr->GetID() << " " << curr->GetPriority() << std::dec << std::endl;
+				std::cout << std::hex << curr->GetAddress() << ":"
+					<< std::setw(6) << curr->GetSize() << " "
+					<< std::setw(1) << curr->GetType() << " "
+					<< std::setw(6) << curr->GetID() << " "
+					<< std::setw(2) << std::dec << curr->GetPriority()
+					<< std::endl;
 			}
 			
 		}
 		else if (setting == 1)
 		{
-			std::cout << std::hex << curr->GetAddress() << ":" << curr->GetSize() << " " << curr->GetType() << " " << curr->GetID() << " " <<curr->GetPriority() << std::dec << std::endl;
+			std::cout << std::hex << curr->GetAddress() << ":" 
+				<< std::setw(6) << curr->GetSize() << " "
+				<< std::setw(1) << curr->GetType() << " " 
+				<< std::setw(6) << curr->GetID() << " "
+				<< std::setw(2) << std::dec << curr->GetPriority()
+				<< std::endl;
 		}
 		
 

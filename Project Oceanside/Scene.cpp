@@ -23,7 +23,7 @@ Scene::Scene()
 	//read in the actor data
 	try
 	{
-		std::ifstream f("mm_u_actors.json");
+		std::ifstream f("mm_j_actors.json");
 		actorJson = json::parse(f);
 		std::cout << "Actor data loaded..." << std::endl;
 	}

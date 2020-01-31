@@ -19,13 +19,14 @@ TODOs:
 6. implement enemies or whatever dying and dropping things (tokens, magic drops, etc.)
 */
 
-const int START = 0x40b140;
+const int START = 0x40B670;
 const int END = 0x5fffff;
 
 enum SolverTypes {
 	KyleSolver,
 	KyleSolver2,
 	PermSolver,
+	nop,
 };
 uint64_t seed = GetTickCount64();
 
@@ -35,6 +36,8 @@ int main()
 	srand(seed);
 	std::cout << std::to_string(seed) << std::endl;
 	std::cout << std::showbase;
+	std::cout << std::setfill('0');
+	std::cout << std::internal;
 	Scene* scene = new Scene();
 	Heap* heap = new Heap(scene, START, END);
 
@@ -48,16 +51,20 @@ int main()
 	std::vector<std::pair<int, int>> solution;
 
 	ActorList list;
+	heap->LoadRoom(1);
+	heap->ChangeRoom(0);
+	heap->ChangeRoom(1);
 
+	heap->PrintHeap(1);
 
-	SolverTypes Solver = KyleSolver2;
+	SolverTypes Solver = nop;
 	switch (Solver)
 	{
 	case KyleSolver2:
 	
 		while (true)
 		{
-			roomLoads = list.roomLoads;
+			roomLoads = (rand() % list.roomLoads)+1;
 			heap->LoadRoom(0);
 			solution.push_back(std::make_pair(0xcccc, 0x0));
 
@@ -100,10 +107,11 @@ int main()
 			heap->FreezeRocksAndGrass();
 			heap->AllocateTemporaryActor(0x00A2);
 			solution.push_back(std::make_pair(0xbbbb, 0xbbbb));
-			heap->ChangeRoom(0);
-			solution.push_back(std::make_pair(0xcccc, 0));
-			//std::cout << "Loaded room 0." << std::endl;
-			heap->ChangeRoom(1);
+			if (heap->GetRoomNumber()) {
+				heap->ChangeRoom(0);
+				solution.push_back(std::make_pair(0xcccc, 0));
+			}
+						heap->ChangeRoom(1);
 			solution.push_back(std::make_pair(0xcccc, 1));
 			//std::cout << "Loaded room 1." << std::endl;
 			//chest overlay will freeze when we change room again
@@ -166,7 +174,7 @@ int main()
 								}
 							}
 							outputFile << std::hex << " Flower - Priority:" << flower->GetPriority() << std::endl;
-							outputFile << std::hex << "RB - Address: " << std::get<0>(roag) << " Priority: " << std::get<2>(roag) << std::endl;
+							outputFile << std::hex << "RB - Address: " << std::get<1>(roag) << " Priority: " << std::get<2>(roag) << std::endl;
 							std::streambuf* coutbuf = std::cout.rdbuf(); //save old buf
 							std::cout.rdbuf(outputFile.rdbuf());
 
@@ -359,6 +367,8 @@ int main()
 				std::printf("Permuations Per Second: %f\n", totalPermutations / ((time_span.count())));
 			}
 		}
+		case nop:
+			break;
 	}
 	delete(scene);
 	delete(heap);
