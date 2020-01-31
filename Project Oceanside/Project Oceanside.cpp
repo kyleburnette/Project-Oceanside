@@ -7,17 +7,16 @@
 #include "./Scene.h"
 #include "./ActorList.h"
 
-/*
-FIX - debug mode doesn't work, probably because of my memory leak fix
-TODOs:
-1. [DONE] implement allocating new items that aren't part of the room (smoke, chus, arrows, bugs, fish, etc)
-2. implement checking system to compare addresses to a desired offset (i.e. 0x160 offset pot and chest)
-3. implement permutation generation and running those permutations
-	-random? something else?
-4. implement ISoT and scarecrow memory leaks
-5. [DONE] implement spawner behavior
-6. implement enemies or whatever dying and dropping things (tokens, magic drops, etc.)
-*/
+std::map<int, int> actorIDDrawFunctionOffsets;
+
+actorIDDrawFunctionOffsets[0x0005] = 0x0CB0; // door
+actorIDDrawFunctionOffsets[0x0006] = 0x1D10; // Treasure Chest
+actorIDDrawFunctionOffsets[0x001E] = 0x1524; // Door Shutter
+actorIDDrawFunctionOffsets[0x0039] = 0x09C4; // Torch Stand(Generic)
+actorIDDrawFunctionOffsets[0x0082] = 0x1EF0; // Pot
+actorIDDrawFunctionOffsets[0x0158] = 0x0194; // Spiderweb
+actorIDDrawFunctionOffsets[0x015B] = 0x1338; // Bad Bat
+actorIDDrawFunctionOffsets[0x0170] = 0x0C80; // Dripping Water
 
 const int START = 0x40B670;
 const int END = 0x5fffff;
