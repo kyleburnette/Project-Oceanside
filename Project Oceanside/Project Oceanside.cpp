@@ -9,14 +9,28 @@
 
 std::map<int, int> actorIDDrawFunctionOffsets;
 
-actorIDDrawFunctionOffsets[0x0005] = 0x0CB0; // door
-actorIDDrawFunctionOffsets[0x0006] = 0x1D10; // Treasure Chest
-actorIDDrawFunctionOffsets[0x001E] = 0x1524; // Door Shutter
-actorIDDrawFunctionOffsets[0x0039] = 0x09C4; // Torch Stand(Generic)
-actorIDDrawFunctionOffsets[0x0082] = 0x1EF0; // Pot
-actorIDDrawFunctionOffsets[0x0158] = 0x0194; // Spiderweb
-actorIDDrawFunctionOffsets[0x015B] = 0x1338; // Bad Bat
-actorIDDrawFunctionOffsets[0x0170] = 0x0C80; // Dripping Water
+//values to put in above map
+/*0018 A9C    Room Transition Plane
+00ED 2A9C   Stalchild (Generic)
+00B1 48     Orange Graveyard Flower
+0004 9EC    Flame
+0265 N/A    En_Hit_Tag
+01E3 EE0    Gravestone
+01F0 1C0    Captain Keeta Race Gatepost
+01CA 32B0   Dampé
+0212 291C   Circle of Stalchildren
+01E2 1258   Dampé's House Facade
+0090 N/A    Single Bush/Grass
+015A N/A    Three-Day Timer
+017C N/A    En_Fall
+00BC 1374   En_Weather_Tag
+0005 CB0    Wooden Door
+011B N/A    En_Encount4
+028F 4018   Captain Keeta
+00B0 N/A    Rock
+0162 C14    Circle of Flames
+0055 564    Grotto Hole
+0006 1D10   Treasure Chest*/
 
 const int START = 0x40B670;
 const int END = 0x5fffff;
@@ -31,7 +45,6 @@ uint64_t seed = GetTickCount64();
 
 int main()
 {
-
 	srand(seed);
 	std::cout << std::to_string(seed) << std::endl;
 	std::cout << std::showbase;
@@ -56,7 +69,7 @@ int main()
 
 	heap->PrintHeap(1);
 
-	SolverTypes Solver = nop;
+	SolverTypes Solver = KyleSolver2;
 	switch (Solver)
 	{
 	case KyleSolver2:
@@ -110,81 +123,75 @@ int main()
 				heap->ChangeRoom(0);
 				solution.push_back(std::make_pair(0xcccc, 0));
 			}
-						heap->ChangeRoom(1);
+			heap->ChangeRoom(1);
 			solution.push_back(std::make_pair(0xcccc, 1));
 			//std::cout << "Loaded room 1." << std::endl;
 			//chest overlay will freeze when we change room again
 			heap->ChangeRoom(0);
 			solution.push_back(std::make_pair(0xcccc, 0));
-			// std::cout << "Loaded room 0." << std::endl;
-			if ((heap->chestOverlay->GetAddress() & 0xFF0000) == (heap->flowerOverlay->GetAddress() & 0xFF0000))
+
+			for (auto roag : heap->frozenRocksAndGrass)
 			{
-
-				//std::cout << std::hex << heap->chestOverlay->GetAddress() << " " << heap->flowerOverlay->GetAddress() << std::dec << std::endl;
-
-				//std::cout << "Overlays match." << std::endl;
-				for (auto flower : heap->allFlowers)
+				if ((std::get<1>(roag) & 0xFFFF) == 0x4E40 ||
+					(std::get<1>(roag) & 0xFFFF) == 0x5000 ||
+					(std::get<1>(roag) & 0xFFFF) == 0x5140 ||
+					(std::get<1>(roag) & 0xFFFF) == 0x5280 || 
+					(std::get<1>(roag) & 0xFFFF) == 0x5480)
 				{
-					for (auto roag : heap->frozenRocksAndGrass)
+					std::cout << "ROCK OR GRASS IN CORRECT POSITION" << std::endl;
+					totalSolutions++;
+
+					std::ofstream outputFile;
+					std::string outputFileName = "solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
+					outputFile.open(outputFileName);
+
+					for (auto step : solution)
 					{
-						//std::cout << std::hex << flower->GetAddress() << " " << std::get<1>(roag) << std::endl;
-						if (std::get<1>(roag) - flower->GetAddress() == 0x80)
+						if (step.first == 0xcccc)
 						{
-							std::cout << "SOLUTION FOUND" << std::endl;
-							totalSolutions++;
-
-							std::ofstream outputFile;
-							std::string outputFileName = "solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
-							outputFile.open(outputFileName);
-
-							for (auto step : solution)
-							{
-								if (step.first == 0xcccc)
-								{
-									outputFile << std::hex << "Load room " << step.second << std::endl;
-								}
-								else if (step.first == 0xffff && step.second != 0xffff)
-								{
-									outputFile << std::hex << "Allocate: " << step.second << std::endl;
-								}
-								else if (step.first == 0xbbbb)
-								{
-									outputFile << "Superslide into room 0." << std::endl;
-								}
-								else if (step.first == 0xdddd && step.second == 0x003D)
-								{
-									outputFile << std::hex << "Allocate: hookshot" << std::endl;
-								}
-								else if (step.first == 0xdddd && step.second == 0x007B)
-								{
-									outputFile << std::hex << "Allocate: charged spin attack" << std::endl;
-								}
-								else if (step.first == 0xdddd && step.second == 0x00A2)
-								{
-									outputFile << std::hex << "Allocate: smoke (let bomb unload)" << std::endl;
-								}
-								else if (step.first == 0xdddd && step.second == 0x018C)
-								{
-									outputFile << std::hex << "Leak: ISoT" << std::endl;
-								}
-								else
-								{
-									outputFile << std::hex << "Deallocate: " << step.first << " | Priority: " << step.second << std::endl;
-								}
-							}
-							outputFile << std::hex << " Flower - Priority:" << flower->GetPriority() << std::endl;
-							outputFile << std::hex << "RB - Address: " << std::get<1>(roag) << " Priority: " << std::get<2>(roag) << std::endl;
-							std::streambuf* coutbuf = std::cout.rdbuf(); //save old buf
-							std::cout.rdbuf(outputFile.rdbuf());
-
-							heap->PrintHeap(1);
-							std::cout.rdbuf(coutbuf);
-							outputFile.close();
+							outputFile << std::hex << "Load room " << step.second << std::endl;
+						}
+						else if (step.first == 0xffff && step.second != 0xffff)
+						{
+							outputFile << std::hex << "Allocate: " << step.second << std::endl;
+						}
+						else if (step.first == 0xbbbb)
+						{
+							outputFile << "Superslide into room 0." << std::endl;
+						}
+						else if (step.first == 0xdddd && step.second == 0x003D)
+						{
+							outputFile << std::hex << "Allocate: hookshot" << std::endl;
+						}
+						else if (step.first == 0xdddd && step.second == 0x007B)
+						{
+							outputFile << std::hex << "Allocate: charged spin attack" << std::endl;
+						}
+						else if (step.first == 0xdddd && step.second == 0x00A2)
+						{
+							outputFile << std::hex << "Allocate: smoke (let bomb unload)" << std::endl;
+						}
+						else if (step.first == 0xdddd && step.second == 0x018C)
+						{
+							outputFile << std::hex << "Leak: ISoT" << std::endl;
+						}
+						else
+						{
+							outputFile << std::hex << "Deallocate: " << step.first << " | Priority: " << step.second << std::endl;
 						}
 					}
+					//outputFile << std::hex << " Flower - Priority:" << flower->GetPriority() << std::endl;
+					outputFile << std::hex << "RB - Address: " << std::get<1>(roag) << " Priority: " << std::get<2>(roag) << std::endl;
+					std::streambuf* coutbuf = std::cout.rdbuf(); //save old buf
+					std::cout.rdbuf(outputFile.rdbuf());
 
+					heap->PrintHeap(1);
+					std::cout.rdbuf(coutbuf);
+					outputFile.close();
 				}
 			}
+
+				
 
 			heap->ResetHeap();
 			//std::cout << "Heap reset." << std::endl;
@@ -201,9 +208,9 @@ int main()
 		}
 		break;
 	case KyleSolver:
-		while (false)
+		while (true)
 		{
-			roomLoads = (2 * (rand() % 4)) + 1; //max room loads = 5, always odd so we end up in chest room
+			roomLoads = (2 * (rand() % 5)) + 1; //max room loads = 5, always odd so we end up in chest room
 			//std::cout << "Total number of room loads: " << roomLoads << std::endl;
 
 
