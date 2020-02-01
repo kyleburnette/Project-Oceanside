@@ -63,11 +63,6 @@ int main()
 	std::vector<std::pair<int, int>> solution;
 
 	ActorList list;
-	heap->LoadRoom(1);
-	heap->ChangeRoom(0);
-	heap->ChangeRoom(1);
-
-	heap->PrintHeap(1);
 
 	SolverTypes Solver = KyleSolver2;
 	switch (Solver)
@@ -115,7 +110,6 @@ int main()
 				solution.push_back(std::make_pair(0xcccc, i % 2));
 			}
 
-
 			heap->FreezeRocksAndGrass();
 			heap->AllocateTemporaryActor(0x00A2);
 			solution.push_back(std::make_pair(0xbbbb, 0xbbbb));
@@ -139,6 +133,7 @@ int main()
 					(std::get<1>(roag) & 0xFFFF) == 0x5480)
 				{
 					std::cout << "ROCK OR GRASS IN CORRECT POSITION" << std::endl;
+					std::cout << std::hex << std::get<1>(roag) << std::dec << std::endl;
 					totalSolutions++;
 
 					std::ofstream outputFile;
