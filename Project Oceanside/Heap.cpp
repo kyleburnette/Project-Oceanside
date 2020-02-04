@@ -740,8 +740,8 @@ Node* Heap::FindSuitableGap(Node* newNode) const
 	{
 		if (curr->GetID() == LINK_ID && curr->GetNext()->GetID() == LINK_ID)
 		{
-			int gapSize = curr->GetNext()->GetAddress() - curr->GetAddress();
-			if (gapSize > size)
+			int gapSize = curr->GetNext()->GetAddress() - curr->GetAddress() - LINK_SIZE;
+			if (gapSize >= size)
 			{
 				return curr;
 			}
