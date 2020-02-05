@@ -8,7 +8,7 @@ ActorList::ActorList()
 	{
 		std::ifstream f("actorList.json");
 		actorJson = json::parse(f);
-		printf("Actor Testing List Loaded");
+		std::cout << "Actor Testing List Loaded" << std::endl;
 
 	}
 	catch (json::parse_error & e)

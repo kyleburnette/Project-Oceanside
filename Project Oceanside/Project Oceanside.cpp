@@ -40,7 +40,7 @@ int main()
 
 	ActorList list;
 
-	SolverTypes Solver = KyleSolver2;
+	SolverTypes Solver = KyleSolver;
 	switch (Solver)
 	{
 	case KyleSolver2:
@@ -181,15 +181,15 @@ int main()
 	case KyleSolver:
 		while (true)
 		{
-			roomLoads = (2 * (rand() % 5)) + 1; //max room loads = 5, always odd so we end up in chest room
+			roomLoads = (2 * (rand() % 7)) + 1; //max room loads = 5, always odd so we end up in chest room
 			//std::cout << "Total number of room loads: " << roomLoads << std::endl;
 
 
 			//std::cout << "Loaded room 0." << std::endl;
-			heap->LoadRoom(0);
+			heap->LoadRoom(1);
 			solution.push_back(std::make_pair(0xcccc, 0x0));
 
-			for (int i = 1; i <= roomLoads; i++)
+			for (int i = 0; i <= roomLoads; i++)
 			{
 				deallocations = rand() % heap->deallocatableActors.size();
 				//std::cout << "number of deallocations set" << std::endl;
@@ -215,21 +215,12 @@ int main()
 					solution.push_back(std::make_pair(0xffff, heap->AllocateRandomActor()));
 				}
 
-				if (heap->GetRoomNumber() && rand() % 1) { //If in room 1 AND futhington is not banned
-					if (rand() % 1)
-					{
-						heap->AllocateTemporaryActor(0x003D);
-						solution.push_back(std::make_pair(0xdddd, 0x003D)); //Hookshot
-					}
-					else
-					{
+				if (heap->GetRoomNumber() && rand() % 1) 
+				{ //If in room 1 AND futhington is not banned
 						heap->AllocateTemporaryActor(0x0035);
 						heap->AllocateTemporaryActor(0x007B);
 						solution.push_back(std::make_pair(0xffff, 0x0035)); //Spin Attack 1
 						solution.push_back(std::make_pair(0xdddd, 0x007B)); //Spin Attack 2
-					}
-
-
 
 				}
 
@@ -238,96 +229,58 @@ int main()
 				//std::cout << "loaded room " << i % 2 << std::endl;
 			}
 
-			heap->FreezeRocksAndGrass();
-			//std::cout << "Rocks and grass frozen. " << std::endl;
-
-
-			heap->AllocateTemporaryActor(0x00A2);
-
-			solution.push_back(std::make_pair(0xbbbb, 0xbbbb));
-
-			//std::cout << "Supersliding..." << std::endl;
-
-			heap->ChangeRoom(0);
-			solution.push_back(std::make_pair(0xcccc, 0));
-			//std::cout << "Loaded room 0." << std::endl;
-			heap->ChangeRoom(1);
-			solution.push_back(std::make_pair(0xcccc, 1));
-			//std::cout << "Loaded room 1." << std::endl;
-			//chest overlay will freeze when we change room again
-			heap->ChangeRoom(0);
-			solution.push_back(std::make_pair(0xcccc, 0));
-			// std::cout << "Loaded room 0." << std::endl;
-
-			 //std::cout << std::hex << heap->chestOverlay->GetAddress() << std::endl;
-			 //std::cout << std::hex << heap->flowerOverlay->GetAddress() << std::endl;
-
-			if ((heap->chestOverlay->GetAddress() & 0xFF0000) == (heap->flowerOverlay->GetAddress() & 0xFF0000))
+			for (auto actor : scene->GetRoom(heap->GetRoomNumber())->GetCurrentlyLoadedActors())
 			{
-
-				//std::cout << std::hex << heap->chestOverlay->GetAddress() << " " << heap->flowerOverlay->GetAddress() << std::dec << std::endl;
-
-				//std::cout << "Overlays match." << std::endl;
-				for (auto flower : heap->allFlowers)
+				if (actor->GetID() == 0x0082 && actor->GetAddress() & 0xFFFF == 0x5480)
 				{
-					for (auto roag : heap->frozenRocksAndGrass)
+					std::cout << "SOLUTION FOUND" << std::endl;
+					totalSolutions++;
+
+					std::ofstream outputFile;
+					std::string outputFileName = "solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
+					outputFile.open(outputFileName);
+
+					for (auto step : solution)
 					{
-						//std::cout << std::hex << flower->GetAddress() << " " << std::get<1>(roag) << std::endl;
-						if (std::get<1>(roag) - flower->GetAddress() == 0x80)
+						if (step.first == 0xcccc)
 						{
-							std::cout << "SOLUTION FOUND" << std::endl;
-							totalSolutions++;
-
-							std::ofstream outputFile;
-							std::string outputFileName = "solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
-							outputFile.open(outputFileName);
-
-							for (auto step : solution)
-							{
-								if (step.first == 0xcccc)
-								{
-									outputFile << std::hex << "Load room " << step.second << std::endl;
-								}
-								else if (step.first == 0xffff && step.second != 0xffff)
-								{
-									outputFile << std::hex << "Allocate: " << step.second << std::endl;
-								}
-								else if (step.first == 0xbbbb)
-								{
-									outputFile << "Superslide into room 0." << std::endl;
-								}
-								else if (step.first == 0xdddd && step.second == 0x003D)
-								{
-									outputFile << std::hex << "Allocate: hookshot" << std::endl;
-								}
-								else if (step.first == 0xdddd && step.second == 0x007B)
-								{
-									outputFile << std::hex << "Allocate: charged spin attack" << std::endl;
-								}
-								else if (step.first == 0xdddd && step.second == 0x00A2)
-								{
-									outputFile << std::hex << "Allocate: smoke (let bomb unload)" << std::endl;
-								}
-								else if (step.first == 0xdddd && step.second == 0x018C)
-								{
-									outputFile << std::hex << "Leak: ISoT" << std::endl;
-								}
-								else
-								{
-									outputFile << std::hex << "Deallocate: " << step.first << " | Priority: " << step.second << std::endl;
-								}
-							}
-							outputFile << std::dec << " Flower - Priority:" << flower->GetPriority() << std::endl;
-							outputFile << std::dec << "RB - Type: " << std::get<0>(roag) << " Priority: " << std::get<1>(roag) << std::endl;
-							std::streambuf* coutbuf = std::cout.rdbuf(); //save old buf
-							std::cout.rdbuf(outputFile.rdbuf());
-
-							heap->PrintHeap(1);
-							std::cout.rdbuf(coutbuf);
-							outputFile.close();
+							outputFile << std::hex << "Load room " << step.second << std::endl;
+						}
+						else if (step.first == 0xffff && step.second != 0xffff)
+						{
+							outputFile << std::hex << "Allocate: " << step.second << std::endl;
+						}
+						else if (step.first == 0xbbbb)
+						{
+							outputFile << "Superslide into room 0." << std::endl;
+						}
+						else if (step.first == 0xdddd && step.second == 0x003D)
+						{
+							outputFile << std::hex << "Allocate: hookshot" << std::endl;
+						}
+						else if (step.first == 0xdddd && step.second == 0x007B)
+						{
+							outputFile << std::hex << "Allocate: charged spin attack" << std::endl;
+						}
+						else if (step.first == 0xdddd && step.second == 0x00A2)
+						{
+							outputFile << std::hex << "Allocate: smoke (let bomb unload)" << std::endl;
+						}
+						else if (step.first == 0xdddd && step.second == 0x018C)
+						{
+							outputFile << std::hex << "Leak: ISoT" << std::endl;
+						}
+						else
+						{
+							outputFile << std::hex << "Deallocate: " << step.first << " | Priority: " << step.second << std::endl;
 						}
 					}
+					std::streambuf* coutbuf = std::cout.rdbuf(); //save old buf
+					std::cout.rdbuf(outputFile.rdbuf());
 
+					heap->PrintHeap(1);
+					std::cout.rdbuf(coutbuf);
+					outputFile.close();
 				}
 			}
 

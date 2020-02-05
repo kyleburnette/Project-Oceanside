@@ -251,6 +251,12 @@ void Heap::LoadRoom(int roomNumber)
 			Allocate(actor);
 			deallocatableActors.push_back(actor);
 		} 
+		else if (actor->GetID() == 0x0082)
+		{
+			room->AddCurrentlyLoadedActor(actor);
+			Allocate(actor);
+			deallocatableActors.push_back(actor);
+		}
 		else
 		{
 			room->AddCurrentlyLoadedActor(actor);
@@ -332,7 +338,7 @@ void Heap::ChangeRoom(int newRoomNumber)
 			; //TODO - handle not reallocating loading planes later
 		}
 
-		else if (actor->GetID() == 0x0265 || actor->GetID() == 0x00ED)
+		else if (actor->GetID() == 0x0265 || actor->GetID() == 0x00ED || actor->GetID() == 0x0082 || actor->GetID() == 0x005F)
 		{
 			newRoom->AddCurrentlyLoadedActor(actor);
 			Allocate(actor);
