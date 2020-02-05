@@ -44,6 +44,7 @@ Scene::Scene()
     for (auto room : sceneJson["rooms"])
     {
         Room* newRoom = new Room();
+		actorCount.clear();
 
         for (std::string actor : room["actorList"])
         {
@@ -115,8 +116,6 @@ Scene::Scene()
         rooms.push_back(newRoom);
         roomCount++;
     }
-
-    actorCount.clear();
 }
 
 Room* Scene::GetRoom(int roomNumber) const
