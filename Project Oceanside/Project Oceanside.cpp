@@ -7,32 +7,8 @@
 #include "./Scene.h"
 #include "./ActorList.h"
 
-std::map<int, int> actorIDDrawFunctionOffsets;
-
-//values to put in above map
-/*0018 A9C    Room Transition Plane
-00ED 2A9C   Stalchild (Generic)
-00B1 48     Orange Graveyard Flower
-0004 9EC    Flame
-0265 N/A    En_Hit_Tag
-01E3 EE0    Gravestone
-01F0 1C0    Captain Keeta Race Gatepost
-01CA 32B0   Dampé
-0212 291C   Circle of Stalchildren
-01E2 1258   Dampé's House Facade
-0090 N/A    Single Bush/Grass
-015A N/A    Three-Day Timer
-017C N/A    En_Fall
-00BC 1374   En_Weather_Tag
-0005 CB0    Wooden Door
-011B N/A    En_Encount4
-028F 4018   Captain Keeta
-00B0 N/A    Rock
-0162 C14    Circle of Flames
-0055 564    Grotto Hole
-0006 1D10   Treasure Chest*/
-
-const int START = 0x40B670;
+//const int START = 0x40B670; //1.1
+const int START = 0x40B3B0; //1.0
 const int END = 0x5fffff;
 
 enum SolverTypes {
