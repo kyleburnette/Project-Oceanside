@@ -31,6 +31,8 @@ public:
 	int GetPriority() const;
 	void SetSpawnerOffspring(Node* node);
 	std::vector<Node*> GetOffspring();
+	void SetRemoved(int val);
+	int GetRemoved() const;
 
 private:
 	Node* next = nullptr;
@@ -42,6 +44,7 @@ private:
 	Node* overlay = nullptr;
 	int priority = 0;
 	std::vector<Node*> spawnerOffspring;
+	int removed = 0;
 };
 
 

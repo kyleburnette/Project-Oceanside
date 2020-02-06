@@ -143,3 +143,12 @@ std::vector<Node*> Node::GetOffspring()
 {
 	return spawnerOffspring;
 }
+void Node::SetRemoved(int val)
+{
+	this->removed = val;
+}
+
+int Node::GetRemoved() const
+{
+	return removed;
+}

@@ -262,6 +262,7 @@ void Heap::LoadRoom(int roomNumber)
 			room->AddCurrentlyLoadedActor(actor);
 			Allocate(actor);
 		}
+		actor->SetRemoved(0);
 	}
 
 	for (Node* stalchild : extraStalchildren)
@@ -339,7 +340,7 @@ void Heap::ChangeRoom(int newRoomNumber)
 			; //TODO - handle not reallocating loading planes later
 		}
 
-		else if (actor->GetID() == 0x0265 || actor->GetID() == 0x00ED || actor->GetID() == 0x0082 || actor->GetID() == 0x005F)
+		else if (actor->GetID() == 0x0265 || actor->GetID() == 0x00ED || actor->GetID() == 0x0082 )
 		{
 			newRoom->AddCurrentlyLoadedActor(actor);
 			Allocate(actor);
@@ -354,6 +355,14 @@ void Heap::ChangeRoom(int newRoomNumber)
 			Allocate(actor);
 			Allocate(new Node(*possibleTemporaryActors[0xF002]));
 			Allocate(new Node(*possibleTemporaryActors[0xF002]));
+		}
+		else if (actor->GetID() == 0x005F)
+		{
+			
+				newRoom->AddCurrentlyLoadedActor(actor);
+				Allocate(actor);
+				deallocatableActors.push_back(actor);
+			
 		}
 		else
 		{
@@ -379,6 +388,14 @@ void Heap::ChangeRoom(int newRoomNumber)
 		newDampe = nullptr;
 	}
 
+	for (Node* actor : newRoom->GetAllActors()) {
+		if (actor->GetRemoved()) {
+			Deallocate(actor);
+			deallocatableActors.erase(std::remove(deallocatableActors.begin(), deallocatableActors.end(),actor), deallocatableActors.end());
+			newRoom->RemoveCurrentlyLoadedActor(actor);
+		}
+	}
+	
 	//deallocate temporary actors from old room (bombs, bugs, etc.) and reset temp actor vector
 	for (Node* actor : temporaryActors)
 	{
@@ -454,7 +471,9 @@ std::pair<int, int> Heap::DeallocateRandomActor()
 	char rng = rand() % deallocatableActors.size();
 
 	Node* nodeToDeallocate = deallocatableActors[rng];
-
+	if (nodeToDeallocate->GetID() == 0x005F) {
+		nodeToDeallocate->SetRemoved(1);
+	}
 	Deallocate(deallocatableActors[rng]);
 	//std::cout << std::hex << "Deallocated random actor: " << deallocatableActors[rng]->GetID() << std::endl;
 	deallocatableActors.erase(std::remove(deallocatableActors.begin(), deallocatableActors.end(), nodeToDeallocate), deallocatableActors.end());

@@ -177,7 +177,7 @@ int main()
 	case KyleSolver:
 		while (true)
 		{
-			roomLoads = (2 * (rand() % 3)) + 1; //max room loads = 5, always odd so we end up in chest room
+			roomLoads = (2 * (rand() % 5)) + 1; //max room loads = 5, always odd so we end up in chest room
 			//std::cout << "Total number of room loads: " << roomLoads << std::endl;
 
 
@@ -255,16 +255,19 @@ int main()
 			solution.push_back(std::make_pair(0xcccc, 1));
 			for (auto actor : scene->GetRoom(heap->GetRoomNumber())->GetCurrentlyLoadedActors())
 			{
-				if (actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5480)
+				if ((actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x4e40) ||
+				 (actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5000) ||
+				 (actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5140) ||
+				 (actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5280) ||
+				 (actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5480))
 				{
-					std::cout << "SOLUTION FOUND" << std::endl;
+				//	std::cout << "SOLUTION FOUND" << std::endl;
 					totalSolutions++;
 
 					std::ofstream outputFile;
 					std::string outputFileName = "solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
 					outputFile.open(outputFileName);
 					outputFile << "Room Changes: " << roomLoads << std::endl;
-
 					for (auto step : solution)
 					{
 						if (step.first == 0xcccc)
