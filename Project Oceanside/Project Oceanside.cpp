@@ -183,7 +183,7 @@ int main()
 
 			//std::cout << "Loaded room 0." << std::endl;
 			heap->LoadRoom(1);
-			solution.push_back(std::make_pair(0xcccc, 0x0));
+			solution.push_back(std::make_pair(0xcccc, 0x1));
 
 			for (int i = 0; i <= roomLoads; i++)
 			{
@@ -247,7 +247,8 @@ int main()
 			//std::cout << "Loaded room 1." << std::endl;
 			//chest overlay will freeze when we change room again
 			heap->AllocateTemporaryActor(0x00A2);
-			solution.push_back(std::make_pair(0xdddd, 0xA2)); //ISoT
+			solution.push_back(std::make_pair(0xdddd, 0xA2)); 
+			solution.push_back(std::make_pair(0xbbbb, 0xbbbb));
 			heap->ChangeRoom(0);
 			solution.push_back(std::make_pair(0xcccc, 0));
 			heap->ChangeRoom(1);
@@ -262,6 +263,7 @@ int main()
 					std::ofstream outputFile;
 					std::string outputFileName = "solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
 					outputFile.open(outputFileName);
+					outputFile << "Room Changes: " << roomLoads << std::endl;
 
 					for (auto step : solution)
 					{
@@ -276,6 +278,7 @@ int main()
 						else if (step.first == 0xbbbb)
 						{
 							outputFile << "Superslide into room 0." << std::endl;
+							outputFile << "Pot address: " << actor->GetAddress() << " Priority: " << actor->GetPriority() << std::endl;
 						}
 						else if (step.first == 0xdddd && step.second == 0x003D)
 						{
