@@ -40,6 +40,21 @@ int main()
 
 	ActorList list;
 
+	/*heap->LoadRoom(1);
+	heap->ChangeRoom(0);
+	heap->AllocateTemporaryActor(0x0009);
+	heap->ChangeRoom(1);
+	heap->ChangeRoom(0);
+	heap->ChangeRoom(1);
+	heap->Deallocate(0x0082, 2);
+	heap->Deallocate(0x0082, 1);
+	heap->ChangeRoom(0);
+	heap->AllocateTemporaryActor(0x0009);
+	heap->AllocateTemporaryActor(0x0009);
+	heap->ChangeRoom(1);
+	heap->ChangeRoom(0);
+
+	heap->PrintHeap(1);*/
 
 	SolverTypes Solver = KyleSolver;
 	switch (Solver)
@@ -177,7 +192,7 @@ int main()
 	case KyleSolver:
 		while (true)
 		{
-			roomLoads = (2 * (rand() % 5)) + 1; //max room loads = 5, always odd so we end up in chest room
+			roomLoads = (2 * (rand() % 3)) + 1; //max room loads = 5, always odd so we end up in chest room
 			//std::cout << "Total number of room loads: " << roomLoads << std::endl;
 
 
@@ -245,7 +260,6 @@ int main()
 			}
 
 			//we're now standing in room 1 waiting to superslide
-
 			std::vector<int> pots;
 			for (auto actor : scene->GetRoom(heap->GetRoomNumber())->GetCurrentlyLoadedActors())
 			{
@@ -255,7 +269,10 @@ int main()
 				}
 			}
 
+			heap->AllocateTemporaryActor(0x0009);
 			heap->AllocateTemporaryActor(0x00A2);
+			heap->DeallocateTemporaryActor(0x0009);
+
 			solution.push_back(std::make_pair(0xdddd, 0xA2)); 
 			solution.push_back(std::make_pair(0xbbbb, 0xbbbb));
 			heap->ChangeRoom(0);
@@ -283,12 +300,13 @@ int main()
 					{
 						if (entry - actor->GetAddress() == 0x160)
 						{
+							//std::cout << std::hex << entry << std::dec << std::endl;
 							totalSolutions++;
 
 							std::ofstream outputFile;
 							std::string outputFileName = "solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
 							outputFile.open(outputFileName);
-							outputFile << "Room Changes: " << roomLoads << std::endl;
+							outputFile << std::hex << entry << std::endl << actor->GetAddress() << std::dec << std::endl;
 							for (auto step : solution)
 							{
 								if (step.first == 0xcccc)
@@ -338,6 +356,7 @@ int main()
 
 			}
 
+			heap->ChangeRoom(1);
 			heap->ResetHeap();
 
 			//std::cout << "Heap reset." << std::endl;

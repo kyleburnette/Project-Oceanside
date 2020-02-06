@@ -60,8 +60,6 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 	
 
 	possibleRandomAllocatableActorsRoom1[0] = 0x0009;
-	//possibleRandomAllocatableActorsRoom1[1] = 0x000F;
-
 
 	possibleRandomAllocatableActorsRoom0[0] = 0x0009;
 };
@@ -91,7 +89,7 @@ void Heap::AllocateTemporaryActor(int actorID)
 	
 	temporaryActors.push_back(newTempActor);
 	switch (actorID) {
-	case 0x00A2: 
+	/*case 0x00A2: 
 	{
 		Node* t = new Node(*possibleTemporaryActors[0x0009]);
 		Allocate(t);
@@ -100,7 +98,7 @@ void Heap::AllocateTemporaryActor(int actorID)
 		delete t;
 	}
 		break;
-
+		*/
 	case 0x18C:
 	{
 		Allocate(newTempActor);
@@ -121,8 +119,6 @@ void Heap::AllocateTemporaryActor(int actorID)
 	default:
 		Allocate(newTempActor);
 	}
-	
-	
 }
 
 void Heap::DeallocateTemporaryActor(int actorID)
@@ -356,14 +352,14 @@ void Heap::ChangeRoom(int newRoomNumber)
 			Allocate(new Node(*possibleTemporaryActors[0xF002]));
 			Allocate(new Node(*possibleTemporaryActors[0xF002]));
 		}
-		else if (actor->GetID() == 0x005F)
+		/*else if (actor->GetID() == 0x005F)
 		{
 			
 				newRoom->AddCurrentlyLoadedActor(actor);
 				Allocate(actor);
 				deallocatableActors.push_back(actor);
 			
-		}
+		}*/
 		else
 		{
 			newRoom->AddCurrentlyLoadedActor(actor);
@@ -471,9 +467,9 @@ std::pair<int, int> Heap::DeallocateRandomActor()
 	char rng = rand() % deallocatableActors.size();
 
 	Node* nodeToDeallocate = deallocatableActors[rng];
-	if (nodeToDeallocate->GetID() == 0x005F) {
+	/*if (nodeToDeallocate->GetID() == 0x005F) {
 		nodeToDeallocate->SetRemoved(1);
-	}
+	}*/
 	Deallocate(deallocatableActors[rng]);
 	//std::cout << std::hex << "Deallocated random actor: " << deallocatableActors[rng]->GetID() << std::endl;
 	deallocatableActors.erase(std::remove(deallocatableActors.begin(), deallocatableActors.end(), nodeToDeallocate), deallocatableActors.end());
