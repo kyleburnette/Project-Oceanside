@@ -244,79 +244,105 @@ int main()
 				//std::cout << "loaded room " << i % 2 << std::endl;
 			}
 
-			//std::cout << "Loaded room 1." << std::endl;
-			//chest overlay will freeze when we change room again
+			//we're now standing in room 1 waiting to superslide
+
+			std::vector<int> pots;
+			for (auto actor : scene->GetRoom(heap->GetRoomNumber())->GetCurrentlyLoadedActors())
+			{
+				if (actor->GetID() == 0x0082)
+				{
+					pots.push_back(actor->GetAddress());
+				}
+			}
+
 			heap->AllocateTemporaryActor(0x00A2);
 			solution.push_back(std::make_pair(0xdddd, 0xA2)); 
 			solution.push_back(std::make_pair(0xbbbb, 0xbbbb));
 			heap->ChangeRoom(0);
 			solution.push_back(std::make_pair(0xcccc, 0));
+
+			//we're in room 0 now, but we need to go back into room 1 and then back into room 0 to have a chance of the chest lining up
+			
 			heap->ChangeRoom(1);
 			solution.push_back(std::make_pair(0xcccc, 1));
+
+			heap->ChangeRoom(0);
+			solution.push_back(std::make_pair(0xcccc, 0));
+
 			for (auto actor : scene->GetRoom(heap->GetRoomNumber())->GetCurrentlyLoadedActors())
 			{
-				if ((actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x4e40) ||
-				 (actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5000) ||
-				 (actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5140) ||
-				 (actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5280) ||
-				 (actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5480))
-				{
-				//	std::cout << "SOLUTION FOUND" << std::endl;
-					totalSolutions++;
+				/*if ((actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x4e40) ||
+				(actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5000) ||
+				(actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5140) ||
+				(actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5280) ||
+				(actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5480))*/
 
-					std::ofstream outputFile;
-					std::string outputFileName = "solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
-					outputFile.open(outputFileName);
-					outputFile << "Room Changes: " << roomLoads << std::endl;
-					for (auto step : solution)
+				if (actor->GetID() == 0x0006 && actor->GetType() == 'A')
+				{
+					for (auto entry : pots)
 					{
-						if (step.first == 0xcccc)
+						if (entry - actor->GetAddress() == 0x160)
 						{
-							outputFile << std::hex << "Load room " << step.second << std::endl;
-						}
-						else if (step.first == 0xffff && step.second != 0xffff)
-						{
-							outputFile << std::hex << "Allocate: " << step.second << std::endl;
-						}
-						else if (step.first == 0xbbbb)
-						{
-							outputFile << "Superslide into room 0." << std::endl;
-							outputFile << "Pot address: " << actor->GetAddress() << " Priority: " << actor->GetPriority() << std::endl;
-						}
-						else if (step.first == 0xdddd && step.second == 0x003D)
-						{
-							outputFile << std::hex << "Allocate: hookshot" << std::endl;
-						}
-						else if (step.first == 0xdddd && step.second == 0x007B)
-						{
-							outputFile << std::hex << "Allocate: charged spin attack" << std::endl;
-						}
-						else if (step.first == 0xdddd && step.second == 0x00A2)
-						{
-							outputFile << std::hex << "Allocate: smoke (let bomb unload)" << std::endl;
-						}
-						else if (step.first == 0xdddd && step.second == 0x018C)
-						{
-							outputFile << std::hex << "Leak: ISoT" << std::endl;
-						}
-						else
-						{
-							outputFile << std::hex << "Deallocate: " << step.first << " | Priority: " << step.second << std::endl;
+							totalSolutions++;
+
+							std::ofstream outputFile;
+							std::string outputFileName = "solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
+							outputFile.open(outputFileName);
+							outputFile << "Room Changes: " << roomLoads << std::endl;
+							for (auto step : solution)
+							{
+								if (step.first == 0xcccc)
+								{
+									outputFile << std::hex << "Load room " << step.second << std::endl;
+								}
+								else if (step.first == 0xffff && step.second != 0xffff)
+								{
+									outputFile << std::hex << "Allocate: " << step.second << std::endl;
+								}
+								else if (step.first == 0xbbbb)
+								{
+									outputFile << "Superslide into room 0." << std::endl;
+									outputFile << "Pot address: " << actor->GetAddress() << " Priority: " << actor->GetPriority() << std::endl;
+								}
+								else if (step.first == 0xdddd && step.second == 0x003D)
+								{
+									outputFile << std::hex << "Allocate: hookshot" << std::endl;
+								}
+								else if (step.first == 0xdddd && step.second == 0x007B)
+								{
+									outputFile << std::hex << "Allocate: charged spin attack" << std::endl;
+								}
+								else if (step.first == 0xdddd && step.second == 0x00A2)
+								{
+									outputFile << std::hex << "Allocate: smoke (let bomb unload)" << std::endl;
+								}
+								else if (step.first == 0xdddd && step.second == 0x018C)
+								{
+									outputFile << std::hex << "Leak: ISoT" << std::endl;
+								}
+								else
+								{
+									outputFile << std::hex << "Deallocate: " << step.first << " | Priority: " << step.second << std::endl;
+								}
+							}
+							std::streambuf* coutbuf = std::cout.rdbuf(); //save old buf
+							std::cout.rdbuf(outputFile.rdbuf());
+
+							heap->PrintHeap(1);
+							std::cout.rdbuf(coutbuf);
+							outputFile.close();
 						}
 					}
-					std::streambuf* coutbuf = std::cout.rdbuf(); //save old buf
-					std::cout.rdbuf(outputFile.rdbuf());
-
-					heap->PrintHeap(1);
-					std::cout.rdbuf(coutbuf);
-					outputFile.close();
+					
 				}
+
 			}
 
 			heap->ResetHeap();
 
 			//std::cout << "Heap reset." << std::endl;
 			solution.clear();
+			pots.clear();
 			totalPermutations++;
 
 			if (totalPermutations % 50000 == 0)
