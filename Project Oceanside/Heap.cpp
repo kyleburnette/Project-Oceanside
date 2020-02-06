@@ -60,7 +60,7 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 	
 
 	possibleRandomAllocatableActorsRoom1[0] = 0x0009;
-	possibleRandomAllocatableActorsRoom1[1] = 0x000F;
+	//possibleRandomAllocatableActorsRoom1[1] = 0x000F;
 
 
 	possibleRandomAllocatableActorsRoom0[0] = 0x0009;
@@ -278,16 +278,17 @@ void Heap::LoadRoom(int roomNumber)
 		Allocate(offspring);
 	}
 
+
+	offspringToAllocate.clear();
 	//If we have a Scarecrow After room load allocate Leaks
-	for (Node* hunt : room->GetCurrentlyLoadedActors()) {  
+	for (Node* hunt : room->GetCurrentlyLoadedActors()) {
 		if (hunt->GetID() == 0x00CA) {
 			Allocate(new Node(*possibleTemporaryActors[0xF002]));
 			Allocate(new Node(*possibleTemporaryActors[0xF002]));
-			break;
+
 		}
 	}
 
-	offspringToAllocate.clear();
 	this->initiallyLoadedRoomNumber = roomNumber;
 	this->currentRoomNumber = roomNumber;
 }
@@ -498,7 +499,7 @@ void Heap::UnloadRoom(int roomNumber)
 	{
 		Deallocate(actor);
 	}
-
+	scene->GetRoom(currentRoomNumber)->ResetCurrentlyLoadedActors();
 	currentRoomNumber = -1;
 }
 
@@ -802,11 +803,16 @@ void Heap::ResetHeap()
 			DeallocateClockAndPlane(curr);
 			curr = head;
 		}
+		else if (curr->GetID() == 0xF002 || curr->GetID() == 0xF001) {
+			DeallocateClockAndPlane(curr);
+			delete(curr);
+			curr = head;
+		}
 
 		curr = curr->GetNext();
 	}
 
-	scene->GetRoom(0)->ResetCurrentlyLoadedActors();
+	//scene->GetRoom(currentRoomNumber)->ResetCurrentlyLoadedActors();
 
 	frozenRocksAndGrass.clear();
 

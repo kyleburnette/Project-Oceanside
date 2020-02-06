@@ -40,6 +40,7 @@ int main()
 
 	ActorList list;
 
+
 	SolverTypes Solver = KyleSolver;
 	switch (Solver)
 	{
@@ -47,7 +48,7 @@ int main()
 	
 		while (true)
 		{
-			roomLoads = (rand() % list.roomLoads)+1;
+			roomLoads = (2 * (rand() % list.roomLoads)) + 1;
 			heap->LoadRoom(0);
 			solution.push_back(std::make_pair(0xcccc, 0x0));
 
@@ -100,16 +101,11 @@ int main()
 			heap->ChangeRoom(0);
 			solution.push_back(std::make_pair(0xcccc, 0));
 
-			for (auto roag : heap->frozenRocksAndGrass)
+			for (auto actor : scene->GetRoom(heap->GetRoomNumber())->GetCurrentlyLoadedActors())
 			{
-				if ((std::get<1>(roag) & 0xFFFF) == 0x4E40 ||
-					(std::get<1>(roag) & 0xFFFF) == 0x5000 ||
-					(std::get<1>(roag) & 0xFFFF) == 0x5140 ||
-					(std::get<1>(roag) & 0xFFFF) == 0x5280 || 
-					(std::get<1>(roag) & 0xFFFF) == 0x5480)
+				if (actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5480)
 				{
-					std::cout << "ROCK OR GRASS IN CORRECT POSITION" << std::endl;
-					std::cout << std::hex << std::get<1>(roag) << std::dec << std::endl;
+
 					totalSolutions++;
 
 					std::ofstream outputFile;
@@ -152,7 +148,7 @@ int main()
 						}
 					}
 					//outputFile << std::hex << " Flower - Priority:" << flower->GetPriority() << std::endl;
-					outputFile << std::hex << "RB - Address: " << std::get<1>(roag) << " Priority: " << std::get<2>(roag) << std::endl;
+					//outputFile << std::hex << "RB - Address: " << std::get<1>(roag) << " Priority: " << std::get<2>(roag) << std::endl;
 					std::streambuf* coutbuf = std::cout.rdbuf(); //save old buf
 					std::cout.rdbuf(outputFile.rdbuf());
 
@@ -181,7 +177,7 @@ int main()
 	case KyleSolver:
 		while (true)
 		{
-			roomLoads = (2 * (rand() % 7)) + 1; //max room loads = 5, always odd so we end up in chest room
+			roomLoads = (2 * (rand() % 3)) + 1; //max room loads = 5, always odd so we end up in chest room
 			//std::cout << "Total number of room loads: " << roomLoads << std::endl;
 
 
@@ -201,12 +197,31 @@ int main()
 
 				if (rand() % 1)
 				{
+
+					heap->AllocateTemporaryActor(0x18C);
+
+					solution.push_back(std::make_pair(0xdddd, 0x18C)); //ISoT
+
+				}
+
+				if (rand() % 1)
+				{
 					
 					heap->AllocateTemporaryActor(0x00A2);
 					
 					solution.push_back(std::make_pair(0xdddd, 0x00A2)); //Smoke
 
 				}
+
+				if (rand() % 1)
+				{
+
+					heap->AllocateTemporaryActor(0x18C);
+
+					solution.push_back(std::make_pair(0xdddd, 0x18C)); //ISoT
+
+				}
+
 
 				allocations = rand() % 4;
 
@@ -229,9 +244,17 @@ int main()
 				//std::cout << "loaded room " << i % 2 << std::endl;
 			}
 
+			//std::cout << "Loaded room 1." << std::endl;
+			//chest overlay will freeze when we change room again
+			heap->AllocateTemporaryActor(0x00A2);
+			solution.push_back(std::make_pair(0xdddd, 0xA2)); //ISoT
+			heap->ChangeRoom(0);
+			solution.push_back(std::make_pair(0xcccc, 0));
+			heap->ChangeRoom(1);
+			solution.push_back(std::make_pair(0xcccc, 1));
 			for (auto actor : scene->GetRoom(heap->GetRoomNumber())->GetCurrentlyLoadedActors())
 			{
-				if (actor->GetID() == 0x0082 && actor->GetAddress() & 0xFFFF == 0x5480)
+				if (actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5480)
 				{
 					std::cout << "SOLUTION FOUND" << std::endl;
 					totalSolutions++;
@@ -285,6 +308,7 @@ int main()
 			}
 
 			heap->ResetHeap();
+
 			//std::cout << "Heap reset." << std::endl;
 			solution.clear();
 			totalPermutations++;
