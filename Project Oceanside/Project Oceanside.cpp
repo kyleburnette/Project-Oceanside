@@ -8,6 +8,7 @@
 #include "./ActorList.h"
 
 //const int START = 0x40B670; //1.1
+//const int START = 0x40B140; //us 1.0
 const int START = 0x40B3B0; //1.0
 const int END = 0x5fffff;
 
@@ -41,18 +42,33 @@ int main()
 	ActorList list;
 
 	/*heap->LoadRoom(1);
+	heap->AllocateTemporaryActor(0x0009);
+	heap->AllocateTemporaryActor(0x00A2);
+	heap->DeallocateTemporaryActor(0x0009);
+	heap->AllocateTemporaryActor(0x006A);
+	heap->AllocateTemporaryActor(0x0009);
 	heap->ChangeRoom(0);
 	heap->AllocateTemporaryActor(0x0009);
-	heap->ChangeRoom(1);
-	heap->ChangeRoom(0);
+	heap->AllocateTemporaryActor(0x00A2);
+	heap->DeallocateTemporaryActor(0x0009);
 	heap->ChangeRoom(1);
 	heap->Deallocate(0x0082, 2);
-	heap->Deallocate(0x0082, 1);
+	heap->AllocateTemporaryActor(0x0009);
 	heap->ChangeRoom(0);
 	heap->AllocateTemporaryActor(0x0009);
-	heap->AllocateTemporaryActor(0x0009);
+	heap->AllocateTemporaryActor(0x006A);
 	heap->ChangeRoom(1);
 	heap->ChangeRoom(0);
+	heap->AllocateTemporaryActor(0x0009);
+	heap->AllocateTemporaryActor(0x00A2);
+	heap->DeallocateTemporaryActor(0x0009);
+	heap->AllocateTemporaryActor(0x0009);
+	heap->ChangeRoom(1);
+	heap->AllocateTemporaryActor(0x0009);
+	heap->AllocateTemporaryActor(0x00A2);
+	heap->DeallocateTemporaryActor(0x0009);
+	heap->ChangeRoom(0);
+	heap->ChangeRoom(1);
 
 	heap->PrintHeap(1);*/
 
@@ -192,7 +208,7 @@ int main()
 	case KyleSolver:
 		while (true)
 		{
-			roomLoads = (2 * (rand() % 3)) + 1; //max room loads = 5, always odd so we end up in chest room
+			roomLoads = (2 * (rand() % 5)) + 1; //max room loads = 5, always odd so we end up in chest room
 			//std::cout << "Total number of room loads: " << roomLoads << std::endl;
 
 
@@ -210,42 +226,34 @@ int main()
 					solution.push_back(heap->DeallocateRandomActor());
 				}
 
-				if (rand() % 1)
+				int rng = rand() % 4;
+
+				if (rng == 0)
 				{
-
 					heap->AllocateTemporaryActor(0x18C);
-
 					solution.push_back(std::make_pair(0xdddd, 0x18C)); //ISoT
-
 				}
 
-				if (rand() % 1)
+				else if (rng == 1)
 				{
-					
+					heap->AllocateTemporaryActor(0x0009);
 					heap->AllocateTemporaryActor(0x00A2);
+					heap->DeallocateTemporaryActor(0x0009);
 					
 					solution.push_back(std::make_pair(0xdddd, 0x00A2)); //Smoke
 
 				}
-
-				if (rand() % 1)
-				{
-
-					heap->AllocateTemporaryActor(0x18C);
-
-					solution.push_back(std::make_pair(0xdddd, 0x18C)); //ISoT
-
-				}
-
-
-				allocations = rand() % 4;
+				
+				allocations = rand() % 3;
 
 				for (int k = 0; k < allocations; k++)
 				{
 					solution.push_back(std::make_pair(0xffff, heap->AllocateRandomActor()));
 				}
 
-				if (heap->GetRoomNumber() && rand() % 1) 
+				rng = rand() % 2;
+
+				if (rng == 1) 
 				{ //If in room 1 AND futhington is not banned
 						heap->AllocateTemporaryActor(0x0035);
 						heap->AllocateTemporaryActor(0x007B);
@@ -260,14 +268,26 @@ int main()
 			}
 
 			//we're now standing in room 1 waiting to superslide
-			std::vector<int> pots;
+			std::map<int, int> pots;
+
 			for (auto actor : scene->GetRoom(heap->GetRoomNumber())->GetCurrentlyLoadedActors())
 			{
-				if (actor->GetID() == 0x0082)
+				if ((actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x4e40) ||
+					(actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5000) ||
+					(actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5140) ||
+					(actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5280) ||
+					(actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5480))
 				{
-					pots.push_back(actor->GetAddress());
+					pots[actor->GetAddress()] = actor->GetPriority();
+
 				}
+
 			}
+
+			/*if (pots.empty())
+			{
+				continue;
+			}*/
 
 			heap->AllocateTemporaryActor(0x0009);
 			heap->AllocateTemporaryActor(0x00A2);
@@ -277,36 +297,23 @@ int main()
 			solution.push_back(std::make_pair(0xbbbb, 0xbbbb));
 			heap->ChangeRoom(0);
 			solution.push_back(std::make_pair(0xcccc, 0));
-
-			//we're in room 0 now, but we need to go back into room 1 and then back into room 0 to have a chance of the chest lining up
 			
 			heap->ChangeRoom(1);
 			solution.push_back(std::make_pair(0xcccc, 1));
 
-			heap->ChangeRoom(0);
-			solution.push_back(std::make_pair(0xcccc, 0));
-
 			for (auto actor : scene->GetRoom(heap->GetRoomNumber())->GetCurrentlyLoadedActors())
 			{
-				/*if ((actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x4e40) ||
-				(actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5000) ||
-				(actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5140) ||
-				(actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5280) ||
-				(actor->GetID() == 0x0082 && (actor->GetAddress() & 0xFFFF) == 0x5480))*/
-
-				if (actor->GetID() == 0x0006 && actor->GetType() == 'A')
+				for (auto pot : pots) //Pots<Address,Priority>
 				{
-					for (auto entry : pots)
+					if ((pot.first - actor->GetAddress() == 0x80) && (actor->GetType() == 'A')) 
 					{
-						if (entry - actor->GetAddress() == 0x160)
-						{
-							//std::cout << std::hex << entry << std::dec << std::endl;
-							totalSolutions++;
+						//std::cout << std::hex << entry << std::dec << std::endl;
+						totalSolutions++;
 
 							std::ofstream outputFile;
 							std::string outputFileName = "solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
 							outputFile.open(outputFileName);
-							outputFile << std::hex << entry << std::endl << actor->GetAddress() << std::dec << std::endl;
+							outputFile << std::hex << "Pot: " << pot.first << " thing: " << actor->GetID() << " " << actor->GetAddress()  << std::dec << std::endl; //what is entry?
 							for (auto step : solution)
 							{
 								if (step.first == 0xcccc)
@@ -343,20 +350,17 @@ int main()
 									outputFile << std::hex << "Deallocate: " << step.first << " | Priority: " << step.second << std::endl;
 								}
 							}
-							std::streambuf* coutbuf = std::cout.rdbuf(); //save old buf
-							std::cout.rdbuf(outputFile.rdbuf());
+						std::streambuf* coutbuf = std::cout.rdbuf(); //save old buf
+						std::cout.rdbuf(outputFile.rdbuf());
 
-							heap->PrintHeap(1);
-							std::cout.rdbuf(coutbuf);
-							outputFile.close();
-						}
+						heap->PrintHeap(1);
+						std::cout.rdbuf(coutbuf);
+						outputFile.close();
 					}
-					
 				}
 
 			}
 
-			heap->ChangeRoom(1);
 			heap->ResetHeap();
 
 			//std::cout << "Heap reset." << std::endl;
