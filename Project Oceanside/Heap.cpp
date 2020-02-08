@@ -60,12 +60,8 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 	
 
 	possibleRandomAllocatableActorsRoom1[0] = 0x0009;
-	//possibleRandomAllocatableActorsRoom1[1] = 0x006A;
-	//possibleRandomAllocatableActorsRoom1[2] = 0x000F;
 
 	possibleRandomAllocatableActorsRoom0[0] = 0x0009;
-	//possibleRandomAllocatableActorsRoom0[1] = 0x006A;
-	//possibleRandomAllocatableActorsRoom1[2] = 0x000F;
 };
 
 Heap::~Heap()
@@ -111,14 +107,14 @@ void Heap::AllocateTemporaryActor(int actorID)
 		Deallocate(newTempActor);
 	}
 		break;
-	/*case 0x0035:
+	case 0x0035:
 	{
 
 		Allocate(newTempActor);
 		AllocateTemporaryActor(0x007B);
 		
 	}
-		break;*/
+		break;
 
 	default:
 		Allocate(newTempActor);
@@ -312,7 +308,6 @@ void Heap::ChangeRoom(int newRoomNumber)
 	Room* newRoom = scene->GetRoom(newRoomNumber);
 	Node* newClock = nullptr;
 	Node* newDampe = nullptr;
-	Node* wall = nullptr;
 
 	deallocatableActors.clear();
 
@@ -335,13 +330,7 @@ void Heap::ChangeRoom(int newRoomNumber)
 			newDampe = new Node(*actor);
 			Allocate(newDampe);
 		}
-		else if (actor->GetID() == 0x028D)
-		{
-			wall = actor;
-			newRoom->AddCurrentlyLoadedActor(actor);
-			Allocate(actor);
 
-		}
 		else if (actor->GetID() == 0x0018)
 		{
 			; //TODO - handle not reallocating loading planes later
@@ -458,14 +447,11 @@ void Heap::ChangeRoom(int newRoomNumber)
 
 	offspringToAllocate.clear();
 
+
+
 	//update room number to room number of room we're changing to
 
 	this->currentRoomNumber = newRoomNumber;
-
-	if (wall != nullptr)
-	{
-		Deallocate(wall);
-	}
 }
 
 std::pair<int, int> Heap::DeallocateRandomActor()
