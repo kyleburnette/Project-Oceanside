@@ -106,9 +106,8 @@ void Heap::AllocateTemporaryActor(int actorID)
 	case 0x18C:
 	{
 		Allocate(newTempActor);
-		Node* newLeak = new Node(*possibleTemporaryActors[0xF001]);
-		Allocate(newLeak);
-		leaks.push_back(newLeak);
+		Allocate(new Node(*possibleTemporaryActors[0xF001]));
+	
 		Deallocate(newTempActor);
 	}
 		break;
@@ -285,12 +284,8 @@ void Heap::LoadRoom(int roomNumber)
 	//If we have a Scarecrow After room load allocate Leaks
 	for (Node* hunt : room->GetCurrentlyLoadedActors()) {
 		if (hunt->GetID() == 0x00CA) {
-			Node* newLeak1 = new Node(*possibleTemporaryActors[0xF002]);
-			Node* newLeak2 = new Node(*possibleTemporaryActors[0xF002]);
-			Allocate(newLeak1);
-			Allocate(newLeak2);
-			leaks.push_back(newLeak1);
-			leaks.push_back(newLeak2);
+			Allocate(new Node(*possibleTemporaryActors[0xF002]));
+			Allocate(new Node(*possibleTemporaryActors[0xF002]));
 
 		}
 	}
@@ -365,12 +360,8 @@ void Heap::ChangeRoom(int newRoomNumber)
 		else if (actor->GetID() == 0x0CA) {  
 			newRoom->AddCurrentlyLoadedActor(actor);
 			Allocate(actor);
-			Node* newLeak1 = new Node(*possibleTemporaryActors[0xF002]);
-			Node* newLeak2 = new Node(*possibleTemporaryActors[0xF002]);
-			Allocate(newLeak1);
-			Allocate(newLeak2);
-			leaks.push_back(newLeak1);
-			leaks.push_back(newLeak2);
+			Allocate(new Node(*possibleTemporaryActors[0xF002]));
+			Allocate(new Node(*possibleTemporaryActors[0xF002]));
 		}
 		/*else if (actor->GetID() == 0x005F)
 		{
@@ -841,20 +832,17 @@ void Heap::ResetHeap()
 			DeallocateClockAndPlane(curr);
 			curr = head;
 		}
+		else if (curr->GetID() == 0xF002 || curr->GetID() == 0xF001) {
+			DeallocateClockAndPlane(curr);
+			delete(curr);
+			curr = head;
+		}
 
 		curr = curr->GetNext();
 	}
 
 	//scene->GetRoom(currentRoomNumber)->ResetCurrentlyLoadedActors();
-	
-	for (auto leak : leaks)
-	{
-		DeallocateClockAndPlane(leak);
-		delete(leak);
-		leak = nullptr;
-	}
 
-	leaks.clear();
 	frozenRocksAndGrass.clear();
 
 	ClearTemporaryActors();

@@ -66,7 +66,6 @@ private:
 	std::vector<Node*> temporaryActors;
 	std::map<int, Node*> possibleTemporaryActors;
 	std::vector<Node*> offspringToAllocate;
-	std::vector<Node*> leaks;
 	
 	
 };
