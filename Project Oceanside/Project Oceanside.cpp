@@ -7,9 +7,9 @@
 #include "./Scene.h"
 #include "./ActorList.h"
 
-//const int START = 0x40B670; //1.1
+const int START = 0x40B670; //1.1
 //const int START = 0x40B140; //us 1.0
-const int START = 0x40B3B0; //1.0
+//const int START = 0x40B3B0; //1.0
 const int END = 0x5fffff;
 
 enum SolverTypes {
@@ -41,36 +41,47 @@ int main()
 
 	ActorList list;
 
-	/*heap->LoadRoom(1);
+	/*//Pot: 424e40 thing : 82 424dc0
+	heap->LoadRoom(1);
+	heap->Deallocate(0x0082, 0);
+
 	heap->AllocateTemporaryActor(0x0009);
 	heap->AllocateTemporaryActor(0x00A2);
 	heap->DeallocateTemporaryActor(0x0009);
-	heap->AllocateTemporaryActor(0x006A);
-	heap->AllocateTemporaryActor(0x0009);
+
 	heap->ChangeRoom(0);
-	heap->AllocateTemporaryActor(0x0009);
-	heap->AllocateTemporaryActor(0x00A2);
-	heap->DeallocateTemporaryActor(0x0009);
-	heap->ChangeRoom(1);
-	heap->Deallocate(0x0082, 2);
-	heap->AllocateTemporaryActor(0x0009);
-	heap->ChangeRoom(0);
-	heap->AllocateTemporaryActor(0x0009);
-	heap->AllocateTemporaryActor(0x006A);
 	heap->ChangeRoom(1);
 	heap->ChangeRoom(0);
+
 	heap->AllocateTemporaryActor(0x0009);
 	heap->AllocateTemporaryActor(0x00A2);
 	heap->DeallocateTemporaryActor(0x0009);
+
 	heap->AllocateTemporaryActor(0x0009);
-	heap->ChangeRoom(1);
 	heap->AllocateTemporaryActor(0x0009);
-	heap->AllocateTemporaryActor(0x00A2);
-	heap->DeallocateTemporaryActor(0x0009);
-	heap->ChangeRoom(0);
+
 	heap->ChangeRoom(1);
 
-	heap->PrintHeap(1);*/
+	heap->AllocateTemporaryActor(0x0009);
+	heap->ChangeRoom(0);
+
+
+	heap->AllocateTemporaryActor(0x0009);
+	heap->AllocateTemporaryActor(0x00A2);
+	heap->DeallocateTemporaryActor(0x0009);
+
+	heap->AllocateTemporaryActor(0x0009);
+	heap->ChangeRoom(1);
+
+	heap->PrintHeap(1);
+	
+	heap->AllocateTemporaryActor(0x0009);
+	heap->AllocateTemporaryActor(0x00A2);
+	heap->DeallocateTemporaryActor(0x0009);
+
+	heap->ChangeRoom(0);
+	heap->ChangeRoom(1);
+	heap->ChangeRoom(0);*/
 
 	SolverTypes Solver = KyleSolver;
 	switch (Solver)
@@ -208,7 +219,7 @@ int main()
 	case KyleSolver:
 		while (true)
 		{
-			roomLoads = (2 * (rand() % 5)) + 1; //max room loads = 5, always odd so we end up in chest room
+			roomLoads = (2 * (rand() % 4)) + 1; //max room loads = 5, always odd so we end up in chest room
 			//std::cout << "Total number of room loads: " << roomLoads << std::endl;
 
 
@@ -218,7 +229,15 @@ int main()
 
 			for (int i = 0; i <= roomLoads; i++)
 			{
-				deallocations = rand() % heap->deallocatableActors.size();
+				if (heap->deallocatableActors.size() == 0)
+				{
+					deallocations = 0;
+				}
+				else
+				{
+					deallocations = rand() % heap->deallocatableActors.size();
+				}
+				
 				//std::cout << "number of deallocations set" << std::endl;
 
 				for (int j = 0; j < deallocations; j++)
@@ -226,22 +245,15 @@ int main()
 					solution.push_back(heap->DeallocateRandomActor());
 				}
 
-				int rng = rand() % 4;
+				int rng = rand() % 2;
 
-				if (rng == 0)
-				{
-					heap->AllocateTemporaryActor(0x18C);
-					solution.push_back(std::make_pair(0xdddd, 0x18C)); //ISoT
-				}
-
-				else if (rng == 1)
+				if (rng == 1)
 				{
 					heap->AllocateTemporaryActor(0x0009);
 					heap->AllocateTemporaryActor(0x00A2);
 					heap->DeallocateTemporaryActor(0x0009);
 					
 					solution.push_back(std::make_pair(0xdddd, 0x00A2)); //Smoke
-
 				}
 				
 				allocations = rand() % 3;
@@ -252,15 +264,6 @@ int main()
 				}
 
 				rng = rand() % 2;
-
-				if (rng == 1) 
-				{ //If in room 1 AND futhington is not banned
-						heap->AllocateTemporaryActor(0x0035);
-						heap->AllocateTemporaryActor(0x007B);
-						solution.push_back(std::make_pair(0xffff, 0x0035)); //Spin Attack 1
-						solution.push_back(std::make_pair(0xdddd, 0x007B)); //Spin Attack 2
-
-				}
 
 				heap->ChangeRoom(i % 2);
 				solution.push_back(std::make_pair(0xcccc, i % 2));
@@ -284,11 +287,6 @@ int main()
 
 			}
 
-			/*if (pots.empty())
-			{
-				continue;
-			}*/
-
 			heap->AllocateTemporaryActor(0x0009);
 			heap->AllocateTemporaryActor(0x00A2);
 			heap->DeallocateTemporaryActor(0x0009);
@@ -301,13 +299,18 @@ int main()
 			heap->ChangeRoom(1);
 			solution.push_back(std::make_pair(0xcccc, 1));
 
+			heap->ChangeRoom(0);
+			solution.push_back(std::make_pair(0xcccc, 0));
+
 			for (auto actor : scene->GetRoom(heap->GetRoomNumber())->GetCurrentlyLoadedActors())
 			{
 				for (auto pot : pots) //Pots<Address,Priority>
 				{
-					if ((pot.first - actor->GetAddress() == 0x80) && (actor->GetType() == 'A')) 
+					//if (actor->GetID() == 0x0006 && (pot.first - actor->GetAddress() == 0x160))
+					if ((pot.first - actor->GetAddress() == 0x80) && actor->GetType() == 'A' && actor->GetID() != 0x00F0 
+						&& actor->GetID() != 0x0004 && actor->GetID() != 0x0018 && actor->GetID() != 0x004F && actor->GetID() != 0x015A
+						&& actor->GetID() != 0x0039 && actor->GetID() != 0x0170 && actor->GetID() != 0x0006 && actor->GetID() != 0x019C)
 					{
-						//std::cout << std::hex << entry << std::dec << std::endl;
 						totalSolutions++;
 
 							std::ofstream outputFile;
@@ -361,6 +364,7 @@ int main()
 
 			}
 
+			heap->ChangeRoom(1); //monkaS
 			heap->ResetHeap();
 
 			//std::cout << "Heap reset." << std::endl;

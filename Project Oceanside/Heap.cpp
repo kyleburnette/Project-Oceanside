@@ -60,11 +60,11 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 	
 
 	possibleRandomAllocatableActorsRoom1[0] = 0x0009;
-	//possibleRandomAllocatableActorsRoom1[1] = 0x006A;
+	possibleRandomAllocatableActorsRoom1[1] = 0x006A;
 	//possibleRandomAllocatableActorsRoom1[2] = 0x000F;
 
 	possibleRandomAllocatableActorsRoom0[0] = 0x0009;
-	//possibleRandomAllocatableActorsRoom0[1] = 0x006A;
+	possibleRandomAllocatableActorsRoom0[1] = 0x006A;
 	//possibleRandomAllocatableActorsRoom1[2] = 0x000F;
 };
 
@@ -346,6 +346,11 @@ void Heap::ChangeRoom(int newRoomNumber)
 		{
 			; //TODO - handle not reallocating loading planes later
 		}
+		else if (actor->GetID() == 0x0082 && currentRoomNumber == 0)
+		{
+			newRoom->AddCurrentlyLoadedActor(actor);
+			Allocate(actor);
+		}
 
 		else if (actor->GetID() == 0x0265 || actor->GetID() == 0x00ED || actor->GetID() == 0x0082 )
 		{
@@ -353,10 +358,8 @@ void Heap::ChangeRoom(int newRoomNumber)
 			Allocate(actor);
 			deallocatableActors.push_back(actor);
 		}
-		/* Allocate Leaks on scarecrow load during room change
-		 * Scarecrow is loaded into execution immeditily Load leaks soon as actor is instantiated 
-		 */
 		
+
 		else if (actor->GetID() == 0x0CA) {  
 			newRoom->AddCurrentlyLoadedActor(actor);
 			Allocate(actor);
@@ -470,7 +473,7 @@ void Heap::ChangeRoom(int newRoomNumber)
 
 std::pair<int, int> Heap::DeallocateRandomActor()
 {
-	if (deallocatableActors.empty())
+	if (deallocatableActors.empty() || currentRoomNumber == 0)
 	{
 		std::pair<int, int> yep;
 		yep.first = 0;
