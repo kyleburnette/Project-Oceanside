@@ -60,8 +60,12 @@ Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address
 	
 
 	possibleRandomAllocatableActorsRoom1[0] = 0x0009;
+	//possibleRandomAllocatableActorsRoom1[1] = 0x006A;
+	//possibleRandomAllocatableActorsRoom1[1] = 0x000F;
 
 	possibleRandomAllocatableActorsRoom0[0] = 0x0009;
+	//possibleRandomAllocatableActorsRoom0[1] = 0x006A;
+	//possibleRandomAllocatableActorsRoom0[1] = 0x000F;
 };
 
 Heap::~Heap()
@@ -89,16 +93,6 @@ void Heap::AllocateTemporaryActor(int actorID)
 	
 	temporaryActors.push_back(newTempActor);
 	switch (actorID) {
-	/*case 0x00A2: 
-	{
-		Node* t = new Node(*possibleTemporaryActors[0x0009]);
-		Allocate(t);
-		Allocate(newTempActor);
-		Deallocate(t);
-		delete t;
-	}
-		break;
-		*/
 	case 0x18C:
 	{
 		Allocate(newTempActor);
@@ -456,7 +450,12 @@ void Heap::ChangeRoom(int newRoomNumber)
 
 std::pair<int, int> Heap::DeallocateRandomActor()
 {
-	if (deallocatableActors.empty())
+	std::pair<int, int> yep;
+	yep.first = 0;
+	yep.second = 0;
+	return yep;
+
+	if (deallocatableActors.empty() || currentRoomNumber == 0)
 	{
 		std::pair<int, int> yep;
 		yep.first = 0;

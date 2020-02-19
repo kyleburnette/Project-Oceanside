@@ -58,7 +58,7 @@ private:
 	int initiallyLoadedRoomNumber = -1;
 	const int start_address;
 	const int end_address;
-	const int LINK_SIZE = 0x30;
+	const int LINK_SIZE = 0x10;
 	const int LINK_ID = 0xffff;
 	const char LINK_TYPE = 'L';
 	const char OVERLAY_TYPE = 'O';
