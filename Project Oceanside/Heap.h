@@ -1,21 +1,12 @@
 #pragma once
 
-#include <iostream>
-#include <iomanip>
-
-#include <fstream>
-#include <map>
-#include <random>
-#include <time.h>
-
 #include "Scene.h"
 #include "Node.h"
-#include "Room.h"
 
 class Heap
 {
 public:
-	Heap(Scene* scene, int start, int end);
+	Heap(Scene* scene, int start, int linkSize);
 	~Heap();
 	void Allocate(Node* node);
 	void AllocateTemporaryActor(int actorID);
@@ -38,17 +29,7 @@ public:
 	void ResetHeap();
 	std::pair<int, int> DeallocateRandomActor();
 	int AllocateRandomActor();
-	void FreezeRocksAndGrass();
 	int GetRoomNumber() const;
-
-	Node* chestOverlay = nullptr;
-	Node* flowerOverlay = nullptr;
-	std::vector<std::tuple<int, int, int>> frozenRocksAndGrass;
-	std::vector<Node*> rocksAndGrass;
-	std::vector<Node*> allFlowers;
-	std::vector<Node*> deallocatableActors;
-	std::map<int, int> possibleRandomAllocatableActorsRoom1;
-	std::map<int, int> possibleRandomAllocatableActorsRoom0;
 
 private:
 	Scene* scene;
@@ -57,16 +38,14 @@ private:
 	int currentRoomNumber = -1;
 	int initiallyLoadedRoomNumber = -1;
 	const int start_address;
-	const int end_address;
-	const int LINK_SIZE = 0x10;
+	const int END_ADDRESS = 0x5fffff;
+	const int linkSize;
 	const int LINK_ID = 0xffff;
 	const char LINK_TYPE = 'L';
 	const char OVERLAY_TYPE = 'O';
+
 	std::map<int, int> currentActorCount;
 	std::vector<Node*> temporaryActors;
-	std::map<int, Node*> possibleTemporaryActors;
 	std::vector<Node*> offspringToAllocate;
-	
-	
 };
 

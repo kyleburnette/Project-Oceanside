@@ -1,3 +1,19 @@
-const int ENG_HEAP_START = 0x40b140;
-const int JP_HEAP_START = 0x0; //update
-const int HEAP_END = 0x5fffff;
+const int MM_JP1_START = 0x40B670;
+const int MM_US0_START = 0x40b140;
+const int MM_JP0_START = 0x40B3B0;
+const int MM_JP0_LINK_SIZE = 0x30;
+const int MM_JP1_LINK_SIZE = 0x30;
+const int MM_US0_LINK_SIZE = 0x10;
+
+enum SolverTypes {
+	KyleSolver,
+	KyleSolver2,
+	PermSolver,
+	nop,
+};
+
+enum Version
+{
+	MM_US,
+	MM_JP,
+};

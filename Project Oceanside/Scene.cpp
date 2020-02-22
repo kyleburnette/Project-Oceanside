@@ -1,122 +1,107 @@
-#include "Scene.h"
+#include <fstream>
+#include <iostream>
 
-Scene::Scene()
+#include "./Scene.h"
+#include "./Constants.h"
+#include "./Node.h"
+
+Scene::Scene(char version)
 {
-	using json = nlohmann::json;
-	json sceneJson;
+	ParseSceneJson();
+	ParseActorJson(version);
+	LoadScene();
+}
 
-    //read in the scene data
-    try
-    {
-        std::ifstream f("scene.json");
-        sceneJson = json::parse(f);
-		std::cout << "Scene data loaded..." << std::endl;
-    }
-    catch (json::parse_error & e)
-    {
-        // output exception information
-        std::cout << "message: " << e.what() << '\n'
-            << "exception id: " << e.id << '\n'
-            << "byte position of error: " << e.byte << std::endl;
-    }
+void Scene::LoadScene()
+{
+	std::map<int, char> actorCount; //used to assign priority (order in which things are loaded)
+	std::cout << "Parsing actors..." << std::endl;
+
+	//load actors, create nodes, create rooms, create node caches
+	for (auto room : sceneJson["rooms"])
+	{
+		Room* newRoom = new Room();
+		actorCount.clear();
+		for (auto actor : room["actorList"])
+		{
+			std::string actorIDString = actor["actorID"];
+			int actorID = strtol(actorIDString.c_str(), nullptr, 16);
+
+			if (actorCount.count(actorID) == 0)
+			{
+				actorCount[actorID] = 0;
+			}
+			else
+			{
+				actorCount[actorID]++;
+			}
+
+			Node* newActor = new Node(actorID, actorJson[actorIDString], actor, actorCount[actorID]);
+			newRoom->AddActor(newActor);
+		}
+
+		std::cout << "Room " << roomCount << " completed!" << std::endl;
+		rooms.push_back(newRoom);
+		roomCount++;
+	}
+
+	std::cout << "Parsing actors complete..." << std::endl;
+}
+
+void Scene::ParseSceneJson()
+{
+	std::string sceneFile = "scene.json";
+	std::string successMessage = " loaded...";
+
+	try
+	{
+		std::ifstream f(sceneFile);
+		sceneJson = nlohmann::json::parse(f);
+		std::cout << sceneFile << successMessage << std::endl;
+	}
+	catch (nlohmann::json::parse_error& e)
+	{
+		OutputExceptionInformation(e);
+	}
+}
+
+void Scene::ParseActorJson(char version)
+{
+	std::string successMessage = " loaded...";
+	std::string actorFile;
+
+	switch (version)
+	{
+	case MM_JP:
+		actorFile = "mm_j_actors.json";
+		break;
+	case MM_US:
+		actorFile = "mm_u_actors.json";
+		break;
+	default:
+		std::cerr << "Invalid version" << std::endl;
+		break;
+	}
 
 	//read in the actor data
 	try
 	{
-		std::ifstream f("mm_u_actors.json");
-		actorJson = json::parse(f);
-		std::cout << "Actor data loaded..." << std::endl;
+		std::ifstream f(actorFile);
+		actorJson = nlohmann::json::parse(f);
+		std::cout << actorFile << successMessage << std::endl;
 	}
-	catch (json::parse_error & e)
+	catch (nlohmann::json::parse_error& e)
 	{
-		// output exception information
-		std::cout << "message: " << e.what() << '\n'
-			<< "exception id: " << e.id << '\n'
-			<< "byte position of error: " << e.byte << std::endl;
+		OutputExceptionInformation(e);
 	}
+}
 
-    //set scene variables
-    this->clockReallocates = sceneJson["clockReallocates"];
-
-    std::map<std::string, char> actorCount; //use to assign priority
-
-    //load actors, create nodes, create rooms, create node caches
-    for (auto room : sceneJson["rooms"])
-    {
-        Room* newRoom = new Room();
-		actorCount.clear();
-        for (std::string actor : room["actorList"])
-        {
-            if (actorCount.count(actor) == 0)
-            {
-                actorCount[actor] = 0;
-            }
-            else
-            {
-                actorCount[actor]++;
-            }
-
-			//This is VERY spaghetti right now, TODO - fix
-			if (actor == "00B3g")
-			{
-				if (actorCount.count("00B3") == 0)
-				{
-					actorCount["00B3"] = 0;
-				}
-				else
-				{
-					actorCount["00B3"]++;
-				}
-
-				std::string parentString = "00B3";
-				std::string offspringString = "0090";
-
-				Node* newActor = new Node(strtol(parentString.c_str(), nullptr, 16), actorJson[parentString], actorCount[parentString]);
-				for (int i = 0; i <= 8; ++i)
-				{
-					Node* newOffspring = new Node(strtol(offspringString.c_str(), nullptr, 16), actorJson["0090"], 100 + i);
-					newActor->SetSpawnerOffspring(newOffspring);
-				}
-
-				newRoom->AddActor(newActor);
-			}
-
-			else if (actor == "00B3r")
-			{
-				if (actorCount.count("00B3") == 0)
-				{
-					actorCount["00B3"] = 0;
-				}
-				else
-				{
-					actorCount["00B3"]++;
-				}
-
-				std::string parentString = "00B3";
-				std::string offspringString = "00B0";
-				Node* newActor = new Node(strtol(parentString.c_str(), nullptr, 16), actorJson[parentString], actorCount[parentString]);
-				for (int i = 0; i < 8; ++i)
-				{
-					Node* newOffspring = new Node(strtol(offspringString.c_str(), nullptr, 16), actorJson[offspringString], 100 + i);
-					newActor->SetSpawnerOffspring(newOffspring);
-				}
-
-				newRoom->AddActor(newActor);
-			}
-             
-			else
-			{
-				Node* newActor = new Node(strtol(actor.c_str(), nullptr, 16), actorJson[actor], actorCount[actor]);
-				newRoom->AddActor(newActor);
-			}
-            
-        }
-
-        rooms.push_back(newRoom);
-        roomCount++;
-    }
-
-  //  actorCount.clear();
+void Scene::OutputExceptionInformation(nlohmann::json::parse_error& error)
+{
+	// output exception information
+	std::cout << "message: " << error.what() << '\n'
+		<< "exception id: " << error.id << '\n'
+		<< "byte position of error: " << error.byte << std::endl;
 }
 
 Room* Scene::GetRoom(int roomNumber) const
@@ -132,4 +117,18 @@ bool Scene::GetClockReallocates() const
 nlohmann::json Scene::GetActorJSON() const
 {
 	return actorJson;
+}
+
+void Scene::DumpSceneInfo() const
+{
+	int roomNumber = 0;
+	for (auto room : rooms)
+	{
+		std::cout << "Room " << roomNumber << std::endl;
+		for (auto actor : room->GetAllActors())
+		{
+			std::cout << std::hex << "Actor: " << actor->GetID() << " | " << "Priority: " << actor->GetPriority() << std::endl;
+		}
+		roomNumber++;
+	}
 }

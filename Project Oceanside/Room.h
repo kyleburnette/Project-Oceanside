@@ -1,10 +1,6 @@
 #pragma once
 
-#include <iostream>
 #include <vector>
-#include <map>
-#include <string>
-
 #include "Node.h"	
 
 class Room
@@ -15,14 +11,18 @@ public:
 	void AddCurrentlyLoadedActor(Node* actor);
 	std::vector<Node*> GetAllActors() const;
 	std::vector<Node*> GetCurrentlyLoadedActors() const;
-	void Memes();
 	void RemoveCurrentlyLoadedActor(Node* node);
-	void PrintCurrentlyLoadedActors() const;
-	void PrintSize() const;
 	void ResetCurrentlyLoadedActors();
+	std::vector<Node*> GetClearedActors();
+	std::vector<Node*> GetClearableActors();
+	std::vector<Node*> GetDeallocatableActors();
+	void ClearActor(Node* actor);
 	
 private:
 	std::vector<Node*> allActors;
 	std::vector<Node*> currentlyLoadedActors;
+	std::vector<Node*> deallocatableActors;
+	std::vector<Node*> clearableActors;
+	std::vector<Node*> clearedActors;
 };
 
