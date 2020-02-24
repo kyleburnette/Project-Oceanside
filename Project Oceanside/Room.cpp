@@ -2,7 +2,7 @@
 
 #include "Room.h"
 
-Room::Room()
+Room::Room(int roomNumber): roomNumber(roomNumber)
 {
 
 }
@@ -53,19 +53,24 @@ void Room::ResetCurrentlyLoadedActors()
 	currentlyLoadedActors.clear();
 }
 
-std::vector<Node*> Room::GetClearedActors()
+std::vector<Node*> Room::GetClearedActors() const
 {
 	return clearedActors;
 }
 
-std::vector<Node*> Room::GetClearableActors()
+std::vector<Node*> Room::GetClearableActors() const
 {
 	return clearableActors;
 }
 
-std::vector<Node*> Room::GetDeallocatableActors()
+std::vector<Node*> Room::GetDeallocatableActors() const
 {
 	return deallocatableActors;
+}
+
+int Room::GetRoomNumber() const
+{
+	return roomNumber;
 }
 
 void Room::ClearActor(Node* actor)

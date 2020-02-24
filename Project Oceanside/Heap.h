@@ -14,13 +14,12 @@ public:
 	void Deallocate(Node* node);
 	void DeallocateClockAndPlane(Node* node);
 	void DeallocateTemporaryActor(int actorID);
-	void LoadRoom(int roomNumber);
-	void UnloadRoom(int roomNumber);
+	void LoadInitialRoom(int roomNumber);
+	void UnloadRoom(Room& room);
 	void ChangeRoom(int newRoomNumber);
 	void PrintHeap(char setting) const;
 	void DeleteHeap();
 	Node* FindSuitableGap(Node* newNode) const;
-	void PrintHeapInReverse() const;
 	void Insert(Node* newNode, Node* oldNode);
 	Node* GetHead() const;
 	Node* GetTail() const;
@@ -32,20 +31,33 @@ public:
 	int GetRoomNumber() const;
 
 private:
-	Scene* scene;
-	Node* head;
-	Node* tail;
-	int currentRoomNumber = -1;
-	int initiallyLoadedRoomNumber = -1;
-	const int start_address;
+	void AllocateNewRoom(Room& newRoom);
+	void DeallocateClearedActors();
+	void AllocateSpawnerOffspring();
+	void DeallocateReallocatingActors();
+
+	Scene* scene = nullptr;
+	Node* head = nullptr;
+	Node* tail = nullptr;
+	int currentRoomNumber = 0;
+	int initiallyLoadedRoomNumber = 0;
+	const int start_address = 0x0;
 	const int END_ADDRESS = 0x5fffff;
-	const int linkSize;
+	const int linkSize = 0x0;
 	const int LINK_ID = 0xffff;
 	const char LINK_TYPE = 'L';
 	const char OVERLAY_TYPE = 'O';
 
+	bool initialLoad = true;
+
+	Node* clock = nullptr;
+
 	std::map<int, int> currentActorCount;
 	std::vector<Node*> temporaryActors;
 	std::vector<Node*> offspringToAllocate;
+
+	std::vector<Node*> leaks;
+
+	std::vector<Node*> singletonsAttemptingToReallocate;
 };
 

@@ -11,7 +11,7 @@ class Node
 public:
 	Node();
 	//going to handle this without a factory pattern for now
-	Node(int actorID, nlohmann::json& actorInfo, nlohmann::json& actorParameters, int priority);
+	Node(int actorID, std::string s_actorID, nlohmann::json& actorInfo, nlohmann::json& actorParameters, int priority);
 	Node(int actorID, nlohmann::json& actorInfo, int priority);
 	Node(const Node& copy);
 	Node(int size, int ID, char type, Node* overlay);
@@ -43,6 +43,7 @@ public:
 	char GetNumberOfOffspring() const;
 	int GetOffspringActorID() const;
 	bool IsSpawner() const;
+	bool IsSingleton() const;
 
 private:
 	Node* next = nullptr;
@@ -60,6 +61,7 @@ private:
 	bool startCleared;
 	bool considerForSRM;
 	bool reallocateOnRoomChange;
+	bool isSingleton;
 	int numberOfOffspring;
 	int offspringActorID;
 

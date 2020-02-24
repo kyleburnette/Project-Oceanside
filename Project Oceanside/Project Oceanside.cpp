@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <algorithm>
+#include <iostream>
 
 #include "./Constants.h"
 #include "./Heap.h"
@@ -12,16 +13,15 @@ int main()
 	Scene* scene = new Scene(MM_US);
 	Heap* heap = new Heap(scene, MM_US0_START, MM_US0_LINK_SIZE);
 
-	SolverTypes Solver = KyleSolver;
-	switch (Solver)
+	heap->LoadInitialRoom(0);
+	heap->ChangeRoom(1);
+	heap->ChangeRoom(0);
+
+	for (auto actor : scene->GetRoom(0)->GetCurrentlyLoadedActors())
 	{
-	case KyleSolver:
-	scene->DumpSceneInfo();
-	heap->LoadRoom(0);
-	heap->PrintHeap(1);
-	case nop:
-		break;
+		std::cout << std::hex << actor->GetID() << std::endl;
 	}
+
 	delete(scene);
 	delete(heap);
 

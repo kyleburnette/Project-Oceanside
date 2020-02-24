@@ -11,9 +11,10 @@ std::map<int, Node*> overlayMap = {
 
 };
 
-Node::Node(int actorID, nlohmann::json& actorInfo, nlohmann::json& actorParameters, int priority)
+Node::Node(int actorID, std::string s_actorID, nlohmann::json& actorJson, nlohmann::json& actorParameters, int priority)
 {
-	std::string actorIDString = actorInfo["instanceSize"];
+	std::string actorIDString = actorJson[s_actorID]["instanceSize"];
+	
 	this->size = strtol(actorIDString.c_str(), nullptr, 16);
 	this->ID = actorID;
 	this->type = 'A';
@@ -25,6 +26,7 @@ Node::Node(int actorID, nlohmann::json& actorInfo, nlohmann::json& actorParamete
 	this->startCleared = actorParameters["startCleared"];
 	this->considerForSRM = actorParameters["considerForSRM"];
 	this->reallocateOnRoomChange = actorParameters["reallocateOnRoomChange"];
+	this->isSingleton = actorParameters["isSingleton"];
 	
 	if (actorParameters["numberOfOffspring"] > 0)
 	{
@@ -34,7 +36,7 @@ Node::Node(int actorID, nlohmann::json& actorInfo, nlohmann::json& actorParamete
 		this->offspringActorID = strtol(offspringIDString.c_str(), nullptr, 16);
 		for (int i = 0; i < numberOfOffspring; i++)
 		{
-			Node* newOffspring = new Node(offspringActorID, actorInfo, (100 * priority) + i);
+			Node* newOffspring = new Node(offspringActorID, actorJson[offspringIDString], (100 * (priority + 1)) + i);
 			SetSpawnerOffspring(newOffspring);
 		}
 	}
@@ -44,9 +46,9 @@ Node::Node(int actorID, nlohmann::json& actorInfo, nlohmann::json& actorParamete
 	}
 	
 	//if this actor has an overlay we care about AND its overlay hasn't been created yet
-	if (actorInfo["overlayType"] == 0 && overlayMap.count(actorID) == 0)
+	if (actorJson[s_actorID]["overlayType"] == 0 && overlayMap.count(actorID) == 0)
 	{
-		std::string overlaySize = actorInfo["overlaySize"];
+		std::string overlaySize = actorJson[s_actorID]["overlaySize"];
 		Node* newOverlay = new Node(strtol(overlaySize.c_str(), nullptr, 16), actorID, 'O', nullptr);
 
 		this->overlay = newOverlay;
@@ -54,7 +56,7 @@ Node::Node(int actorID, nlohmann::json& actorInfo, nlohmann::json& actorParamete
 	}
 
 	//if this actor has an overlay we care about BUT its overlay exists already
-	else if (actorInfo["overlayType"] == 0 && overlayMap.count(actorID) != 0)
+	else if (actorJson[s_actorID]["overlayType"] == 0 && overlayMap.count(actorID) != 0)
 	{
 		this->overlay = overlayMap[actorID];
 	}
@@ -257,4 +259,9 @@ bool Node::IsSpawner() const
 void Node::SetCleared()
 {
 	this->cleared = true;
+}
+
+bool Node::IsSingleton() const
+{
+	return isSingleton;
 }

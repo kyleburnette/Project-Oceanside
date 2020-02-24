@@ -20,7 +20,7 @@ void Scene::LoadScene()
 	//load actors, create nodes, create rooms, create node caches
 	for (auto room : sceneJson["rooms"])
 	{
-		Room* newRoom = new Room();
+		Room* newRoom = new Room(roomCount);
 		actorCount.clear();
 		for (auto actor : room["actorList"])
 		{
@@ -36,7 +36,7 @@ void Scene::LoadScene()
 				actorCount[actorID]++;
 			}
 
-			Node* newActor = new Node(actorID, actorJson[actorIDString], actor, actorCount[actorID]);
+			Node* newActor = new Node(actorID, actorIDString, actorJson, actor, actorCount[actorID]);
 			newRoom->AddActor(newActor);
 		}
 
