@@ -352,7 +352,7 @@
           "itemsDroppedOnDeallocate": [],
           "category": 0,
           "considerForSRM": false,
-          "reallocateOnRoomChange": false,
+          "reallocateOnRoomChange": true,
           "isSingleton": true
         },
         {
@@ -564,7 +564,7 @@
           "itemsDroppedOnDeallocate": [],
           "category": 0,
           "considerForSRM": false,
-          "reallocateOnRoomChange": false,
+          "reallocateOnRoomChange": true,
           "isSingleton": true
         },
         {

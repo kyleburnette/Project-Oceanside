@@ -17,10 +17,8 @@ int main()
 	heap->ChangeRoom(1);
 	heap->ChangeRoom(0);
 
-	for (auto actor : scene->GetRoom(0)->GetCurrentlyLoadedActors())
-	{
-		std::cout << std::hex << actor->GetID() << std::endl;
-	}
+	heap->PrintHeap(1);
+	
 
 	delete(scene);
 	delete(heap);

@@ -189,8 +189,6 @@ void Heap::AllocateNewRoom(Room& newRoom)
 			}
 		}
 	}
-
-	//reimplement leaks (including scarecrow leak)
 }
 
 void Heap::DeallocateClearedActors()
@@ -252,14 +250,11 @@ void Heap::DeallocateReallocatingActors()
 {
 	for (auto actor : singletonsAttemptingToReallocate)
 	{
-		std::cout << "A" << std::endl;
 		Deallocate(actor);
-		std::cout << "B" << std::endl;
-		delete(actor);
-		std::cout << "C" << std::endl;
-		actor = nullptr;
-		std::cout << "D" << std::endl;
+		scene->GetRoom(currentRoomNumber)->RemoveCurrentlyLoadedActor(actor);
 	}
+
+	singletonsAttemptingToReallocate.clear();
 }
 
 void Heap::Deallocate(int actorID, int priority)
@@ -353,85 +348,6 @@ void Heap::Deallocate(Node* node)
 	if (currentActorCount[node->GetID()] == 0 && node->GetOverlay() != nullptr)
 	{
 		Deallocate(node->GetOverlay());
-	}
-}
-
-//fix this later
-void Heap::DeallocateClockAndPlane(Node* node)
-{
-	//first two are for deallocating things at the very beginning of the heap
-	if (node->GetPrev()->GetPrev() == nullptr && node->GetNext()->GetNext()->GetType() != LINK_TYPE)
-	{
-		head->SetNext(node->GetNext());
-		node->GetNext()->SetPrev(head);
-
-	}
-
-	else if (node->GetPrev()->GetPrev() == nullptr && node->GetNext()->GetNext()->GetType() == LINK_TYPE)
-	{
-		head->SetNext(node->GetNext()->GetNext());
-		node->GetNext()->GetNext()->SetPrev(head);
-		delete(node->GetNext());
-		node->SetNext(nullptr);
-		currentActorCount[LINK_ID] -= 1;
-	}
-
-	//these next two should almost never happen unless the heap is VERY full
-	else if (node->GetNext()->GetNext() == nullptr && node->GetPrev()->GetPrev()->GetType() != LINK_TYPE)
-	{
-		tail->SetPrev(node->GetPrev());
-		node->GetPrev()->SetNext(tail);
-	}
-
-	else if (node->GetNext()->GetNext() == nullptr && node->GetPrev()->GetPrev()->GetType() == LINK_TYPE)
-	{
-		tail->SetPrev(node->GetPrev()->GetPrev());
-		node->GetPrev()->GetPrev()->SetNext(tail);
-	}
-
-	//this handles a situation where there are two nodes in front and two nodes behind
-	else if (node->GetNext()->GetNext()->GetType() == LINK_TYPE && node->GetPrev()->GetPrev()->GetType() == LINK_TYPE)
-	{
-		node->GetPrev()->GetPrev()->SetNext(node->GetNext()->GetNext());
-		node->GetNext()->GetNext()->SetPrev(node->GetPrev()->GetPrev());
-		delete(node->GetNext());
-		node->SetNext(nullptr);
-		delete(node->GetPrev());
-		node->SetPrev(nullptr);
-		currentActorCount[LINK_ID] -= 2;
-	}
-	else if (node->GetNext()->GetNext()->GetType() == LINK_TYPE)
-	{
-		node->GetPrev()->SetNext(node->GetNext()->GetNext());
-		node->GetNext()->GetNext()->SetPrev(node->GetPrev());
-		delete(node->GetNext());
-		node->SetNext(nullptr);
-		currentActorCount[LINK_ID] -= 1;
-	}
-	else if (node->GetPrev()->GetPrev()->GetType() == LINK_TYPE)
-	{
-		node->GetNext()->SetPrev(node->GetPrev()->GetPrev());
-		node->GetPrev()->GetPrev()->SetNext(node->GetNext());
-		delete(node->GetPrev());
-		node->SetPrev(nullptr);
-		currentActorCount[LINK_ID] -= 1;
-	}
-
-	else
-	{
-		node->GetPrev()->SetNext(node->GetNext());
-		node->GetNext()->SetPrev(node->GetPrev());
-	}
-
-	//deallocating the overlay should not decrease number of actors loaded
-	if (node->GetType() != OVERLAY_TYPE)
-	{
-		currentActorCount[node->GetID()]--;
-	}
-
-	if (currentActorCount[node->GetID()] == 0 && node->GetOverlay() != nullptr)
-	{
-		DeallocateClockAndPlane(node->GetOverlay());
 	}
 }
 
