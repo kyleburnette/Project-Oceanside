@@ -14,6 +14,8 @@ Scene::Scene(char version)
 
 void Scene::LoadScene()
 {
+	/*TODO - HANDLE LOADING PLANES!!!*/
+
 	std::map<int, char> actorCount; //used to assign priority (order in which things are loaded)
 	std::cout << "Parsing actors" << std::endl;
 
