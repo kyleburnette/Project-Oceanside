@@ -27,7 +27,7 @@
           "category": 0,
           "considerForSRM": false,
           "reallocateOnRoomChange": false,
-          "isSingleton": true
+          "isSingleton": false
         },
         {
           "actorID": "005F",
@@ -456,7 +456,7 @@
           "category": 0,
           "considerForSRM": false,
           "reallocateOnRoomChange": false,
-          "isSingleton": true
+          "isSingleton": false
         },
         {
           "actorID": "0124",

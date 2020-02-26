@@ -201,8 +201,8 @@ void Heap::AllocateNewRoom(Room& newRoom)
 			{
 				case 0x00CA:
 				{
-					Node* leak_1 = new Node(0xB0, 0xAAAA, 'E', nullptr);
-					Node* leak_2 = new Node(0xB0, 0xAAAA, 'E', nullptr);
+					Node* leak_1 = new Node(0xB0, 0x00CA, 'E', nullptr);
+					Node* leak_2 = new Node(0xB0, 0x00CA, 'E', nullptr);
 					Allocate(leak_1);
 					Allocate(leak_2);
 					leaks.push_back(leak_1);

@@ -13,7 +13,11 @@ int main()
 	Scene* scene = new Scene(MM_US);
 	Heap* heap = new Heap(scene, MM_US0_START, MM_US0_LINK_SIZE);
 
-	heap->LoadInitialRoom(1);
+	heap->LoadInitialRoom(0);
+	heap->AllocateTemporaryActor(0x18C);
+	heap->ChangeRoom(1);
+
+	heap->PrintHeap(1);
 	
 	delete(scene);
 	delete(heap);
