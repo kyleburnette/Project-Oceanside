@@ -22,6 +22,13 @@ void Scene::LoadScene()
 	{
 		Room* newRoom = new Room(roomCount);
 		actorCount.clear();
+		for (auto randAllocActor : room["possibleAllocatableActors"].items())
+		{
+			std::string actorIDString = randAllocActor.key();
+			int actorID = strtol(actorIDString.c_str(), nullptr, 16);
+			Node* newActor = new Node(actorID, actorJson[actorIDString], 0);
+			newRoom->AddRandomAllocatableActor(randAllocActor.value(), newActor);
+		}
 		for (auto actor : room["actorList"])
 		{
 			std::string actorIDString = actor["actorID"];
@@ -107,11 +114,6 @@ void Scene::OutputExceptionInformation(nlohmann::json::parse_error& error)
 Room* Scene::GetRoom(int roomNumber) const
 {
     return rooms[roomNumber];
-}
-
-bool Scene::GetClockReallocates() const
-{
-    return clockReallocates;
 }
 
 nlohmann::json Scene::GetActorJSON() const

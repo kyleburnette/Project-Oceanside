@@ -2,6 +2,16 @@
   "sceneName": "English Observatory",
   "rooms": {
     "0": {
+      "possibleAllocatableActors": 
+      {
+        "00A2": 3,
+        "0009": 3,
+        "006A": 0,
+        "000F": 3,
+        "018C": 5,
+        "0035": 1,
+        "007B": 1
+      },
       "actorList": [
         {
           "actorID": "0018",
@@ -406,6 +416,15 @@
       ]
     },
     "1": {
+      "possibleAllocatableActors": {
+        "00A2": 3,
+        "0009": 3,
+        "006A": 0,
+        "000F": 3,
+        "018C": 5,
+        "0035": 1,
+        "007B": 1
+      },
       "actorList": [
         {
           "actorID": "0005",

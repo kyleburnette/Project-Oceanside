@@ -18,7 +18,9 @@ public:
 	std::vector<Node*> GetDeallocatableActors() const;
 	void ClearActor(Node* actor);
 	int GetRoomNumber() const;
-	
+	void AddRandomAllocatableActor(int timesCanAllocate, Node* actor);
+	std::map<int, std::pair<int, Node*>> GetPossibleTemporaryActors() const;
+	void Dump();
 private:
 	int roomNumber;
 	std::vector<Node*> allActors;
@@ -26,5 +28,6 @@ private:
 	std::vector<Node*> deallocatableActors;
 	std::vector<Node*> clearableActors;
 	std::vector<Node*> clearedActors;
+	std::map<int, std::pair<int, Node*>> possibleTemporaryActors;
 };
 

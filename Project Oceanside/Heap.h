@@ -12,7 +12,6 @@ public:
 	void AllocateTemporaryActor(int actorID);
 	void Deallocate(int actorID, int priority);
 	void Deallocate(Node* node);
-	void DeallocateClockAndPlane(Node* node);
 	void DeallocateTemporaryActor(int actorID);
 	void LoadInitialRoom(int roomNumber);
 	void UnloadRoom(Room& room);
@@ -29,6 +28,7 @@ public:
 	std::pair<int, int> DeallocateRandomActor();
 	int AllocateRandomActor();
 	int GetRoomNumber() const;
+	void Solve(int solverType);
 
 private:
 	void AllocateNewRoom(Room& newRoom);

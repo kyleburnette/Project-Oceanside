@@ -78,3 +78,23 @@ void Room::ClearActor(Node* actor)
 	actor->SetCleared();
 	clearedActors.push_back(actor);
 }
+
+void Room::AddRandomAllocatableActor(int timesCanAllocate, Node* actor)
+{
+	possibleTemporaryActors[actor->GetID()] = std::make_pair(timesCanAllocate, actor);
+}
+
+
+
+void Room::Dump()
+{
+	for (auto actor : possibleTemporaryActors)
+	{
+		std::cout << std::hex << actor.first << std::dec << std::endl;
+	}
+}
+
+std::map<int, std::pair<int, Node*>> Room::GetPossibleTemporaryActors() const
+{
+	return possibleTemporaryActors;
+}

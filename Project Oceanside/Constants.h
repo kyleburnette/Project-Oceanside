@@ -6,9 +6,8 @@ const int MM_JP1_LINK_SIZE = 0x30;
 const int MM_US0_LINK_SIZE = 0x10;
 
 enum SolverTypes {
-	KyleSolver,
-	KyleSolver2,
-	PermSolver,
+	SuccessiveActorSolver,
+	RandomAssortment,
 	nop,
 };
 

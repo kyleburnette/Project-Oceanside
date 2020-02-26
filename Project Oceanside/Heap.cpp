@@ -3,6 +3,7 @@
 
 #include "Heap.h"
 #include "Room.h"
+#include "Constants.h"
 
 Heap::Heap(Scene* scene, int start, int linkSize) : start_address(start), scene(scene), linkSize(linkSize)
 {
@@ -14,8 +15,6 @@ Heap::Heap(Scene* scene, int start, int linkSize) : start_address(start), scene(
 	tail = tailNode;
 
 	currentActorCount[LINK_ID] = 2;
-
-	//reimplement temporary actors and possible temp actors per room
 };
 
 Heap::~Heap()
@@ -25,9 +24,37 @@ Heap::~Heap()
 
 void Heap::AllocateTemporaryActor(int actorID)
 {
-	//TODO - implement ISoT leak and scarecrow leak and arrow animation thing
+	//get list of all possible temporary actors in the currently loaded room
+	auto possibleTempActors = scene->GetRoom(currentRoomNumber)->GetPossibleTemporaryActors();
 
-	//reimplement this function with potential randomly allocatable actors from ROOMs
+	//constuct a copy of this temporary actor from the template given in the above map
+	Node* newTempActor = new Node(*possibleTempActors[actorID].second);
+
+	temporaryActors.push_back(newTempActor);
+
+	switch (actorID) {
+	case 0x18C:
+	{
+		Allocate(newTempActor);
+
+		Node* isotLeak = new Node(0x300, 0x018C, 'E', nullptr);
+		Allocate(isotLeak);
+		leaks.push_back(isotLeak);
+
+		Deallocate(newTempActor);
+	}
+	break;
+	case 0x0035:
+	{
+		Allocate(newTempActor);
+		AllocateTemporaryActor(0x007B);
+	}
+	break;
+
+	default:
+		Allocate(newTempActor);
+		break;
+	}
 }
 
 void Heap::DeallocateTemporaryActor(int actorID)
@@ -61,7 +88,6 @@ void Heap::ClearTemporaryActors()
 void Heap::Allocate(Node* node)
 {
 	//TODO - remove some repeated code
-	//TODO - reimplement scarecrow (and other) memory leaks
 
 	//if actor has an overlay we care about and the overlay isn't already loaded
 	if (node->GetOverlay() != nullptr && currentActorCount[node->GetID()] == 0)
@@ -177,9 +203,13 @@ void Heap::AllocateNewRoom(Room& newRoom)
 				case 0x00CA:
 				{
 					Node* leak_1 = new Node(0xB0, 0xAAAA, 'E', nullptr);
+					std::cout << "leak 1 created\n";
 					Node* leak_2 = new Node(0xB0, 0xAAAA, 'E', nullptr);
+					std::cout << "leak 2 created\n";
 					Allocate(leak_1);
+					std::cout << "leak 1 allocated\n";
 					Allocate(leak_2);
+					std::cout << "leak 2 allocated\n";
 					leaks.push_back(leak_1);
 					leaks.push_back(leak_2);
 					break;
@@ -220,8 +250,20 @@ std::pair<int, int> Heap::DeallocateRandomActor()
 
 int Heap::AllocateRandomActor()
 {
-	return 0;
-	//REIMPLEMENT WITH RANDOM ALLOCATABLE ACTORS BEING HANDLED BY ROOM, NOT HEAP!
+	//Chooses a random actor from the entire list of possible random actors
+	//for the currently loaded room.
+
+	auto possibleActors = scene->GetRoom(currentRoomNumber)->GetPossibleTemporaryActors();
+
+	if (possibleActors.size() == 0)
+	{
+		return 0;
+	}
+
+	char rng = rand() % possibleActors.size();
+	AllocateTemporaryActor(possibleActors[rng].first);
+
+	return possibleActors[rng].first;
 }
 
 void Heap::UnloadRoom(Room& room)
@@ -485,4 +527,19 @@ void Heap::PrintCurrentActorCount() const
 int Heap::GetRoomNumber() const
 {
 	return currentRoomNumber;
+}
+
+void Heap::Solve(int solverType)
+{
+	switch (solverType)
+	{
+	case RandomAssortment:
+		break;
+	case SuccessiveActorSolver:
+		break;
+	case nop:
+		break;
+	default:
+		break;
+	}
 }

@@ -19,7 +19,6 @@ private:
 	void ParseSceneJson();
 	void ParseActorJson(char version);
 	void OutputExceptionInformation(nlohmann::json::parse_error& error);
-	bool clockReallocates = false;
 	int roomCount = 0;
 	std::vector<Room*> rooms;
 	nlohmann::json actorJson;
