@@ -15,7 +15,7 @@ Scene::Scene(char version)
 void Scene::LoadScene()
 {
 	std::map<int, char> actorCount; //used to assign priority (order in which things are loaded)
-	std::cout << "Parsing actors..." << std::endl;
+	std::cout << "Parsing actors" << std::endl;
 
 	//load actors, create nodes, create rooms, create node caches
 	for (auto room : sceneJson["rooms"])
@@ -52,13 +52,13 @@ void Scene::LoadScene()
 		roomCount++;
 	}
 
-	std::cout << "Parsing actors complete..." << std::endl;
+	std::cout << "Parsing actors complete" << std::endl;
 }
 
 void Scene::ParseSceneJson()
 {
 	std::string sceneFile = "scene.json";
-	std::string successMessage = " loaded...";
+	std::string successMessage = " loaded";
 
 	try
 	{
@@ -74,7 +74,7 @@ void Scene::ParseSceneJson()
 
 void Scene::ParseActorJson(char version)
 {
-	std::string successMessage = " loaded...";
+	std::string successMessage = " loaded";
 	std::string actorFile;
 
 	switch (version)
@@ -127,7 +127,7 @@ void Scene::DumpSceneInfo() const
 	for (auto room : rooms)
 	{
 		std::cout << "Room " << roomNumber << std::endl;
-		for (auto actor : room->GetAllActors())
+		for (auto actor : room->GetCurrentlyLoadedActors())
 		{
 			std::cout << std::hex << "Actor: " << actor->GetID() << " | " << "Priority: " << actor->GetPriority() << std::endl;
 		}

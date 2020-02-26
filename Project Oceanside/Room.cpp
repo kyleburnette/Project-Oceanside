@@ -75,23 +75,29 @@ int Room::GetRoomNumber() const
 
 void Room::ClearActor(Node* actor)
 {
-	actor->SetCleared();
+	actor->SetCleared(true);
 	clearedActors.push_back(actor);
+}
+
+void Room::ResetClearedActors()
+{
+	for (auto actor : clearedActors)
+	{
+		if (actor->StartCleared())
+		{
+			actor->SetCleared(true);
+		}
+		else
+		{
+			actor->SetCleared(false);
+			clearedActors.erase(std::remove(clearedActors.begin(), clearedActors.end(), actor), clearedActors.end());
+		}
+	}
 }
 
 void Room::AddRandomAllocatableActor(int timesCanAllocate, Node* actor)
 {
 	possibleTemporaryActors[actor->GetID()] = std::make_pair(timesCanAllocate, actor);
-}
-
-
-
-void Room::Dump()
-{
-	for (auto actor : possibleTemporaryActors)
-	{
-		std::cout << std::hex << actor.first << std::dec << std::endl;
-	}
 }
 
 std::map<int, std::pair<int, Node*>> Room::GetPossibleTemporaryActors() const

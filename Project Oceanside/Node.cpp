@@ -256,9 +256,9 @@ bool Node::IsSpawner() const
 	return isSpawner;
 }
 
-void Node::SetCleared()
+void Node::SetCleared(bool clearStatus)
 {
-	this->cleared = true;
+	this->cleared = clearStatus;
 }
 
 bool Node::IsSingleton() const

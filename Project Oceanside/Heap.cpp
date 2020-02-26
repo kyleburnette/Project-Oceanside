@@ -30,8 +30,6 @@ void Heap::AllocateTemporaryActor(int actorID)
 	//constuct a copy of this temporary actor from the template given in the above map
 	Node* newTempActor = new Node(*possibleTempActors[actorID].second);
 
-	temporaryActors.push_back(newTempActor);
-
 	switch (actorID) {
 	case 0x18C:
 	{
@@ -47,12 +45,14 @@ void Heap::AllocateTemporaryActor(int actorID)
 	case 0x0035:
 	{
 		Allocate(newTempActor);
+		temporaryActors.push_back(newTempActor);
 		AllocateTemporaryActor(0x007B);
 	}
 	break;
 
 	default:
 		Allocate(newTempActor);
+		temporaryActors.push_back(newTempActor);
 		break;
 	}
 }
@@ -123,7 +123,11 @@ void Heap::Allocate(Node* node)
 	{
 		Node* suitableGap = FindSuitableGap(node);
 		Insert(node, suitableGap);
-		currentActorCount[node->GetID()]++;
+		
+		if (node->GetType() == 'A')
+		{
+			currentActorCount[node->GetID()]++;
+		}
 
 		//check if a new LINK needs to be allocated
 		if (node->GetNext()->GetType() == LINK_TYPE && node->GetNext()->GetAddress() - node->GetAddress() > node->GetSize() + linkSize)
@@ -150,12 +154,7 @@ void Heap::LoadInitialRoom(int roomNumber)
 
 	Room* newRoom = scene->GetRoom(roomNumber);
 
-	//allocate new room first
-	for (Node* actor : newRoom->GetAllActors())
-	{
-		Allocate(actor);
-		newRoom->AddCurrentlyLoadedActor(actor);
-	}
+	AllocateNewRoom(*newRoom);
 
 	DeallocateClearedActors();
 	AllocateSpawnerOffspring();
@@ -171,7 +170,7 @@ void Heap::ChangeRoom(int newRoomNumber)
 	Room* newRoom = scene->GetRoom(newRoomNumber);
 
 	this->currentRoomNumber = newRoomNumber;
-
+	
 	AllocateNewRoom(*newRoom);
 	UnloadRoom(*oldRoom);
 
@@ -203,13 +202,9 @@ void Heap::AllocateNewRoom(Room& newRoom)
 				case 0x00CA:
 				{
 					Node* leak_1 = new Node(0xB0, 0xAAAA, 'E', nullptr);
-					std::cout << "leak 1 created\n";
 					Node* leak_2 = new Node(0xB0, 0xAAAA, 'E', nullptr);
-					std::cout << "leak 2 created\n";
 					Allocate(leak_1);
-					std::cout << "leak 1 allocated\n";
 					Allocate(leak_2);
-					std::cout << "leak 2 allocated\n";
 					leaks.push_back(leak_1);
 					leaks.push_back(leak_2);
 					break;
@@ -271,6 +266,7 @@ void Heap::UnloadRoom(Room& room)
 	//deallocate temporary actors from old room (bombs, bugs, etc.) and reset temp actor vector
 	for (Node* actor : temporaryActors)
 	{
+		std::cout << std::hex << actor->GetID() << std::endl;
 		Deallocate(actor);
 	}
 
@@ -440,6 +436,16 @@ void Heap::PrintHeap(char setting) const
 
 		curr = curr->GetNext();
 		
+	}
+}
+
+void Heap::PrintHeapInReverse() const
+{
+	Node* curr = tail;
+	while (curr != nullptr)
+	{
+		std::cout << "Address: " << std::hex << "0x" << curr->GetAddress() << " " << curr->GetID() << " " << curr->GetType() << std::dec << std::endl;
+		curr = curr->GetPrev();
 	}
 }
 

@@ -32,7 +32,7 @@ public:
 	int GetPriority() const;
 	void SetSpawnerOffspring(Node* node);
 	std::vector<Node*> GetOffspring();
-	void SetCleared();
+	void SetCleared(bool clearStatus);
 
 	bool IsDeallocatable() const;
 	bool IsClearable() const;
