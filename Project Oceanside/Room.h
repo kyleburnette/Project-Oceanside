@@ -1,28 +1,35 @@
 #pragma once
 
-#include <iostream>
 #include <vector>
-#include <map>
-#include <string>
-
 #include "Node.h"	
 
 class Room
 {
 public:
-	Room();
+	Room(int roomNumber);
 	void AddActor(Node* actor);
 	void AddCurrentlyLoadedActor(Node* actor);
 	std::vector<Node*> GetAllActors() const;
 	std::vector<Node*> GetCurrentlyLoadedActors() const;
-	void Memes();
 	void RemoveCurrentlyLoadedActor(Node* node);
-	void PrintCurrentlyLoadedActors() const;
-	void PrintSize() const;
 	void ResetCurrentlyLoadedActors();
-	
+	std::vector<Node*> GetClearedActors() const;
+	std::vector<Node*> GetClearableActors() const;
+	std::vector<Node*> GetDeallocatableActors() const;
+	void ClearActor(Node* actor);
+	void UnclearActor();
+	void ResetClearedActors();
+	int GetRoomNumber() const;
+	void AddRandomAllocatableActor(int timesCanAllocate, Node* actor);
+	std::map<int, std::pair<int, Node*>> GetPossibleTemporaryActors() const;
+	void Dump();
 private:
+	int roomNumber;
 	std::vector<Node*> allActors;
 	std::vector<Node*> currentlyLoadedActors;
+	std::vector<Node*> deallocatableActors;
+	std::vector<Node*> clearableActors;
+	std::vector<Node*> clearedActors;
+	std::map<int, std::pair<int, Node*>> possibleTemporaryActors;
 };
 

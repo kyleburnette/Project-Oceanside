@@ -1,71 +1,20 @@
+#include <iostream>
+#include <iomanip>
+
 #include "Heap.h"
+#include "Room.h"
+#include "Constants.h"
 
-
-
-Heap::Heap(Scene* scene, int start, int end) : start_address(start), end_address(end), scene(scene)
+Heap::Heap(Scene* scene, int start, int linkSize) : start_address(start), scene(scene), linkSize(linkSize)
 {
-	Node* headNode = new Node(start, LINK_SIZE, nullptr, nullptr, LINK_TYPE, LINK_ID);
-	Node* tailNode = new Node(end, LINK_SIZE, nullptr, nullptr, LINK_TYPE, LINK_ID);
+	Node* headNode = new Node(start, linkSize, nullptr, nullptr, LINK_TYPE, LINK_ID);
+	Node* tailNode = new Node(END_ADDRESS, linkSize, nullptr, nullptr, LINK_TYPE, LINK_ID);
 	headNode->SetNext(tailNode);
 	tailNode->SetPrev(headNode);
 	head = headNode;
 	tail = tailNode;
 
-	//placeholder and hardcoded
-	auto thing = scene->GetRoom(1)->GetAllActors();
-
-	for (auto actor : thing)
-	{
-		if (actor->GetID() == 0x0006)
-		{
-			chestOverlay = actor->GetOverlay();
-		}
-	}
-
-	auto otherThing = scene->GetRoom(0)->GetAllActors();
-	
-	for (auto actor : otherThing)
-	{
-		if (actor->GetID() == 0x00B1)
-		{
-			flowerOverlay = actor->GetOverlay();
-			break;
-		}
-	}
-
-	auto finalThing = scene->GetRoom(0)->GetAllActors();
-
-	for (auto actor : finalThing)
-	{
-		if (actor->GetID() == 0x00B1)
-		{
-			allFlowers.push_back(actor);
-		}
-	}
-
 	currentActorCount[LINK_ID] = 2;
-
-	//fix this later
-	possibleTemporaryActors[0x0009] = new Node(0x0009, scene->GetActorJSON()["0009"], 0); //Bomb
-	possibleTemporaryActors[0x00A2] = new Node(0x00A2, scene->GetActorJSON()["00A2"], 0); //Smoke
-	possibleTemporaryActors[0x003D] = new Node(0x003D, scene->GetActorJSON()["003D"], 0); //HookShot
-	possibleTemporaryActors[0x017B] = new Node(0x017B, scene->GetActorJSON()["017B"], 0); //Bugs
-	possibleTemporaryActors[0x000F] = new Node(0x000F, scene->GetActorJSON()["000F"], 0); //Arrow
-	possibleTemporaryActors[0x0035] = new Node(0x0035, scene->GetActorJSON()["0035"], 0); //Spin Attack1
-	possibleTemporaryActors[0x007B] = new Node(0x007B, scene->GetActorJSON()["007B"], 0); //Spin Attack 2
-	possibleTemporaryActors[0x006A] = new Node(0x006A, scene->GetActorJSON()["006A"], 0); //Chu
-	possibleTemporaryActors[0x018c] = new Node(0x018C, scene->GetActorJSON()["018C"], 0); //ISoT
-	possibleTemporaryActors[0xF001] = new Node(0xF001, scene->GetActorJSON()["F001"], 0); //ISoT Memory Leak
-	possibleTemporaryActors[0xF002] = new Node(0xF002, scene->GetActorJSON()["F002"], 0); //SC Memory Leak
-	
-
-	possibleRandomAllocatableActorsRoom1[0] = 0x0009;
-	//possibleRandomAllocatableActorsRoom1[1] = 0x006A;
-	//possibleRandomAllocatableActorsRoom1[1] = 0x000F;
-
-	possibleRandomAllocatableActorsRoom0[0] = 0x0009;
-	//possibleRandomAllocatableActorsRoom0[1] = 0x006A;
-	//possibleRandomAllocatableActorsRoom0[1] = 0x000F;
 };
 
 Heap::~Heap()
@@ -73,45 +22,38 @@ Heap::~Heap()
 	DeleteHeap();
 }
 
-void Heap::FreezeRocksAndGrass() 
-{
-	for (auto rockOrGrass : rocksAndGrass)
-	{
-		std::tuple<int, int, int> thingToInsert;
-		std::get<0>(thingToInsert) = rockOrGrass->GetID();
-		std::get<1>(thingToInsert) = rockOrGrass->GetAddress();
-		std::get<2>(thingToInsert) = rockOrGrass->GetPriority();
-		frozenRocksAndGrass.push_back(thingToInsert);
-	}
-}
-
 void Heap::AllocateTemporaryActor(int actorID)
 {
-	//TODO - implement ISoT leak and scarecrow leak and arrow animation thing
+	//get list of all possible temporary actors in the currently loaded room
+	auto possibleTempActors = scene->GetRoom(currentRoomNumber)->GetPossibleTemporaryActors();
 
-	Node* newTempActor = new Node(*possibleTemporaryActors[actorID]);
-	
-	temporaryActors.push_back(newTempActor);
+	//constuct a copy of this temporary actor from the template given in the above map
+	Node* newTempActor = new Node(*possibleTempActors[actorID].second);
+
 	switch (actorID) {
 	case 0x18C:
 	{
 		Allocate(newTempActor);
-		Allocate(new Node(*possibleTemporaryActors[0xF001]));
-	
+
+		Node* isotLeak = new Node(0x300, 0x018C, 'E', nullptr);
+		Allocate(isotLeak);
+		leaks.push_back(isotLeak);
+
 		Deallocate(newTempActor);
 	}
-		break;
+	break;
 	case 0x0035:
 	{
-
 		Allocate(newTempActor);
+		temporaryActors.push_back(newTempActor);
 		AllocateTemporaryActor(0x007B);
-		
 	}
-		break;
+	break;
 
 	default:
 		Allocate(newTempActor);
+		temporaryActors.push_back(newTempActor);
+		break;
 	}
 }
 
@@ -123,14 +65,13 @@ void Heap::DeallocateTemporaryActor(int actorID)
 		{
 			temporaryActors.erase(std::remove(temporaryActors.begin(), temporaryActors.end(), node), temporaryActors.end());
 			Deallocate(node);
-			//std::cout << std::hex << "Deallocated temporary actor: " << node->GetID() << std::endl;
 			delete(node);
 			node = nullptr;
 			return;
 		}
 	}
 
-	std::cerr << "Actor " << actorID << " is not loaded, deallocation failed." << std::endl;
+	std::cerr << "Actor " << actorID << " is not loaded." << std::endl;
 }
 
 void Heap::ClearTemporaryActors()
@@ -156,7 +97,7 @@ void Heap::Allocate(Node* node)
 		if (suitableGap != nullptr)
 		{
 			Insert(overlay, suitableGap);
-			Node* link = new Node(LINK_SIZE, LINK_ID, LINK_TYPE, nullptr);
+			Node* link = new Node(linkSize, LINK_ID, LINK_TYPE, nullptr);
 			Insert(link, overlay);
 			currentActorCount[LINK_ID]++;
 
@@ -167,10 +108,11 @@ void Heap::Allocate(Node* node)
 			currentActorCount[node->GetID()]++;
 
 			//handle this better 
-			if (node->GetNext()->GetType() == LINK_TYPE && node->GetNext()->GetAddress() - node->GetAddress() > node->GetSize() + LINK_SIZE) 
+			if (node->GetNext()->GetType() == LINK_TYPE && node->GetNext()->GetAddress() - node->GetAddress() > node->GetSize() + linkSize)
 			{
-				Node* actorLink = new Node(LINK_SIZE, LINK_ID, LINK_TYPE, nullptr);
+				Node* actorLink = new Node(linkSize, LINK_ID, LINK_TYPE, nullptr);
 				Insert(actorLink, node);
+
 				currentActorCount[LINK_ID]++;
 			}
 		}
@@ -179,21 +121,24 @@ void Heap::Allocate(Node* node)
 	//if actor does not have an overlay that matters (i.e. something allocated far past the part we care about)
 	else
 	{
-		Node* suitableGap = FindSuitableGap(node); 
+		Node* suitableGap = FindSuitableGap(node);
 		Insert(node, suitableGap);
-		currentActorCount[node->GetID()]++;
+		
+		if (node->GetType() == 'A')
+		{
+			currentActorCount[node->GetID()]++;
+		}
 
 		//check if a new LINK needs to be allocated
-		if (node->GetNext()->GetType() == LINK_TYPE && node->GetNext()->GetAddress() - node->GetAddress() > node->GetSize() + LINK_SIZE)
+		if (node->GetNext()->GetType() == LINK_TYPE && node->GetNext()->GetAddress() - node->GetAddress() > node->GetSize() + linkSize)
 		{
-			Node* link = new Node(LINK_SIZE, LINK_ID, LINK_TYPE, nullptr);
+			Node* link = new Node(linkSize, LINK_ID, LINK_TYPE, nullptr);
 			Insert(link, node);
 			currentActorCount[LINK_ID]++;
 		}
-		
 	}
 
-	if (!node->GetOffspring().empty())
+	if (node->IsSpawner())
 	{
 		for (Node* offspring : node->GetOffspring())
 		{
@@ -202,319 +147,152 @@ void Heap::Allocate(Node* node)
 	}
 }
 
-void Heap::LoadRoom(int roomNumber)
+void Heap::LoadInitialRoom(int roomNumber)
 {
-	/*HARDCODING THIS SPECIFICALLY FOR NIGHT 1 GRAVEYARD FOR NOW!*/
-
-	if (currentRoomNumber != -1)
-	{
-		std::cerr << "This function can only be used before a room is initially loaded.";
-		return;
-	}
-
-	Room* room = scene->GetRoom(roomNumber);
-
-	char stalchildCount = 0;
-	std::vector<Node*> extraStalchildren;
-	//load room's actors
-	for (Node* actor : room->GetAllActors())
-	{
-		if (actor->GetID() == 0x0212 && stalchildCount < 1)
-		{
-			room->AddCurrentlyLoadedActor(actor);
-			Allocate(actor);
-			stalchildCount++;
-		}
-		else if (actor->GetID() == 0x212 && stalchildCount >= 1)
-		{
-			extraStalchildren.push_back(actor);
-		}
-		else if (actor->GetID() == 0x00ED)
-		{
-			room->AddCurrentlyLoadedActor(actor);
-			Allocate(actor);
-			deallocatableActors.push_back(actor);
-		}
-		else if (actor->GetID() == 0x0265)
-		{
-			room->AddCurrentlyLoadedActor(actor);
-			Allocate(actor);
-			deallocatableActors.push_back(actor);
-		} 
-		else if (actor->GetID() == 0x0082)
-		{
-			room->AddCurrentlyLoadedActor(actor);
-			Allocate(actor);
-			deallocatableActors.push_back(actor);
-		}
-		else
-		{
-			room->AddCurrentlyLoadedActor(actor);
-			Allocate(actor);
-		}
-		actor->SetRemoved(0);
-	}
-
-	for (Node* stalchild : extraStalchildren)
-	{
-		room->AddCurrentlyLoadedActor(stalchild);
-		Allocate(stalchild);
-	}
-
-	//allocate spawner offspring actors
-	for (Node* offspring : offspringToAllocate)
-	{
-		room->AddCurrentlyLoadedActor(offspring);
-		rocksAndGrass.push_back(offspring);
-		Allocate(offspring);
-	}
-
-
-	offspringToAllocate.clear();
-	//If we have a Scarecrow After room load allocate Leaks
-	for (Node* hunt : room->GetCurrentlyLoadedActors()) {
-		if (hunt->GetID() == 0x00CA) {
-			Allocate(new Node(*possibleTemporaryActors[0xF002]));
-			Allocate(new Node(*possibleTemporaryActors[0xF002]));
-
-		}
-	}
-
 	this->initiallyLoadedRoomNumber = roomNumber;
 	this->currentRoomNumber = roomNumber;
+
+	Room* newRoom = scene->GetRoom(roomNumber);
+
+	AllocateNewRoom(*newRoom);
+
+	DeallocateClearedActors();
+	AllocateSpawnerOffspring();
+
+	initialLoad = false;
+
+	//reimplement situations where initial scene load is different from subsequent loads of initial room
 }
 
 void Heap::ChangeRoom(int newRoomNumber)
 {
-	if (newRoomNumber == currentRoomNumber)
-	{
-		std::cerr << "Room number {" << newRoomNumber << "} is already loaded!" << std::endl;
-		return;
-	}
-
-	else if (currentRoomNumber == -1)
-	{
-		std::cerr << "ChangeRoom(int newRoomNumber) can only be used if a room is already loaded." << std::endl;
-		return;
-	}
-
 	Room* oldRoom = scene->GetRoom(currentRoomNumber);
 	Room* newRoom = scene->GetRoom(newRoomNumber);
-	Node* newClock = nullptr;
-	Node* newDampe = nullptr;
 
-	deallocatableActors.clear();
-
-	//allocate new room first
-	for (Node* actor : newRoom->GetAllActors())
-	{
-		if (actor->GetID() == 0x015A && !scene->GetClockReallocates())
-		{
-			; //we do not want to allocate the new clock if it does not reallocate in this scene OR if it does reallocate and we're
-				//going back into the first room that was loaded
-		}
-
-		else if (actor->GetID() == 0x015A && scene->GetClockReallocates())
-		{
-			newClock = new Node(*actor);
-			Allocate(newClock);
-		}
-		else if (actor->GetID() == 0x01CA)
-		{
-			newDampe = new Node(*actor);
-			Allocate(newDampe);
-		}
-
-		else if (actor->GetID() == 0x0018)
-		{
-			; //TODO - handle not reallocating loading planes later
-		}
-
-		else if (actor->GetID() == 0x0265 || actor->GetID() == 0x00ED || actor->GetID() == 0x0082 )
-		{
-			newRoom->AddCurrentlyLoadedActor(actor);
-			Allocate(actor);
-			deallocatableActors.push_back(actor);
-		}
-		/* Allocate Leaks on scarecrow load during room change
-		 * Scarecrow is loaded into execution immeditily Load leaks soon as actor is instantiated 
-		 */
-		
-		else if (actor->GetID() == 0x0CA) {  
-			newRoom->AddCurrentlyLoadedActor(actor);
-			Allocate(actor);
-			Allocate(new Node(*possibleTemporaryActors[0xF002]));
-			Allocate(new Node(*possibleTemporaryActors[0xF002]));
-		}
-		/*else if (actor->GetID() == 0x005F)
-		{
-			
-				newRoom->AddCurrentlyLoadedActor(actor);
-				Allocate(actor);
-				deallocatableActors.push_back(actor);
-			
-		}*/
-		else
-		{
-			newRoom->AddCurrentlyLoadedActor(actor);
-			Allocate(actor);
-		}
-	}
-
-
-	//deallocate new clock 
-	if (newClock != nullptr)
-	{
-		Deallocate(newClock);
-		delete(newClock);
-		newClock = nullptr;
-	}
-
-	//deallocate new dampe 
-	if (newDampe != nullptr)
-	{
-		Deallocate(newDampe);
-		delete(newDampe);
-		newDampe = nullptr;
-	}
-
-	for (Node* actor : newRoom->GetAllActors()) {
-		if (actor->GetRemoved()) {
-			Deallocate(actor);
-			deallocatableActors.erase(std::remove(deallocatableActors.begin(), deallocatableActors.end(),actor), deallocatableActors.end());
-			newRoom->RemoveCurrentlyLoadedActor(actor);
-		}
-	}
+	this->currentRoomNumber = newRoomNumber;
 	
+	AllocateNewRoom(*newRoom);
+	UnloadRoom(*oldRoom);
+
+	DeallocateClearedActors();
+	AllocateSpawnerOffspring();
+	DeallocateReallocatingActors();
+}
+
+void Heap::AllocateNewRoom(Room& newRoom)
+{
+	//allocate new room first
+	for (Node* actor : newRoom.GetAllActors())
+	{
+		if (actor->IsSingleton() && actor->ReallocateOnRoomChange())
+		{
+			singletonsAttemptingToReallocate.push_back(actor);
+			Allocate(actor);
+			newRoom.AddCurrentlyLoadedActor(actor);
+		}
+		else if (!actor->IsSingleton())
+		{
+			int actorID = actor->GetID();
+
+			Allocate(actor);
+			newRoom.AddCurrentlyLoadedActor(actor);
+
+			switch (actorID)
+			{
+				case 0x00CA:
+				{
+					Node* leak_1 = new Node(0xB0, 0x00CA, 'E', nullptr);
+					Node* leak_2 = new Node(0xB0, 0x00CA, 'E', nullptr);
+					Allocate(leak_1);
+					Allocate(leak_2);
+					leaks.push_back(leak_1);
+					leaks.push_back(leak_2);
+					break;
+				}	
+				default:
+					break;
+			}
+		}
+	}
+}
+
+void Heap::DeallocateClearedActors()
+{
+	for (auto actor : scene->GetRoom(currentRoomNumber)->GetClearedActors())
+	{
+		Deallocate(actor);
+	}
+}
+
+void Heap::AllocateSpawnerOffspring()
+{
+	Room* room = scene->GetRoom(currentRoomNumber);
+
+	for (Node* offspring : offspringToAllocate)
+	{
+		Allocate(offspring);
+		room->AddCurrentlyLoadedActor(offspring);
+	}
+
+	offspringToAllocate.clear();
+}
+
+std::pair<int, int> Heap::DeallocateRandomActor()
+{
+	return std::make_pair(0, 0);
+	//REIMPLEMENT WITH DEALLOCATABLE ACTORS BEING HANDLED BY ROOM, NOT HEAP!
+}
+
+int Heap::AllocateRandomActor()
+{
+	//Chooses a random actor from the entire list of possible random actors
+	//for the currently loaded room.
+
+	auto possibleActors = scene->GetRoom(currentRoomNumber)->GetPossibleTemporaryActors();
+
+	if (possibleActors.size() == 0)
+	{
+		return 0;
+	}
+
+	char rng = rand() % possibleActors.size();
+	AllocateTemporaryActor(possibleActors[rng].first);
+
+	return possibleActors[rng].first;
+}
+
+void Heap::UnloadRoom(Room& room)
+{
 	//deallocate temporary actors from old room (bombs, bugs, etc.) and reset temp actor vector
 	for (Node* actor : temporaryActors)
 	{
+		std::cout << std::hex << actor->GetID() << std::endl;
 		Deallocate(actor);
 	}
 
 	ClearTemporaryActors();
 
-	//deallocate old room's base/default actors
-	for (Node* actor : oldRoom->GetCurrentlyLoadedActors())
+	for (Node* actor : room.GetCurrentlyLoadedActors())
 	{
-		switch (actor->GetID()) {
-		case 0x15A:  //Clock
-			if (scene->GetClockReallocates() || !scene->GetClockReallocates())
-			{
-				break; //we do not want to allocate the new clock if it does not reallocate in this scene	 
-			}
-			else if (newRoomNumber != initiallyLoadedRoomNumber)
-			{
-				break; //we do not want to allocate the new clock if it does not reallocate in this scene
-			}
-			
-		case 0x01CA: //Dampe
-			if(newRoomNumber != initiallyLoadedRoomNumber)
-			{
-				break;
-			}
-		case 0x0018: //Loading plane
-			break;
-		case 0xF001: //ISot Memory Leak
-			break;
-		case 0xF002: //SC Memory Leak 
-			break;
-		default:
-
+		if (!actor->IsSingleton())
+		{
 			Deallocate(actor);
-		}
+			room.RemoveCurrentlyLoadedActor(actor);
+		}	
 	}
 
-	//clear old room's currently loaded actors (since they in fact are not currently loaded anymore)
-	oldRoom->GetCurrentlyLoadedActors().clear();
-
-	rocksAndGrass.clear();
-
-	//allocate spawner stuff
-	for (Node* offspring : offspringToAllocate)
-	{
-		newRoom->AddCurrentlyLoadedActor(offspring);
-		Allocate(offspring);
-		deallocatableActors.push_back(offspring);
-		rocksAndGrass.push_back(offspring);
-	}
-
-	offspringToAllocate.clear();
-
-
-
-	//update room number to room number of room we're changing to
-
-	this->currentRoomNumber = newRoomNumber;
+	room.ResetCurrentlyLoadedActors();
 }
 
-std::pair<int, int> Heap::DeallocateRandomActor()
+void Heap::DeallocateReallocatingActors()
 {
-	std::pair<int, int> yep;
-	yep.first = 0;
-	yep.second = 0;
-	return yep;
-
-	if (deallocatableActors.empty() || currentRoomNumber == 0)
-	{
-		std::pair<int, int> yep;
-		yep.first = 0;
-		yep.second = 0;
-		return yep;
-	}
-
-	char rng = rand() % deallocatableActors.size();
-
-	Node* nodeToDeallocate = deallocatableActors[rng];
-	/*if (nodeToDeallocate->GetID() == 0x005F) {
-		nodeToDeallocate->SetRemoved(1);
-	}*/
-	Deallocate(deallocatableActors[rng]);
-	//std::cout << std::hex << "Deallocated random actor: " << deallocatableActors[rng]->GetID() << std::endl;
-	deallocatableActors.erase(std::remove(deallocatableActors.begin(), deallocatableActors.end(), nodeToDeallocate), deallocatableActors.end());
-
-	std::pair<int, int> pair;
-	pair.first = nodeToDeallocate->GetID();
-	pair.second = nodeToDeallocate->GetPriority();
-	return pair;
-}
-
-int Heap::AllocateRandomActor()
-{
-	if (currentRoomNumber == 1)
-	{
-		int rng = rand() % possibleRandomAllocatableActorsRoom1.size();
-		//	std::cout << std::hex << "Allocated random actor: " << possibleRandomAllocatableActors[rng] << std::endl;
-		AllocateTemporaryActor(possibleRandomAllocatableActorsRoom1[rng]);
-
-		return possibleRandomAllocatableActorsRoom1[rng];
-	}
-
-	else if (currentRoomNumber == 0)
-	{
-		int rng = rand() % possibleRandomAllocatableActorsRoom0.size();
-		//	std::cout << std::hex << "Allocated random actor: " << possibleRandomAllocatableActors[rng] << std::endl;
-		AllocateTemporaryActor(possibleRandomAllocatableActorsRoom0[rng]);
-
-		return possibleRandomAllocatableActorsRoom0[rng];
-	}
-	
-}
-
-void Heap::UnloadRoom(int roomNumber)
-{
-	if (roomNumber != currentRoomNumber)
-	{
-		std::cerr << "Room " << roomNumber << " is not loaded, so it cannot be unloaded." << std::endl;
-		return;
-	}
-
-	for (Node* actor : scene->GetRoom(roomNumber)->GetCurrentlyLoadedActors())
+	for (auto actor : singletonsAttemptingToReallocate)
 	{
 		Deallocate(actor);
+		scene->GetRoom(currentRoomNumber)->RemoveCurrentlyLoadedActor(actor);
 	}
-	scene->GetRoom(currentRoomNumber)->ResetCurrentlyLoadedActors();
-	currentRoomNumber = -1;
+
+	singletonsAttemptingToReallocate.clear();
 }
 
 void Heap::Deallocate(int actorID, int priority)
@@ -609,87 +387,6 @@ void Heap::Deallocate(Node* node)
 	{
 		Deallocate(node->GetOverlay());
 	}
-
-	scene->GetRoom(currentRoomNumber)->RemoveCurrentlyLoadedActor(node);
-}
-
-//fix this later
-void Heap::DeallocateClockAndPlane(Node* node)
-{
-	//first two are for deallocating things at the very beginning of the heap
-	if (node->GetPrev()->GetPrev() == nullptr && node->GetNext()->GetNext()->GetType() != LINK_TYPE)
-	{
-		head->SetNext(node->GetNext());
-		node->GetNext()->SetPrev(head);
-
-	}
-
-	else if (node->GetPrev()->GetPrev() == nullptr && node->GetNext()->GetNext()->GetType() == LINK_TYPE)
-	{
-		head->SetNext(node->GetNext()->GetNext());
-		node->GetNext()->GetNext()->SetPrev(head);
-		delete(node->GetNext());
-		node->SetNext(nullptr);
-		currentActorCount[LINK_ID] -= 1;
-	}
-
-	//these next two should almost never happen unless the heap is VERY full
-	else if (node->GetNext()->GetNext() == nullptr && node->GetPrev()->GetPrev()->GetType() != LINK_TYPE)
-	{
-		tail->SetPrev(node->GetPrev());
-		node->GetPrev()->SetNext(tail);
-	}
-
-	else if (node->GetNext()->GetNext() == nullptr && node->GetPrev()->GetPrev()->GetType() == LINK_TYPE)
-	{
-		tail->SetPrev(node->GetPrev()->GetPrev());
-		node->GetPrev()->GetPrev()->SetNext(tail);
-	}
-
-	//this handles a situation where there are two nodes in front and two nodes behind
-	else if (node->GetNext()->GetNext()->GetType() == LINK_TYPE && node->GetPrev()->GetPrev()->GetType() == LINK_TYPE)
-	{
-		node->GetPrev()->GetPrev()->SetNext(node->GetNext()->GetNext());
-		node->GetNext()->GetNext()->SetPrev(node->GetPrev()->GetPrev());
-		delete(node->GetNext());
-		node->SetNext(nullptr);
-		delete(node->GetPrev());
-		node->SetPrev(nullptr);
-		currentActorCount[LINK_ID] -= 2;
-	}
-	else if (node->GetNext()->GetNext()->GetType() == LINK_TYPE)
-	{
-		node->GetPrev()->SetNext(node->GetNext()->GetNext());
-		node->GetNext()->GetNext()->SetPrev(node->GetPrev());
-		delete(node->GetNext());
-		node->SetNext(nullptr);
-		currentActorCount[LINK_ID] -= 1;
-	}
-	else if (node->GetPrev()->GetPrev()->GetType() == LINK_TYPE)
-	{
-		node->GetNext()->SetPrev(node->GetPrev()->GetPrev());
-		node->GetPrev()->GetPrev()->SetNext(node->GetNext());
-		delete(node->GetPrev());
-		node->SetPrev(nullptr);
-		currentActorCount[LINK_ID] -= 1;
-	}
-
-	else
-	{
-		node->GetPrev()->SetNext(node->GetNext());
-		node->GetNext()->SetPrev(node->GetPrev());
-	}
-
-	//deallocating the overlay should not decrease number of actors loaded
-	if (node->GetType() != OVERLAY_TYPE)
-	{
-		currentActorCount[node->GetID()]--;
-	}
-
-	if (currentActorCount[node->GetID()] == 0 && node->GetOverlay() != nullptr)
-	{
-		DeallocateClockAndPlane(node->GetOverlay());
-	}
 }
 
 void Heap::Insert(Node* newNode, Node* oldNode)
@@ -718,21 +415,21 @@ void Heap::PrintHeap(char setting) const
 			if (curr->GetID() != LINK_ID) 
 			{
 				std::cout << std::hex << curr->GetAddress() << ":"
-					<< std::setw(6) << curr->GetSize() << " "
+					<< std::setw(6) << std::setfill('0') << curr->GetSize() << " "
 					<< std::setw(1) << curr->GetType() << " "
-					<< std::setw(6) << curr->GetID() << " "
-					<< std::setw(2) << std::dec << curr->GetPriority()
+					<< std::setw(4) << curr->GetID() << " "
+					<< std::setw(1) << std::dec << curr->GetPriority()
 					<< std::endl;
 			}
 			
 		}
 		else if (setting == 1)
 		{
-			std::cout << std::hex << curr->GetAddress() << ":" 
-				<< std::setw(6) << curr->GetSize() << " "
-				<< std::setw(1) << curr->GetType() << " " 
-				<< std::setw(6) << curr->GetID() << " "
-				<< std::setw(2) << std::dec << curr->GetPriority()
+			std::cout << std::hex << curr->GetAddress() << ":"
+				<< std::setw(6) << std::setfill('0') << curr->GetSize() << " "
+				<< std::setw(1) << curr->GetType() << " "
+				<< std::setw(4) << curr->GetID() << " "
+				<< std::setw(1) << std::dec << curr->GetPriority()
 				<< std::endl;
 		}
 		
@@ -761,7 +458,7 @@ Node* Heap::FindSuitableGap(Node* newNode) const
 	{
 		if (curr->GetID() == LINK_ID && curr->GetNext()->GetID() == LINK_ID)
 		{
-			int gapSize = curr->GetNext()->GetAddress() - curr->GetAddress() - LINK_SIZE;
+			int gapSize = curr->GetNext()->GetAddress() - curr->GetAddress() - linkSize;
 			if (gapSize >= size)
 			{
 				return curr;
@@ -803,7 +500,7 @@ void Heap::PrintCurrentActorCount() const
 	}
 }
 
-void Heap::ResetHeap()
+/*void Heap::ResetHeap()
 {
 	UnloadRoom(currentRoomNumber);
 
@@ -828,14 +525,27 @@ void Heap::ResetHeap()
 
 	//scene->GetRoom(currentRoomNumber)->ResetCurrentlyLoadedActors();
 
-	frozenRocksAndGrass.clear();
-
 	ClearTemporaryActors();
 	currentRoomNumber = -1;
 
-}
+}*/
 
 int Heap::GetRoomNumber() const
 {
 	return currentRoomNumber;
+}
+
+void Heap::Solve(int solverType)
+{
+	switch (solverType)
+	{
+	case RandomAssortment:
+		break;
+	case SuccessiveActorSolver:
+		break;
+	case nop:
+		break;
+	default:
+		break;
+	}
 }

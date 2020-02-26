@@ -148,7 +148,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ActorList.cpp" />
     <ClCompile Include="Heap.cpp" />
     <ClCompile Include="Node.cpp" />
     <ClCompile Include="Project Oceanside.cpp" />
@@ -156,16 +155,10 @@
     <ClCompile Include="Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ActorList.h" />
     <ClInclude Include="Heap.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="Room.h" />
     <ClInclude Include="Scene.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <CopyFileToFolders Include="Graveyard.json">
-      <FileType>Document</FileType>
-    </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="mm_j_actors.json">
@@ -175,11 +168,6 @@
       <FileType>Document</FileType>
     </CopyFileToFolders>
     <CopyFileToFolders Include="oot_actors.json">
-      <FileType>Document</FileType>
-    </CopyFileToFolders>
-  </ItemGroup>
-  <ItemGroup>
-    <CopyFileToFolders Include="actorList.json">
       <FileType>Document</FileType>
     </CopyFileToFolders>
   </ItemGroup>

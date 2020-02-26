@@ -1,26 +1,27 @@
 #pragma once
 
-#include <fstream>
-#include <iostream>
 #include <vector>
 
 #include "./json.hpp"
-
-#include "Room.h"
-#include "Node.h"
+#include "./Room.h"
 
 class Scene
 {
 public:
-	Scene();
+	Scene(char version);
 	Room* GetRoom(int roomNumber) const;
 	bool GetClockReallocates() const;
 	nlohmann::json GetActorJSON() const;
+	void DumpSceneInfo() const;
 
 private:
-	bool clockReallocates = false;
+	void LoadScene();
+	void ParseSceneJson();
+	void ParseActorJson(char version);
+	void OutputExceptionInformation(nlohmann::json::parse_error& error);
 	int roomCount = 0;
 	std::vector<Room*> rooms;
 	nlohmann::json actorJson;
+	nlohmann::json sceneJson;
 };
 

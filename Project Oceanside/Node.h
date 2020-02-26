@@ -11,6 +11,7 @@ class Node
 public:
 	Node();
 	//going to handle this without a factory pattern for now
+	Node(int actorID, std::string s_actorID, nlohmann::json& actorInfo, nlohmann::json& actorParameters, int priority);
 	Node(int actorID, nlohmann::json& actorInfo, int priority);
 	Node(const Node& copy);
 	Node(int size, int ID, char type, Node* overlay);
@@ -31,8 +32,18 @@ public:
 	int GetPriority() const;
 	void SetSpawnerOffspring(Node* node);
 	std::vector<Node*> GetOffspring();
-	void SetRemoved(int val);
-	int GetRemoved() const;
+	void SetCleared(bool clearStatus);
+
+	bool IsDeallocatable() const;
+	bool IsClearable() const;
+	bool CanStartCleared() const;
+	bool StartCleared() const;
+	bool ConsiderForSRM() const;
+	bool ReallocateOnRoomChange() const;
+	char GetNumberOfOffspring() const;
+	int GetOffspringActorID() const;
+	bool IsSpawner() const;
+	bool IsSingleton() const;
 
 private:
 	Node* next = nullptr;
@@ -40,11 +51,23 @@ private:
 	int address = 0;
 	int size = 0;
 	int ID = 0xFFFF;
-	char type = 'x';
+	char type = 'X';
 	Node* overlay = nullptr;
 	int priority = 0;
 	std::vector<Node*> spawnerOffspring;
-	int removed = 0;
+	bool isClearable;
+	bool isDeallocatable;
+	bool canStartCleared;
+	bool startCleared;
+	bool considerForSRM;
+	bool reallocateOnRoomChange;
+	bool isSingleton;
+	int numberOfOffspring;
+	int offspringActorID;
+
+	bool cleared;
+
+	bool isSpawner;
 };
 
 
