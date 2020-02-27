@@ -77,6 +77,7 @@ void Room::ClearActor(Node* actor)
 {
 	actor->SetCleared(true);
 	clearedActors.push_back(actor);
+	clearableActors.erase(std::remove(clearableActors.begin(), clearableActors.end(), actor), clearableActors.end());
 }
 
 void Room::ResetClearedActors()
@@ -87,6 +88,7 @@ void Room::ResetClearedActors()
 		{
 			actor->SetCleared(false);
 			clearedActors.erase(std::remove(clearedActors.begin(), clearedActors.end(), actor), clearedActors.end());
+			clearableActors.push_back(actor);
 		}
 	}
 }
@@ -94,9 +96,15 @@ void Room::ResetClearedActors()
 void Room::AddRandomAllocatableActor(int timesCanAllocate, Node* actor)
 {
 	possibleTemporaryActors[actor->GetID()] = std::make_pair(timesCanAllocate, actor);
+	possibleTemporaryActorsIDs.push_back(actor->GetID());
 }
 
 std::map<int, std::pair<int, Node*>> Room::GetPossibleTemporaryActors() const
 {
 	return possibleTemporaryActors;
+}
+
+std::vector<int> Room::GetPossibleTemporaryActorsIDs() const
+{
+	return possibleTemporaryActorsIDs;
 }

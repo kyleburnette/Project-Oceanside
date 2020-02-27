@@ -31,6 +31,12 @@ void Heap::AllocateTemporaryActor(int actorID)
 	Node* newTempActor = new Node(*possibleTempActors[actorID].second);
 
 	switch (actorID) {
+	case 0x00A2:
+		AllocateTemporaryActor(0x0009);
+		Allocate(newTempActor);
+		temporaryActors.push_back(newTempActor);
+		DeallocateTemporaryActor(0x0009);
+		break;
 	case 0x18C:
 	{
 		Allocate(newTempActor);
@@ -156,8 +162,33 @@ void Heap::LoadInitialRoom(int roomNumber)
 	this->currentRoom = scene->GetRoom(currentRoomNumber);
 
 	Room* newRoom = scene->GetRoom(roomNumber);
+	bool scarecrow = false;
 
-	AllocateNewRoom(*newRoom);
+	for (Node* actor : newRoom->GetAllActors())
+	{
+		if (actor->GetID() == 0xCA)
+		{
+			scarecrow = true;
+		}
+
+		if (actor->IsSingleton())
+		{
+			singletons.push_back(actor);
+		}
+
+		Allocate(actor);
+		newRoom->AddCurrentlyLoadedActor(actor);
+	}
+
+	if (scarecrow)
+	{
+		Node* leak_1 = new Node(0xB0, 0x00CA, 'E', nullptr);
+		Node* leak_2 = new Node(0xB0, 0x00CA, 'E', nullptr);
+		Allocate(leak_1);
+		Allocate(leak_2);
+		leaks.push_back(leak_1);
+		leaks.push_back(leak_2);
+	}
 
 	DeallocateClearedActors();
 	AllocateSpawnerOffspring();
@@ -222,9 +253,12 @@ void Heap::AllocateNewRoom(Room& newRoom)
 
 void Heap::DeallocateClearedActors()
 {
-	for (auto actor : scene->GetRoom(currentRoomNumber)->GetClearedActors())
+	Room* currentRoom = scene->GetRoom(currentRoomNumber);
+
+	for (auto actor : currentRoom->GetClearedActors())
 	{
 		Deallocate(actor);
+		currentRoom->RemoveCurrentlyLoadedActor(actor);
 	}
 }
 
@@ -252,7 +286,7 @@ int Heap::AllocateRandomActor()
 	//Chooses a random actor from the entire list of possible random actors
 	//for the currently loaded room.
 
-	auto possibleActors = scene->GetRoom(currentRoomNumber)->GetPossibleTemporaryActors();
+	auto possibleActors = scene->GetRoom(currentRoomNumber)->GetPossibleTemporaryActorsIDs();
 
 	if (possibleActors.size() == 0)
 	{
@@ -260,9 +294,44 @@ int Heap::AllocateRandomActor()
 	}
 
 	char rng = rand() % possibleActors.size();
-	AllocateTemporaryActor(possibleActors[rng].first);
 
-	return possibleActors[rng].first;
+	auto newID = possibleActors[rng];
+
+	if (newID == 0x7B)
+	{
+		return 0;
+	}
+
+	AllocateTemporaryActor(newID);
+
+	return possibleActors[rng];
+}
+
+std::pair<int, int> Heap::ClearRandomActor()
+{
+	std::vector<Node*> currentClearableActors = scene->GetRoom(currentRoomNumber)->GetClearableActors();
+
+	if (currentClearableActors.size() == 0)
+	{
+		return std::make_pair(0, 0);
+	}
+
+	//clear things ~50% of the time (this is probably a 0head way of implementing this, fix later
+	char allocateOrNotRNG = rand() % 2;
+
+	if (allocateOrNotRNG == 0)
+	{
+		return std::make_pair(0, 0);
+	}
+
+	char rng = rand() % currentClearableActors.size();
+
+	Node* clearableActorToDeallocate = currentClearableActors[rng];
+
+	Deallocate(clearableActorToDeallocate);
+	currentRoom->RemoveCurrentlyLoadedActor(clearableActorToDeallocate);
+
+	return std::make_pair(clearableActorToDeallocate->GetID(), clearableActorToDeallocate->GetPriority());
 }
 
 void Heap::UnloadRoom(Room& room)
@@ -270,7 +339,6 @@ void Heap::UnloadRoom(Room& room)
 	//deallocate temporary actors from old room (bombs, bugs, etc.) and reset temp actor vector
 	for (Node* actor : temporaryActors)
 	{
-		std::cout << std::hex << actor->GetID() << std::endl;
 		Deallocate(actor);
 	}
 
@@ -513,6 +581,12 @@ void Heap::ResetLeaks()
 		leak = nullptr;
 	}
 
+	for (auto singleton : singletons)
+	{
+		Deallocate(singleton);
+	}
+
+	singletons.clear();
 	leaks.clear();
 }
 
@@ -546,8 +620,11 @@ void Heap::Solve(int solverType)
 		for (int i = 0; i < 100000; i++)
 		{
 			LoadInitialRoom(0);
-			AllocateTemporaryActor(0x18C);
+			ClearRandomActor();
+			AllocateRandomActor();
 			ChangeRoom(1);
+			ClearRandomActor();
+			AllocateRandomActor();
 			ResetHeap();
 		}
 		PrintHeap(1);

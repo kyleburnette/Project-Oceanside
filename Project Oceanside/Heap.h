@@ -28,10 +28,10 @@ public:
 	void ResetHeap();
 	std::pair<int, int> DeallocateRandomActor();
 	int AllocateRandomActor();
+	std::pair<int, int> ClearRandomActor();
 	int GetRoomNumber() const;
 	void Solve(int solverType);
 	void ResetLeaks();
-	void DeallocateSingletons();
 
 private:
 	void AllocateNewRoom(Room& newRoom);
@@ -60,6 +60,7 @@ private:
 	std::vector<Node*> offspringToAllocate;
 
 	std::vector<Node*> leaks;
+	std::vector<Node*> singletons;
 
 	std::vector<Node*> singletonsAttemptingToReallocate;
 };
