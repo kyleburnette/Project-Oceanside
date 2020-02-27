@@ -8,7 +8,8 @@ const int MM_US0_LINK_SIZE = 0x10;
 enum SolverTypes {
 	SuccessiveActorSolver,
 	RandomAssortment,
-	nop,
+	Test,
+	nop
 };
 
 enum Version

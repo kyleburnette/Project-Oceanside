@@ -136,3 +136,11 @@ void Scene::DumpSceneInfo() const
 		roomNumber++;
 	}
 }
+
+void Scene::ResetClearedActors()
+{
+	for (auto room : rooms)
+	{
+		room->ResetClearedActors();
+	}
+}

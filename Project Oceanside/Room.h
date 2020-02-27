@@ -17,12 +17,10 @@ public:
 	std::vector<Node*> GetClearableActors() const;
 	std::vector<Node*> GetDeallocatableActors() const;
 	void ClearActor(Node* actor);
-	void UnclearActor();
 	void ResetClearedActors();
 	int GetRoomNumber() const;
 	void AddRandomAllocatableActor(int timesCanAllocate, Node* actor);
 	std::map<int, std::pair<int, Node*>> GetPossibleTemporaryActors() const;
-	void Dump();
 private:
 	int roomNumber;
 	std::vector<Node*> allActors;

@@ -40,6 +40,8 @@ void Heap::AllocateTemporaryActor(int actorID)
 		leaks.push_back(isotLeak);
 
 		Deallocate(newTempActor);
+		delete(newTempActor);
+		newTempActor = nullptr;
 	}
 	break;
 	case 0x0035:
@@ -151,6 +153,7 @@ void Heap::LoadInitialRoom(int roomNumber)
 {
 	this->initiallyLoadedRoomNumber = roomNumber;
 	this->currentRoomNumber = roomNumber;
+	this->currentRoom = scene->GetRoom(currentRoomNumber);
 
 	Room* newRoom = scene->GetRoom(roomNumber);
 
@@ -170,6 +173,7 @@ void Heap::ChangeRoom(int newRoomNumber)
 	Room* newRoom = scene->GetRoom(newRoomNumber);
 
 	this->currentRoomNumber = newRoomNumber;
+	this->currentRoom = scene->GetRoom(currentRoomNumber);
 	
 	AllocateNewRoom(*newRoom);
 	UnloadRoom(*oldRoom);
@@ -500,35 +504,27 @@ void Heap::PrintCurrentActorCount() const
 	}
 }
 
-/*void Heap::ResetHeap()
+void Heap::ResetLeaks()
 {
-	UnloadRoom(currentRoomNumber);
-
-	Node* curr = head;
-
-	//handle this better later
-	while (curr != nullptr)
+	for (auto leak : leaks)
 	{
-		if (curr->GetID() == 0x15A && curr->GetType() == 'A' || curr->GetID() == 0x0018 || curr->GetID() == 0x1CA && curr->GetType() == 'A')
-		{
-			DeallocateClockAndPlane(curr);
-			curr = head;
-		}
-		else if (curr->GetID() == 0xF002 || curr->GetID() == 0xF001) {
-			DeallocateClockAndPlane(curr);
-			delete(curr);
-			curr = head;
-		}
-
-		curr = curr->GetNext();
+		Deallocate(leak);
+		delete(leak);
+		leak = nullptr;
 	}
 
-	//scene->GetRoom(currentRoomNumber)->ResetCurrentlyLoadedActors();
+	leaks.clear();
+}
 
-	ClearTemporaryActors();
+void Heap::ResetHeap()
+{
+	UnloadRoom(*scene->GetRoom(currentRoomNumber));
+	ResetLeaks();
+	scene->ResetClearedActors();
+
 	currentRoomNumber = -1;
-
-}*/
+	currentRoom = nullptr;
+}
 
 int Heap::GetRoomNumber() const
 {
@@ -537,6 +533,7 @@ int Heap::GetRoomNumber() const
 
 void Heap::Solve(int solverType)
 {
+	//TODO - implement
 	switch (solverType)
 	{
 	case RandomAssortment:
@@ -545,6 +542,15 @@ void Heap::Solve(int solverType)
 		break;
 	case nop:
 		break;
+	case Test:
+		for (int i = 0; i < 100000; i++)
+		{
+			LoadInitialRoom(0);
+			AllocateTemporaryActor(0x18C);
+			ChangeRoom(1);
+			ResetHeap();
+		}
+		PrintHeap(1);
 	default:
 		break;
 	}

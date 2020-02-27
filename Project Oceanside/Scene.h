@@ -13,6 +13,7 @@ public:
 	bool GetClockReallocates() const;
 	nlohmann::json GetActorJSON() const;
 	void DumpSceneInfo() const;
+	void ResetClearedActors();
 
 private:
 	void LoadScene();

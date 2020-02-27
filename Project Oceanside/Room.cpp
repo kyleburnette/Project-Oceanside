@@ -83,11 +83,7 @@ void Room::ResetClearedActors()
 {
 	for (auto actor : clearedActors)
 	{
-		if (actor->StartCleared())
-		{
-			actor->SetCleared(true);
-		}
-		else
+		if (!actor->StartCleared())
 		{
 			actor->SetCleared(false);
 			clearedActors.erase(std::remove(clearedActors.begin(), clearedActors.end(), actor), clearedActors.end());

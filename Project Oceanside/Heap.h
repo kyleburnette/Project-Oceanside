@@ -30,6 +30,8 @@ public:
 	int AllocateRandomActor();
 	int GetRoomNumber() const;
 	void Solve(int solverType);
+	void ResetLeaks();
+	void DeallocateSingletons();
 
 private:
 	void AllocateNewRoom(Room& newRoom);
@@ -51,7 +53,7 @@ private:
 
 	bool initialLoad = true;
 
-	Node* clock = nullptr;
+	Room* currentRoom;
 
 	std::map<int, int> currentActorCount;
 	std::vector<Node*> temporaryActors;
