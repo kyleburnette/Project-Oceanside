@@ -12,7 +12,11 @@ int main()
 	Scene* scene = new Scene(MM_US);
 	Heap* heap = new Heap(scene, MM_US0_START, MM_US0_LINK_SIZE);
 
-	//THIS WILL NOT WORK heap->Solve(DFSRM);
+	//DOES NOT WORK!
+	heap->LoadInitialRoom(0);
+	heap->ChangeRoom(1);
+	heap->ChangeRoom(0);
+	heap->ChangeRoom(1);
 	
 	delete(scene);
 	delete(heap);
