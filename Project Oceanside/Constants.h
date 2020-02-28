@@ -9,6 +9,7 @@ enum SolverTypes {
 	SuccessiveActorSolver,
 	RandomAssortment,
 	Test,
+	DFSRM,
 	nop
 };
 
@@ -16,4 +17,12 @@ enum Version
 {
 	MM_US,
 	MM_JP,
+};
+
+enum SolverStep
+{
+	ALLOCATE = 0xdddd,
+	DEALLOCATE,
+	CHANGE_ROOM,
+	SUPERSLIDE
 };

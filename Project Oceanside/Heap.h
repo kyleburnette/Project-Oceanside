@@ -32,6 +32,7 @@ public:
 	int GetRoomNumber() const;
 	void Solve(int solverType);
 	void ResetLeaks();
+	std::vector<std::pair<int, int>> GetAddressesAndPrioritiesOfType(int actorID, char type);
 
 private:
 	void AllocateNewRoom(Room& newRoom);

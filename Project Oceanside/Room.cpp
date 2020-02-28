@@ -77,7 +77,9 @@ void Room::ClearActor(Node* actor)
 {
 	actor->SetCleared(true);
 	clearedActors.push_back(actor);
+	RemoveCurrentlyLoadedActor(actor);
 	clearableActors.erase(std::remove(clearableActors.begin(), clearableActors.end(), actor), clearableActors.end());
+	deallocatableActors.erase(std::remove(deallocatableActors.begin(), deallocatableActors.end(), actor), deallocatableActors.end());
 }
 
 void Room::ResetClearedActors()
@@ -89,6 +91,7 @@ void Room::ResetClearedActors()
 			actor->SetCleared(false);
 			clearedActors.erase(std::remove(clearedActors.begin(), clearedActors.end(), actor), clearedActors.end());
 			clearableActors.push_back(actor);
+			deallocatableActors.push_back(actor);
 		}
 	}
 }
@@ -104,7 +107,77 @@ std::map<int, std::pair<int, Node*>> Room::GetPossibleTemporaryActors() const
 	return possibleTemporaryActors;
 }
 
+void Room::DeallocateActor(Node* actor)
+{
+	if (actor->IsClearable())
+	{
+		ClearActor(actor);
+		return;
+	}
+
+	currentlyDeallocatedActors.push_back(actor);
+	deallocatableActors.erase(std::remove(deallocatableActors.begin(), deallocatableActors.end(), actor), deallocatableActors.end());
+	RemoveCurrentlyLoadedActor(actor);
+}
+
 std::vector<int> Room::GetPossibleTemporaryActorsIDs() const
 {
 	return possibleTemporaryActorsIDs;
+}
+
+void Room::ReplenishDeallocatableActors()
+{
+	for (auto actor : currentlyDeallocatedActors)
+	{
+		deallocatableActors.push_back(actor);
+	}
+
+	currentlyDeallocatedActors.clear();
+}
+
+void Room::DumpRoomInfo() const
+{
+	std::cout << std::hex;
+	std::cout << "---All Actors---\n";
+	for (auto actor : allActors)
+	{
+		std::cout << actor->GetID() << std::endl;
+	}
+
+	std::cout << "---Currently Loaded Actors---\n";
+	for (auto actor : currentlyLoadedActors)
+	{
+		std::cout << actor->GetID() << std::endl;
+	}
+
+	std::cout << "---Deallocatable Actors---\n";
+	for (auto actor : deallocatableActors)
+	{
+		std::cout << actor->GetID() << std::endl;
+	}
+
+	std::cout << "---Clearable Actors---\n";
+	for (auto actor : clearableActors)
+	{
+		std::cout << actor->GetID() << std::endl;
+	}
+
+	std::cout << "---Cleared Actors---\n";
+	for (auto actor : clearedActors)
+	{
+		std::cout << actor->GetID() << std::endl;
+	}
+
+	std::cout << "---Possible Temporary Actors---\n";
+	for (auto actor : possibleTemporaryActorsIDs)
+	{
+		std::cout << actor << std::endl;
+	}
+
+	std::cout << "---Currently Deallocated Actors---\n";
+	for (auto actor : currentlyDeallocatedActors)
+	{
+		std::cout << actor->GetID() << std::endl;
+	}
+	std::cout << std::dec;
 }

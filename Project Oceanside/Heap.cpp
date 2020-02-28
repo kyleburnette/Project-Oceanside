@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 
 #include "Heap.h"
@@ -279,26 +280,28 @@ std::pair<int, int> Heap::DeallocateRandomActor()
 {
 	std::vector<Node*> currentDeallocatableActors = scene->GetRoom(currentRoomNumber)->GetDeallocatableActors();
 
-	if (currentDeallocatableActors.size() == 0)
+	//if there are no deallocatable actors, we return since we obviously can't deallocate anything
+	if (currentDeallocatableActors.empty())
 	{
 		return std::make_pair(0, 0);
 	}
 
-	//dealloc things ~50% of the time (this is probably a 0head way of implementing this, fix later
+	//dealloc things ~50% of the time (this is probably a 0head way of implementing this, fix later)
 	char allocateOrNotRNG = rand() % 2;
 
-	if (allocateOrNotRNG == 0)
+	if (allocateOrNotRNG == 1)
 	{
 		return std::make_pair(0, 0);
 	}
 
+	//choose a random actor from the vector
 	char rng = rand() % currentDeallocatableActors.size();
-
 	Node* actorToDeallocate = currentDeallocatableActors[rng];
 
+	//deallocate the actor from the heap and handle 
+	scene->GetRoom(currentRoomNumber)->DeallocateActor(actorToDeallocate);
 	Deallocate(actorToDeallocate);
-	currentRoom->RemoveCurrentlyLoadedActor(actorToDeallocate);
-
+	
 	return std::make_pair(actorToDeallocate->GetID(), actorToDeallocate->GetPriority());
 }
 
@@ -318,7 +321,7 @@ int Heap::AllocateRandomActor()
 
 	auto newID = possibleActors[rng];
 
-	if (newID == 0x7B)
+	if (newID == 0x7B || newID == 0xA2 || newID == 0x3D)
 	{
 		return 0;
 	}
@@ -376,6 +379,7 @@ void Heap::UnloadRoom(Room& room)
 	}
 
 	room.ResetCurrentlyLoadedActors();
+	room.ReplenishDeallocatableActors();
 }
 
 void Heap::DeallocateReallocatingActors()
@@ -627,6 +631,24 @@ int Heap::GetRoomNumber() const
 	return currentRoomNumber;
 }
 
+std::vector<std::pair<int, int>> Heap::GetAddressesAndPrioritiesOfType(int actorID, char type)
+{
+	std::vector<std::pair<int, int>> results;
+	Node* curr = head;
+
+	while (curr != nullptr)
+	{
+		if (curr->GetID() == actorID && curr->GetType() == type)
+		{
+			results.push_back(std::make_pair(curr->GetAddress(), curr->GetPriority()));
+		}
+
+		curr = curr->GetNext();
+	}
+
+	return results;
+}
+
 void Heap::Solve(int solverType)
 {
 	//TODO - implement
@@ -650,6 +672,154 @@ void Heap::Solve(int solverType)
 			ResetHeap();
 		}
 		PrintHeap(1);
+	case DFSRM:
+	{
+		unsigned int seed = time(NULL);
+		srand(seed);
+
+		uint64_t totalPermutations = 0;
+		unsigned int totalSolutions = 0;
+
+		std::vector<std::pair<int, int>> solution;
+		
+		int MAX_ALLOCATIONS_PER_STEP = 5;
+		int MAX_SMOKES_PER_STEP = 2;
+
+		std::cout << "Solving..." << std::endl;
+		while (true)
+		{
+			int roomLoads = (2 * (rand() % 5)) + 1;
+
+			LoadInitialRoom(0);
+			solution.push_back(std::make_pair(CHANGE_ROOM, 0x0));
+
+			for (int i = 1; i <= roomLoads; i++)
+			{
+				int MAX_DEALLOCATIONS_PER_STEP = currentRoom->GetDeallocatableActors().size();
+
+				for (int j = 0; j <= MAX_DEALLOCATIONS_PER_STEP; j++)
+				{
+					solution.push_back(DeallocateRandomActor());
+				}
+
+				for (int j = 0; j <= MAX_SMOKES_PER_STEP; j++)
+				{
+					AllocateTemporaryActor(0xA2);
+					solution.push_back(std::make_pair(ALLOCATE, 0xA2));
+				}
+
+				//clear actors or not
+				for (int j = 0; j <= MAX_ALLOCATIONS_PER_STEP; j++)
+				{
+					solution.push_back(std::make_pair(ALLOCATE, AllocateRandomActor()));
+				}
+
+				char rng = rand() % 3;
+				switch (rng)
+				{
+					case 0:
+						break;
+					case 1:
+						AllocateTemporaryActor(0x3D);
+						solution.push_back(std::make_pair(ALLOCATE, 0x3D));
+						break;
+					case 2:
+						AllocateTemporaryActor(0x35);
+						solution.push_back(std::make_pair(ALLOCATE, 0x35));
+						break;
+				}
+
+				ChangeRoom(i % 2);
+				solution.push_back(std::make_pair(CHANGE_ROOM, i % 2));
+			}
+
+			//we're now standing in chest room
+
+			int chestOverlayAddress = GetAddressesAndPrioritiesOfType(0x6, 'O')[0].first;
+			
+			std::vector<std::pair<int, int>> rocks = GetAddressesAndPrioritiesOfType(0xB0, 'A');
+			std::vector<std::pair<int, int>> grass = GetAddressesAndPrioritiesOfType(0x90, 'A');
+			
+			AllocateTemporaryActor(0xA2);
+			ChangeRoom(0);
+			solution.push_back(std::make_pair(SUPERSLIDE, 0));
+
+			int flowerOverlayAddress = GetAddressesAndPrioritiesOfType(0xB1, 'O')[0].first;
+			
+			if (chestOverlayAddress & 0xFF0000 == flowerOverlayAddress & 0xFF0000)
+			{
+				std::vector<std::pair<int,int>> flowers = GetAddressesAndPrioritiesOfType(0xB1, 'A');
+				std::pair<std::pair<int, int>, std::pair<int, int>> solutionPair;
+				bool solutionFound = false;
+
+				for (auto flower : flowers)
+				{
+					for (auto rock : rocks)
+					{
+						if (rock.first - flower.first == 0x80)
+						{
+							solutionPair = std::make_pair(rock, flower);
+							solutionFound = true;
+						}
+					}
+
+					for (auto gras : grass)
+					{
+						if (gras.first - flower.first == 0x80)
+						{
+							solutionPair = std::make_pair(gras, flower);
+							solutionFound = true;
+						}
+					}
+				}
+
+				if (solutionFound)
+				{
+					std::cout << "SOLUTION FOUND\n";
+					totalSolutions++;
+
+					std::ofstream outputFile;
+					std::string outputFilename = "solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
+					outputFile.open(outputFilename);
+
+					for (auto step : solution)
+					{
+						if (step.first == CHANGE_ROOM)
+						{
+							outputFile << std::hex << "Load room: " << step.second << std::endl;
+						}
+						else if (step.first == ALLOCATE)
+						{
+							outputFile << std::hex << "Allocate: " << step.second << std::endl;
+						}
+						else if (step.first == SUPERSLIDE)
+						{
+							outputFile << std::hex << "Superslide into room " << step.second << " with smoke still loaded." << std::endl;
+						}
+						else
+						{
+							outputFile << std::hex << "Deallocate: " << step.first << " | Priority: " << step.second << std::endl;
+						}
+						
+					}
+
+					outputFile.close();
+				}
+
+
+			}
+
+			ResetHeap();
+			solution.clear();
+			totalPermutations++;
+
+			if (totalPermutations % 100000 == 0)
+			{
+				std::cout << std::dec << "Total permutations: " << totalPermutations << " | Total Solutions: " << totalSolutions << std::endl;
+			}
+
+		}
+	}
 	default:
 		break;
 	}
