@@ -277,8 +277,29 @@ void Heap::AllocateSpawnerOffspring()
 
 std::pair<int, int> Heap::DeallocateRandomActor()
 {
-	return std::make_pair(0, 0);
-	//REIMPLEMENT WITH DEALLOCATABLE ACTORS BEING HANDLED BY ROOM, NOT HEAP!
+	std::vector<Node*> currentDeallocatableActors = scene->GetRoom(currentRoomNumber)->GetDeallocatableActors();
+
+	if (currentDeallocatableActors.size() == 0)
+	{
+		return std::make_pair(0, 0);
+	}
+
+	//dealloc things ~50% of the time (this is probably a 0head way of implementing this, fix later
+	char allocateOrNotRNG = rand() % 2;
+
+	if (allocateOrNotRNG == 0)
+	{
+		return std::make_pair(0, 0);
+	}
+
+	char rng = rand() % currentDeallocatableActors.size();
+
+	Node* actorToDeallocate = currentDeallocatableActors[rng];
+
+	Deallocate(actorToDeallocate);
+	currentRoom->RemoveCurrentlyLoadedActor(actorToDeallocate);
+
+	return std::make_pair(actorToDeallocate->GetID(), actorToDeallocate->GetPriority());
 }
 
 int Heap::AllocateRandomActor()
@@ -330,6 +351,7 @@ std::pair<int, int> Heap::ClearRandomActor()
 
 	Deallocate(clearableActorToDeallocate);
 	currentRoom->RemoveCurrentlyLoadedActor(clearableActorToDeallocate);
+	currentRoom->ClearActor(clearableActorToDeallocate);
 
 	return std::make_pair(clearableActorToDeallocate->GetID(), clearableActorToDeallocate->GetPriority());
 }
