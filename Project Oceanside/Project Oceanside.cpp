@@ -13,10 +13,10 @@ int main()
 	Heap* heap = new Heap(scene, MM_US0_START, MM_US0_LINK_SIZE);
 
 	//DOES NOT WORK!
-	heap->LoadInitialRoom(1);
-	heap->ChangeRoom(0);
+	heap->LoadInitialRoom(0);
 	heap->ChangeRoom(1);
 	heap->ChangeRoom(0);
+	heap->ChangeRoom(1);
 	
 	scene->GetRoom(heap->GetCurrentRoomNumber())->DumpRoomInfo();
 	std::cout << std::endl;

@@ -224,7 +224,6 @@ void Heap::AllocateNewRoom(Room& newRoom)
 		{
 			singletonsAttemptingToReallocate.push_back(actor);
 			Allocate(actor);
-			newRoom.AddCurrentlyLoadedActor(actor);
 		}
 		else if (!actor->IsSingleton())
 		{
