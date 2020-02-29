@@ -31,6 +31,7 @@ void Scene::LoadScene()
 			Node* newActor = new Node(actorID, actorJson[actorIDString], 0);
 			newRoom->AddRandomAllocatableActor(randAllocActor.value(), newActor);
 		}
+
 		for (auto actor : room["actorList"])
 		{
 			std::string actorIDString = actor["actorID"];

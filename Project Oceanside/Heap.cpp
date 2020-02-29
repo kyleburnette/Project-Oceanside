@@ -294,7 +294,6 @@ void Heap::AllocateSpawnerOffspring()
 	{
 		Allocate(offspring);
 		room->AddCurrentlyLoadedActor(offspring);
-		room->AddDeallocatableActor(offspring);
 	}
 
 	offspringToAllocate.clear();
@@ -310,21 +309,21 @@ std::pair<int, int> Heap::DeallocateRandomActor()
 		return std::make_pair(0, 0);
 	}
 
-	//dealloc things ~50% of the time (this is probably a 0head way of implementing this, fix later)
-	char allocateOrNotRNG = rand() % 2;
+	/*//dealloc things ~50% of the time (this is probably a 0head way of implementing this, fix later)
+	char deallocateOrNotRNG = rand() % 2;
 
-	if (allocateOrNotRNG == 1)
+	if (deallocateOrNotRNG == 1)
 	{
 		return std::make_pair(0, 0);
-	}
+	}*/
 
 	//choose a random actor from the vector
 	char rng = rand() % currentDeallocatableActors.size();
 	Node* actorToDeallocate = currentDeallocatableActors[rng];
 
 	//deallocate the actor from the heap and handle 
-	scene->GetRoom(currentRoomNumber)->DeallocateActor(actorToDeallocate);
 	Deallocate(actorToDeallocate);
+	scene->GetRoom(currentRoomNumber)->DeallocateActor(actorToDeallocate);
 	
 	return std::make_pair(actorToDeallocate->GetID(), actorToDeallocate->GetPriority());
 }
@@ -713,37 +712,46 @@ void Heap::Solve(int solverType)
 		std::vector<std::pair<int, int>> solution;
 		
 		int MAX_ALLOCATIONS_PER_STEP = 5;
-		int MAX_SMOKES_PER_STEP = 2;
 
+		std::cout << "Seed: " << seed << std::endl;
 		std::cout << "Solving..." << std::endl;
 		while (true)
 		{
-			int roomLoads = (2 * (rand() % 5)) + 1;
+			int roomLoads = (2 * (rand() % 3)) + 1;
 
 			LoadInitialRoom(0);
 			solution.push_back(std::make_pair(CHANGE_ROOM, 0x0));
 
 			for (int i = 1; i <= roomLoads; i++)
 			{
-				int MAX_DEALLOCATIONS_PER_STEP = currentRoom->GetDeallocatableActors().size();
+				int deallocations = rand() % currentRoom->GetDeallocatableActors().size();
 
-				for (int j = 0; j <= MAX_DEALLOCATIONS_PER_STEP; j++)
+				for (int j = 0; j <= deallocations; j++)
 				{
 					solution.push_back(DeallocateRandomActor());
 				}
 
-				for (int j = 0; j <= MAX_SMOKES_PER_STEP; j++)
-				{
-					AllocateTemporaryActor(0xA2);
-					solution.push_back(std::make_pair(ALLOCATE, 0xA2));
-				}
+				int smokesRNG = rand() % 2;
+				int maxSmokes = rand() % 3;
 
-				for (int j = 0; j <= MAX_ALLOCATIONS_PER_STEP; j++)
+				if (smokesRNG == 0)
+				{
+					for (int j = 0; j <= maxSmokes; j++)
+					{
+						AllocateTemporaryActor(0xA2);
+						solution.push_back(std::make_pair(ALLOCATE, 0xA2));
+					}
+				}
+				
+				int allocations = rand() % MAX_ALLOCATIONS_PER_STEP;
+
+				for (int j = 0; j <= allocations; j++)
 				{
 					solution.push_back(std::make_pair(ALLOCATE, AllocateRandomActor()));
 				}
 
 				char rng = rand() % 3;
+
 				switch (rng)
 				{
 					case 0:
@@ -782,10 +790,7 @@ void Heap::Solve(int solverType)
 
 			//we're now standing in chest room
 
-			PrintHeap(1);
-
 			int chestOverlayAddress = GetAddressesAndPrioritiesOfType(0x6, 'O')[0].first;
-			std::cout << std::hex << chestOverlayAddress << std::endl;
 			
 			std::vector<std::pair<int, int>> rocks = GetAddressesAndPrioritiesOfType(0xB0, 'A');
 			std::vector<std::pair<int, int>> grass = GetAddressesAndPrioritiesOfType(0x90, 'A');
@@ -800,6 +805,20 @@ void Heap::Solve(int solverType)
 			{
 				std::cout << "OVERLAYS MATCH" << std::endl;
 				std::vector<std::pair<int,int>> flowers = GetAddressesAndPrioritiesOfType(0xB1, 'A');
+				for (auto flower : flowers)
+				{
+					std::cout << std::hex << flower.first << " ";
+				}
+				std::cout << std::endl;
+				for (auto rock : rocks)
+				{
+					std::cout << std::hex << rock.first << " ";
+				}
+				for (auto gras : grass)
+				{
+					std::cout << std::hex << gras.first << " ";
+				}
+				std::cout << std::endl;
 				std::pair<std::pair<int, int>, std::pair<int, int>> solutionPair;
 				bool solutionFound = false;
 
@@ -809,6 +828,7 @@ void Heap::Solve(int solverType)
 					{
 						if (rock.first - flower.first == 0x80)
 						{
+							std::cout << "O M G ";
 							solutionPair = std::make_pair(rock, flower);
 							solutionFound = true;
 						}
@@ -818,6 +838,7 @@ void Heap::Solve(int solverType)
 					{
 						if (gras.first - flower.first == 0x80)
 						{
+							std::cout << "O M G ";
 							solutionPair = std::make_pair(gras, flower);
 							solutionFound = true;
 						}
@@ -864,7 +885,7 @@ void Heap::Solve(int solverType)
 			solution.clear();
 			totalPermutations++;
 
-			if (totalPermutations % 100 == 0)
+			if (totalPermutations % 100000 == 0)
 			{
 				std::cout << std::dec << "Total permutations: " << totalPermutations << " | Total Solutions: " << totalSolutions << std::endl;
 			}
