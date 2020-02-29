@@ -20,6 +20,7 @@ public:
 	void ResetClearedActors();
 	int GetRoomNumber() const;
 	void AddRandomAllocatableActor(int timesCanAllocate, Node* actor);
+	void AddDeallocatableActor(Node* actor);
 	std::map<int, std::pair<int, Node*>> GetPossibleTemporaryActors() const;
 	std::vector<int> GetPossibleTemporaryActorsIDs() const;
 	void DeallocateActor(Node* actor);

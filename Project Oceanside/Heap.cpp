@@ -271,6 +271,7 @@ void Heap::AllocateSpawnerOffspring()
 	{
 		Allocate(offspring);
 		room->AddCurrentlyLoadedActor(offspring);
+		room->AddDeallocatableActor(offspring);
 	}
 
 	offspringToAllocate.clear();
@@ -714,7 +715,6 @@ void Heap::Solve(int solverType)
 					solution.push_back(std::make_pair(ALLOCATE, 0xA2));
 				}
 
-				//clear actors or not
 				for (int j = 0; j <= MAX_ALLOCATIONS_PER_STEP; j++)
 				{
 					solution.push_back(std::make_pair(ALLOCATE, AllocateRandomActor()));
@@ -726,12 +726,30 @@ void Heap::Solve(int solverType)
 					case 0:
 						break;
 					case 1:
-						AllocateTemporaryActor(0x3D);
-						solution.push_back(std::make_pair(ALLOCATE, 0x3D));
-						break;
+						if (currentRoomNumber == 1)
+						{
+							AllocateTemporaryActor(0x3D);
+							solution.push_back(std::make_pair(ALLOCATE, 0x3D));
+							break;
+						}
+						else
+						{
+							break;
+						}
+						
 					case 2:
-						AllocateTemporaryActor(0x35);
-						solution.push_back(std::make_pair(ALLOCATE, 0x35));
+						if (currentRoomNumber == 1)
+						{
+							AllocateTemporaryActor(0x35);
+							solution.push_back(std::make_pair(ALLOCATE, 0x35));
+							break;
+						}
+						else
+						{
+							break;
+						}
+						
+					default:
 						break;
 				}
 
@@ -741,7 +759,10 @@ void Heap::Solve(int solverType)
 
 			//we're now standing in chest room
 
+			PrintHeap(1);
+
 			int chestOverlayAddress = GetAddressesAndPrioritiesOfType(0x6, 'O')[0].first;
+			std::cout << std::hex << chestOverlayAddress << std::endl;
 			
 			std::vector<std::pair<int, int>> rocks = GetAddressesAndPrioritiesOfType(0xB0, 'A');
 			std::vector<std::pair<int, int>> grass = GetAddressesAndPrioritiesOfType(0x90, 'A');
@@ -752,8 +773,9 @@ void Heap::Solve(int solverType)
 
 			int flowerOverlayAddress = GetAddressesAndPrioritiesOfType(0xB1, 'O')[0].first;
 			
-			if (chestOverlayAddress & 0xFF0000 == flowerOverlayAddress & 0xFF0000)
+			if ((chestOverlayAddress & 0xFF0000) == (flowerOverlayAddress & 0xFF0000))
 			{
+				std::cout << "OVERLAYS MATCH" << std::endl;
 				std::vector<std::pair<int,int>> flowers = GetAddressesAndPrioritiesOfType(0xB1, 'A');
 				std::pair<std::pair<int, int>, std::pair<int, int>> solutionPair;
 				bool solutionFound = false;
@@ -819,7 +841,7 @@ void Heap::Solve(int solverType)
 			solution.clear();
 			totalPermutations++;
 
-			if (totalPermutations % 100000 == 0)
+			if (totalPermutations % 100 == 0)
 			{
 				std::cout << std::dec << "Total permutations: " << totalPermutations << " | Total Solutions: " << totalSolutions << std::endl;
 			}

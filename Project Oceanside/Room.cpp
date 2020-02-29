@@ -181,3 +181,8 @@ void Room::DumpRoomInfo() const
 	}
 	std::cout << std::dec;
 }
+
+void Room::AddDeallocatableActor(Node* actor)
+{
+	deallocatableActors.push_back(actor);
+}

@@ -99,6 +99,8 @@ Node::Node(int actorID, nlohmann::json& actorInfo, int priority)
 		this->overlay = nullptr;
 	}
 
+	this->isDeallocatable = true;
+
 }
 
 Node::Node(const Node& copy)
