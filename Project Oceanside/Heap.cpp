@@ -773,7 +773,7 @@ void Heap::Solve(int solverType)
 					solution.push_back(std::make_pair(ALLOCATE, AllocateRandomActor()));
 				}
 
-				char rng = rand() % 3;
+				/*char rng = rand() % 3;
 
 				switch (rng)
 				{
@@ -805,7 +805,7 @@ void Heap::Solve(int solverType)
 						
 					default:
 						break;
-				}
+				}*/
 
 				ChangeRoom(i % 2);
 				solution.push_back(std::make_pair(CHANGE_ROOM, i % 2));
