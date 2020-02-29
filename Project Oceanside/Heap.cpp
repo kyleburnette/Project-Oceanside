@@ -222,8 +222,9 @@ void Heap::AllocateNewRoom(Room& newRoom)
 	{
 		if (actor->IsSingleton() && actor->ReallocateOnRoomChange())
 		{
-			singletonsAttemptingToReallocate.push_back(actor);
-			Allocate(actor);
+			Node* newSingleton = new Node(*actor);
+			singletonsAttemptingToReallocate.push_back(newSingleton);
+			Allocate(newSingleton);
 		}
 		else if (!actor->IsSingleton())
 		{
@@ -383,10 +384,11 @@ void Heap::UnloadRoom(Room& room)
 
 void Heap::DeallocateReallocatingActors()
 {
-	for (auto actor : singletonsAttemptingToReallocate)
+	for (auto singleton : singletonsAttemptingToReallocate)
 	{
-		Deallocate(actor);
-		scene->GetRoom(currentRoomNumber)->RemoveCurrentlyLoadedActor(actor);
+		Deallocate(singleton);
+		delete(singleton);
+		singleton = nullptr;
 	}
 
 	singletonsAttemptingToReallocate.clear();

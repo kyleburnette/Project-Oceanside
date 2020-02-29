@@ -12,18 +12,10 @@ int main()
 	Scene* scene = new Scene(MM_US);
 	Heap* heap = new Heap(scene, MM_US0_START, MM_US0_LINK_SIZE);
 
-	//DOES NOT WORK!
-	heap->LoadInitialRoom(0);
-	heap->ChangeRoom(1);
-	heap->ChangeRoom(0);
-	heap->ChangeRoom(1);
-	
-	scene->GetRoom(heap->GetCurrentRoomNumber())->DumpRoomInfo();
-	std::cout << std::endl;
-	heap->PrintHeap(1);
+	heap->Solve(DFSRM);
 
 	delete(scene);
-	//delete(heap);
+	delete(heap);
 
 	return 0;
 }
