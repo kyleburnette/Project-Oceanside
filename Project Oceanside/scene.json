@@ -664,6 +664,22 @@
           "isSingleton": false
         },
         {
+          "actorID": "011B",
+          "description": "encount4",
+          "numberOfOffspring": 0,
+          "offspringActorID": 0,
+          "isDeallocatable": false,
+          "isClearable": false,
+          "canStartCleared": false,
+          "startCleared": false,
+          "transition": [],
+          "itemsDroppedOnDeallocate": [],
+          "category": 0,
+          "considerForSRM": false,
+          "reallocateOnRoomChange": false,
+          "isSingleton": false
+        },
+        {
           "actorID": "0265",
           "description": "hit tag",
           "numberOfOffspring": 0,
@@ -1002,22 +1018,6 @@
         {
           "actorID": "01E2",
           "description": "dampe's house",
-          "numberOfOffspring": 0,
-          "offspringActorID": 0,
-          "isDeallocatable": false,
-          "isClearable": false,
-          "canStartCleared": false,
-          "startCleared": false,
-          "transition": [],
-          "itemsDroppedOnDeallocate": [],
-          "category": 0,
-          "considerForSRM": false,
-          "reallocateOnRoomChange": false,
-          "isSingleton": false
-        },
-        {
-          "actorID": "01E3",
-          "description": "gravestone",
           "numberOfOffspring": 0,
           "offspringActorID": 0,
           "isDeallocatable": false,

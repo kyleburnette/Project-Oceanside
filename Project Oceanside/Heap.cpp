@@ -165,11 +165,25 @@ void Heap::LoadInitialRoom(int roomNumber)
 	Room* newRoom = scene->GetRoom(roomNumber);
 	bool scarecrow = false;
 
+	bool stalchildLoaded = false;
+	std::vector<Node*> extraStalchildren;
+
 	for (Node* actor : newRoom->GetAllActors())
 	{
 		if (actor->GetID() == 0xCA)
 		{
 			scarecrow = true;
+		}
+
+		if (actor->GetID() == 0x212 && stalchildLoaded == false)
+		{
+			stalchildLoaded = true;
+		}
+
+		else if (actor->GetID() == 0x212 && stalchildLoaded == true)
+		{
+			extraStalchildren.push_back(actor);
+			continue;
 		}
 
 		if (actor->IsSingleton())
@@ -189,6 +203,15 @@ void Heap::LoadInitialRoom(int roomNumber)
 		Allocate(leak_2);
 		leaks.push_back(leak_1);
 		leaks.push_back(leak_2);
+	}
+
+	if (!extraStalchildren.empty())
+	{
+		for (auto stalchild : extraStalchildren)
+		{
+			Allocate(stalchild);
+			newRoom->AddCurrentlyLoadedActor(stalchild);
+		}
 	}
 
 	DeallocateClearedActors();
