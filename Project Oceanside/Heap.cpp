@@ -391,6 +391,11 @@ void Heap::DeallocateReallocatingActors()
 	}
 
 	singletonsAttemptingToReallocate.clear();
+
+	for (auto singleton : singletons)
+	{
+		scene->GetRoom(currentRoomNumber)->AddCurrentlyLoadedActor(singleton);
+	}
 }
 
 void Heap::Deallocate(int actorID, int priority)
@@ -823,4 +828,9 @@ void Heap::Solve(int solverType)
 	default:
 		break;
 	}
+}
+
+int Heap::GetCurrentRoomNumber() const
+{
+	return currentRoomNumber;
 }

@@ -31,6 +31,7 @@ public:
 	std::pair<int, int> ClearRandomActor();
 	int GetRoomNumber() const;
 	void Solve(int solverType);
+	int GetCurrentRoomNumber() const;
 	void ResetLeaks();
 	std::vector<std::pair<int, int>> GetAddressesAndPrioritiesOfType(int actorID, char type);
 
