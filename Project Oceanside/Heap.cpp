@@ -704,6 +704,9 @@ std::vector<std::pair<int, int>> Heap::GetAddressesAndPrioritiesOfType(int actor
 
 void Heap::Solve(int solverType)
 {
+	std::cout << std::hex << "Node size: " << linkSize << std::endl;
+	std::cout << "Starting node: " << MM_US0_START << std::endl;
+
 	//TODO - implement
 	switch (solverType)
 	{
@@ -741,7 +744,7 @@ void Heap::Solve(int solverType)
 		std::cout << "Solving..." << std::endl;
 		while (true)
 		{
-			int roomLoads = (2 * (rand() % 5)) + 1;
+			int roomLoads = (2 * (rand() % 3)) + 1;
 
 			LoadInitialRoom(0);
 			solution.push_back(std::make_pair(CHANGE_ROOM, 0x0));
@@ -755,13 +758,13 @@ void Heap::Solve(int solverType)
 					solution.push_back(DeallocateRandomActor());
 				}
 
-				int smokesRNG = rand() % 2;
+				/*int smokesRNG = rand() % 2;
 
 				if (smokesRNG == 0)
 				{
 					AllocateTemporaryActor(0xA2);
 					solution.push_back(std::make_pair(ALLOCATE, 0xA2));
-				}
+				}*/
 				
 				int allocations = rand() % MAX_ALLOCATIONS_PER_STEP;
 
@@ -827,19 +830,24 @@ void Heap::Solve(int solverType)
 
 			int flowerOverlayAddress = GetAddressesAndPrioritiesOfType(0xB1, 'O')[0].first;
 			
-			if ((chestOverlayAddress & 0xFF0000) == (flowerOverlayAddress & 0xFF0000))
+			if (((chestOverlayAddress + 0x10F8) & 0xFF0000) == ((flowerOverlayAddress + 0x48) & 0xFF0000))
 			{
 				std::cout << "OVERLAYS MATCH" << std::endl;
+				std::cout << std::hex << chestOverlayAddress << " " << flowerOverlayAddress << std::endl;
 				std::vector<std::pair<int,int>> flowers = GetAddressesAndPrioritiesOfType(0xB1, 'A');
+				std::cout << "Flowers: ";
 				for (auto flower : flowers)
 				{
 					std::cout << std::hex << flower.first << " ";
 				}
 				std::cout << std::endl;
+				std::cout << "Rocks: ";
 				for (auto rock : rocks)
 				{
 					std::cout << std::hex << rock.first << " ";
 				}
+				std::cout << std::endl;
+				std::cout << "Grass: ";
 				for (auto gras : grass)
 				{
 					std::cout << std::hex << gras.first << " ";
