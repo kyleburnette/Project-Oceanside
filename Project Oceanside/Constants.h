@@ -10,6 +10,7 @@ enum SolverTypes {
 	RandomAssortment,
 	Test,
 	DFSRM,
+	OneRandomPerm,
 	nop
 };
 

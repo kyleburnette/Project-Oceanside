@@ -341,12 +341,12 @@ int Heap::AllocateRandomActor()
 	}
 
 	char rng = rand() % possibleActors.size();
-
 	auto newID = possibleActors[rng];
 
-	if (newID == 0x7B || newID == 0xA2 || newID == 0x3D)
+	while ((newID == 0x7B || newID == 0x35 || newID == 0xA2 || newID == 0x3D))
 	{
-		return 0;
+		rng = rand() % possibleActors.size();
+		newID = possibleActors[rng];
 	}
 
 	AllocateTemporaryActor(newID);
@@ -717,7 +717,7 @@ void Heap::Solve(int solverType)
 		std::cout << "Solving..." << std::endl;
 		while (true)
 		{
-			int roomLoads = (2 * (rand() % 5)) + 1;
+			int roomLoads = (2 * (rand() % 3)) + 1;
 
 			LoadInitialRoom(0);
 			solution.push_back(std::make_pair(CHANGE_ROOM, 0x0));
@@ -732,15 +732,11 @@ void Heap::Solve(int solverType)
 				}
 
 				int smokesRNG = rand() % 2;
-				int maxSmokes = rand() % 3;
 
 				if (smokesRNG == 0)
 				{
-					for (int j = 0; j <= maxSmokes; j++)
-					{
-						AllocateTemporaryActor(0xA2);
-						solution.push_back(std::make_pair(ALLOCATE, 0xA2));
-					}
+					AllocateTemporaryActor(0xA2);
+					solution.push_back(std::make_pair(ALLOCATE, 0xA2));
 				}
 				
 				int allocations = rand() % MAX_ALLOCATIONS_PER_STEP;
@@ -898,6 +894,103 @@ void Heap::Solve(int solverType)
 
 		}
 	}
+	case OneRandomPerm:
+	{
+		unsigned int seed = time(NULL);
+		srand(seed);
+
+		int roomLoads = (2 * (rand() % 5)) + 1;
+		std::cout << std::hex;
+		LoadInitialRoom(0);
+		std::cout << "Loaded Room 0" << std::endl;
+
+		for (int i = 1; i <= roomLoads; i++)
+		{
+			int deallocations = rand() % currentRoom->GetDeallocatableActors().size();
+
+			for (int j = 0; j <= deallocations; j++)
+			{
+				auto a = DeallocateRandomActor();
+				std::cout << "Deallocate: " << a.first << " | Priority: " << a.second << std::endl;
+			}
+
+			int smokesRNG = rand() % 2;
+			int maxSmokes = rand() % 3;
+
+			if (smokesRNG == 0)
+			{
+				for (int j = 0; j <= maxSmokes; j++)
+				{
+					AllocateTemporaryActor(0xA2);
+					std::cout << "Allocate: smoke" << std::endl;
+				}
+			}
+
+			int allocations = rand() % 5;
+
+			for (int j = 0; j <= allocations; j++)
+			{
+				auto a = AllocateRandomActor();
+				std::cout << "Allocate: " << a << std::endl;
+			}
+
+			char rng = rand() % 3;
+
+			switch (rng)
+			{
+			case 0:
+				break;
+			case 1:
+				if (currentRoomNumber == 1)
+				{
+					AllocateTemporaryActor(0x3D);
+					std::cout << "Allocate: hookshot" << std::endl;
+					break;
+				}
+				else
+				{
+					break;
+				}
+
+			case 2:
+				if (currentRoomNumber == 1)
+				{
+					AllocateTemporaryActor(0x35);
+					std::cout << "Allocate: spin attack" << std::endl;
+					break;
+				}
+				else
+				{
+					break;
+				}
+
+			default:
+				break;
+			}
+
+			ChangeRoom(i % 2);
+			std::cout << "Load Room " << i % 2 << std::endl;
+		}
+
+		//we're now standing in chest room
+
+		std::vector<std::pair<int, int>> rocks = GetAddressesAndPrioritiesOfType(0xB0, 'A');
+		std::vector<std::pair<int, int>> grass = GetAddressesAndPrioritiesOfType(0x90, 'A');
+
+		AllocateTemporaryActor(0xA2);
+		ChangeRoom(0);
+		std::cout << "Load Room " << 0 << std::endl;
+
+		ChangeRoom(1);
+		std::cout << "Load Room " << 1 << std::endl;
+
+		int chestOverlayAddress = GetAddressesAndPrioritiesOfType(0x6, 'O')[0].first;
+
+		ChangeRoom(0);
+		std::cout << "Load Room " << 0 << std::endl;
+		std::cout << std::dec;
+	}
+		break;
 	default:
 		break;
 	}
