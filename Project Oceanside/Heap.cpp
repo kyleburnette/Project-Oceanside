@@ -711,13 +711,13 @@ void Heap::Solve(int solverType)
 
 		std::vector<std::pair<int, int>> solution;
 		
-		int MAX_ALLOCATIONS_PER_STEP = 5;
+		int MAX_ALLOCATIONS_PER_STEP = 4;
 
 		std::cout << "Seed: " << seed << std::endl;
 		std::cout << "Solving..." << std::endl;
 		while (true)
 		{
-			int roomLoads = (2 * (rand() % 3)) + 1;
+			int roomLoads = (2 * (rand() % 5)) + 1;
 
 			LoadInitialRoom(0);
 			solution.push_back(std::make_pair(CHANGE_ROOM, 0x0));
@@ -789,8 +789,6 @@ void Heap::Solve(int solverType)
 			}
 
 			//we're now standing in chest room
-
-			int chestOverlayAddress = GetAddressesAndPrioritiesOfType(0x6, 'O')[0].first;
 			
 			std::vector<std::pair<int, int>> rocks = GetAddressesAndPrioritiesOfType(0xB0, 'A');
 			std::vector<std::pair<int, int>> grass = GetAddressesAndPrioritiesOfType(0x90, 'A');
@@ -798,6 +796,14 @@ void Heap::Solve(int solverType)
 			AllocateTemporaryActor(0xA2);
 			ChangeRoom(0);
 			solution.push_back(std::make_pair(SUPERSLIDE, 0));
+
+			ChangeRoom(1);
+			solution.push_back(std::make_pair(CHANGE_ROOM, 1));
+
+			int chestOverlayAddress = GetAddressesAndPrioritiesOfType(0x6, 'O')[0].first;
+
+			ChangeRoom(0);
+			solution.push_back(std::make_pair(CHANGE_ROOM, 0));
 
 			int flowerOverlayAddress = GetAddressesAndPrioritiesOfType(0xB1, 'O')[0].first;
 			
