@@ -168,6 +168,9 @@ void Heap::LoadInitialRoom(int roomNumber)
 	bool stalchildLoaded = false;
 	std::vector<Node*> extraStalchildren;
 
+	bool badbat = false;
+	std::vector<Node*> extraBats;
+
 	for (Node* actor : newRoom->GetAllActors())
 	{
 		if (actor->GetID() == 0xCA)
@@ -183,6 +186,17 @@ void Heap::LoadInitialRoom(int roomNumber)
 		else if (actor->GetID() == 0x212 && stalchildLoaded == true)
 		{
 			extraStalchildren.push_back(actor);
+			continue;
+		}
+
+		if (actor->GetID() == 0x15B && badbat == false)
+		{
+			badbat = true;
+		}
+
+		else if (actor->GetID() == 0x15B && badbat == true)
+		{
+			extraBats.push_back(actor);
 			continue;
 		}
 
@@ -211,6 +225,16 @@ void Heap::LoadInitialRoom(int roomNumber)
 		{
 			Allocate(stalchild);
 			newRoom->AddCurrentlyLoadedActor(stalchild);
+		}
+	}
+
+
+	if (!extraBats.empty())
+	{
+		for (auto bat : extraBats)
+		{
+			Allocate(bat);
+			newRoom->AddCurrentlyLoadedActor(bat);
 		}
 	}
 
@@ -717,7 +741,7 @@ void Heap::Solve(int solverType)
 		std::cout << "Solving..." << std::endl;
 		while (true)
 		{
-			int roomLoads = (2 * (rand() % 3)) + 1;
+			int roomLoads = (2 * (rand() % 5)) + 1;
 
 			LoadInitialRoom(0);
 			solution.push_back(std::make_pair(CHANGE_ROOM, 0x0));
@@ -915,18 +939,14 @@ void Heap::Solve(int solverType)
 			}
 
 			int smokesRNG = rand() % 2;
-			int maxSmokes = rand() % 3;
 
 			if (smokesRNG == 0)
 			{
-				for (int j = 0; j <= maxSmokes; j++)
-				{
-					AllocateTemporaryActor(0xA2);
-					std::cout << "Allocate: smoke" << std::endl;
-				}
+				AllocateTemporaryActor(0xA2);
+				std::cout << "Allocate: smoke" << std::endl;
 			}
 
-			int allocations = rand() % 5;
+			int allocations = rand() % 4;
 
 			for (int j = 0; j <= allocations; j++)
 			{
