@@ -1,10 +1,13 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <chrono>
+#include <algorithm>
 
 #include "Heap.h"
 #include "Room.h"
 #include "Constants.h"
+#include "windows.h"
 
 Heap::Heap(Scene* scene, int start, int linkSize) : start_address(start), scene(scene), linkSize(linkSize)
 {
@@ -730,7 +733,7 @@ void Heap::Solve(int solverType)
 		PrintHeap(1);
 	case DFSRM:
 	{
-		unsigned int seed = time(NULL);
+		uint64_t seed = GetTickCount64();
 		srand(seed);
 
 		uint64_t totalPermutations = 0;
@@ -758,13 +761,13 @@ void Heap::Solve(int solverType)
 					solution.push_back(DeallocateRandomActor());
 				}
 
-				/*int smokesRNG = rand() % 2;
+				int smokesRNG = rand() % 2;
 
 				if (smokesRNG == 0)
 				{
 					AllocateTemporaryActor(0xA2);
 					solution.push_back(std::make_pair(ALLOCATE, 0xA2));
-				}*/
+				}
 				
 				int allocations = rand() % MAX_ALLOCATIONS_PER_STEP;
 
@@ -1007,16 +1010,21 @@ void Heap::Solve(int solverType)
 
 		AllocateTemporaryActor(0xA2);
 		ChangeRoom(0);
-		std::cout << "Load Room " << 0 << std::endl;
+		std::cout << "Superslide into Room " << 0 << std::endl;
 
 		ChangeRoom(1);
 		std::cout << "Load Room " << 1 << std::endl;
 
 		int chestOverlayAddress = GetAddressesAndPrioritiesOfType(0x6, 'O')[0].first;
+		std::cout << std::hex << "Chest overlay address: " << chestOverlayAddress << std::endl;
+		//PrintHeap(1);
 
 		ChangeRoom(0);
 		std::cout << "Load Room " << 0 << std::endl;
-		std::cout << std::dec;
+		std::cout << std::dec << std::endl;
+
+		PrintHeap(1);
+		while (true) {};
 	}
 		break;
 	default:
