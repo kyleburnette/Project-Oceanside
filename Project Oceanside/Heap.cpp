@@ -457,6 +457,7 @@ void Heap::Deallocate(int actorID, int priority)
 		if (curr->GetID() == actorID && curr->GetType() == 'A' && curr->GetPriority() == priority)
 		{
 			Deallocate(curr);
+			scene->GetRoom(currentRoomNumber)->DeallocateActor(curr);
 			break;
 		}
 
@@ -720,17 +721,41 @@ void Heap::Solve(int solverType)
 	case nop:
 		break;
 	case Test:
-		for (int i = 0; i < 100000; i++)
-		{
-			LoadInitialRoom(0);
-			ClearRandomActor();
-			AllocateRandomActor();
-			ChangeRoom(1);
-			ClearRandomActor();
-			AllocateRandomActor();
-			ResetHeap();
-		}
+		LoadInitialRoom(0);
+		Deallocate(0xED, 0x0);
+		Deallocate(0xED, 0x1);
+		Deallocate(0x265, 0x0);
+		Deallocate(0x265, 0x1);
+		Deallocate(0x265, 0x2);
+		ChangeRoom(1);
+		scene->GetRoom(1)->DumpRoomInfo();
+		Deallocate(0x90, 0xC8);
+		Deallocate(0x90, 0xCC);
+		Deallocate(0xB0, 0x6A);
+		AllocateTemporaryActor(0x0009);
+		AllocateTemporaryActor(0x000F);
+		ChangeRoom(0);
+		Deallocate(0xED, 0x0);
+		Deallocate(0xED, 0x1);
+		Deallocate(0xED, 0x2);
+		Deallocate(0x265, 0x1);
+		Deallocate(0x265, 0x2);
+		ChangeRoom(1);
+		AllocateTemporaryActor(0x0009);
+		ChangeRoom(0);
+		Deallocate(0xED, 0x0);
+		Deallocate(0xED, 0x1);
+		Deallocate(0x265, 0x2);
+		Deallocate(0x265, 0x1);
+		Deallocate(0x265, 0x0);
+		ChangeRoom(1);
+		AllocateTemporaryActor(0x00A2);
+		ChangeRoom(0);
+		ChangeRoom(1);
+		ChangeRoom(0);
+
 		PrintHeap(1);
+		break;
 	case DFSRM:
 	{
 		uint64_t seed = GetTickCount64();

@@ -148,31 +148,31 @@ void Room::DumpRoomInfo() const
 	std::cout << "---All Actors---\n";
 	for (auto actor : allActors)
 	{
-		std::cout << actor->GetID() << std::endl;
+		std::cout << actor->GetID() << " " << actor->GetPriority() << std::endl;
 	}
 
 	std::cout << "---Currently Loaded Actors---\n";
 	for (auto actor : currentlyLoadedActors)
 	{
-		std::cout << actor->GetID() << std::endl;
+		std::cout << actor->GetID() << " " << actor->GetPriority() << std::endl;
 	}
 
 	std::cout << "---Deallocatable Actors---\n";
 	for (auto actor : deallocatableActors)
 	{
-		std::cout << actor->GetID() << std::endl;
+		std::cout << actor->GetID() << " " << actor->GetPriority() << std::endl;
 	}
 
 	std::cout << "---Clearable Actors---\n";
 	for (auto actor : clearableActors)
 	{
-		std::cout << actor->GetID() << std::endl;
+		std::cout << actor->GetID() << " " << actor->GetPriority() << std::endl;
 	}
 
 	std::cout << "---Cleared Actors---\n";
 	for (auto actor : clearedActors)
 	{
-		std::cout << actor->GetID() << std::endl;
+		std::cout << actor->GetID() << " " << actor->GetPriority() << std::endl;
 	}
 
 	std::cout << "---Possible Temporary Actors---\n";
@@ -184,7 +184,7 @@ void Room::DumpRoomInfo() const
 	std::cout << "---Currently Deallocated Actors---\n";
 	for (auto actor : currentlyDeallocatedActors)
 	{
-		std::cout << actor->GetID() << std::endl;
+		std::cout << actor->GetID() << " " << actor->GetPriority() << std::endl;
 	}
 	std::cout << std::dec;
 }
