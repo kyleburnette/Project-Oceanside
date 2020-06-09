@@ -14,10 +14,9 @@ public:
 	void Deallocate(Node* node);
 	void DeallocateTemporaryActor(int actorID);
 	void LoadInitialRoom(int roomNumber);
-	void UnloadRoom(Room& room);
-	void ChangeRoom(int newRoomNumber);
+	void UnloadRoom(Room& room, int transitionActorSceneID);
+	void ChangeRoom(int newRoomNumber, int transitionActorSceneID);
 	void PrintHeap(char setting) const;
-	void PrintHeapInReverse() const;
 	void DeleteHeap();
 	Node* FindSuitableGap(Node* newNode) const;
 	void Insert(Node* newNode, Node* oldNode);
@@ -36,7 +35,7 @@ public:
 	std::vector<std::pair<int, int>> GetAddressesAndPrioritiesOfType(int actorID, char type);
 
 private:
-	void AllocateNewRoom(Room& newRoom);
+	void AllocateNewRoom(Room& newRoom, Room& oldRoom, int transitionActorSceneID);
 	void DeallocateClearedActors();
 	void AllocateSpawnerOffspring();
 	void DeallocateReallocatingActors();

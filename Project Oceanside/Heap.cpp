@@ -240,33 +240,76 @@ void Heap::LoadInitialRoom(int roomNumber)
 
 	DeallocateClearedActors();
 	AllocateSpawnerOffspring();
-
-	initialLoad = false;
-
-	//reimplement situations where initial scene load is different from subsequent loads of initial room
 }
 
-void Heap::ChangeRoom(int newRoomNumber)
+void Heap::ChangeRoom(int newRoomNumber, int transitionActorSceneID)
 {
+	if (newRoomNumber == currentRoomNumber)
+	{
+		std::cerr << "Room number " << newRoomNumber << " is already loaded!\n";
+		return;
+	}
+
 	Room* oldRoom = scene->GetRoom(currentRoomNumber);
 	Room* newRoom = scene->GetRoom(newRoomNumber);
 
 	this->currentRoomNumber = newRoomNumber;
 	this->currentRoom = scene->GetRoom(currentRoomNumber);
 	
-	AllocateNewRoom(*newRoom);
-	UnloadRoom(*oldRoom);
+	AllocateNewRoom(*newRoom, *oldRoom, transitionActorSceneID);
+	UnloadRoom(*oldRoom, transitionActorSceneID);
 
 	DeallocateClearedActors();
 	AllocateSpawnerOffspring();
 	DeallocateReallocatingActors();
 }
 
-void Heap::AllocateNewRoom(Room& newRoom)
+void Heap::AllocateNewRoom(Room& newRoom, Room& oldRoom, int transitionActorSceneID)
 {
+	if (transitionActorSceneID > scene->NumberOfTransitionActors() - 1)
+	{
+
+		std::cerr << "TransitionActorID not in list of transition actors (most likely a number higher than the number of total transition actors\n";
+		return;
+	}
+	std::vector<Node*> reallocatingTransitionActors;
 	//allocate new room first
 	for (Node* actor : newRoom.GetAllActors())
 	{
+		if (actor->IsTransitionActor())
+		{
+			int currentActorSceneID = actor->GetSceneTransitionID();
+
+			//Is its scene ID the one being used to switch rooms?
+			if (currentActorSceneID == transitionActorSceneID)
+			{
+				/*if yes: do nothing(needs to stay allocated since you're going through it)
+				also, since this is the corresponding loading plane in the new room, you need
+				to not reallocate it AND you don't need to keep track of it. Do nothing.*/
+				;
+			}
+			else
+			{
+				//if no:
+				//is this scene ID in the last room as well(i.e.shared by the rooms, but you're not going through it?)
+				auto transitionActorsOldRoom = oldRoom.GetTransitionActors();
+				if (transitionActorsOldRoom.find(currentActorSceneID) != transitionActorsOldRoom.end())
+				{
+					/*if yes*/
+					//hold onto it(don't allocate until end)
+					reallocatingTransitionActors.push_back(scene->GetTransitionActors()[currentActorSceneID]);
+				}
+				else
+				{
+					/*if no:
+					//allocate normally (but allocate the copy held in the scene (this is probably stupid, but...))*/
+					Allocate(scene->GetTransitionActors()[currentActorSceneID]);
+				}
+			}		
+
+			//none of the rest of this applies if this is a transition actor, so continue to next actor in list
+			continue;
+		}
 		if (actor->IsSingleton() && actor->ReallocateOnRoomChange())
 		{
 			Node* newSingleton = new Node(*actor);
@@ -277,6 +320,7 @@ void Heap::AllocateNewRoom(Room& newRoom)
 		{
 			int actorID = actor->GetID();
 
+			std::cout << std::hex << "Allocating: " << actor->GetID() << std::endl;
 			Allocate(actor);
 			newRoom.AddCurrentlyLoadedActor(actor);
 
@@ -295,6 +339,11 @@ void Heap::AllocateNewRoom(Room& newRoom)
 				default:
 					break;
 			}
+		}
+
+		for (auto actor : reallocatingTransitionActors)
+		{
+			Allocate(scene->GetTransitionActors()[actor->GetSceneTransitionID()]);
 		}
 	}
 }
@@ -406,7 +455,7 @@ std::pair<int, int> Heap::ClearRandomActor()
 	return std::make_pair(clearableActorToDeallocate->GetID(), clearableActorToDeallocate->GetPriority());
 }
 
-void Heap::UnloadRoom(Room& room)
+void Heap::UnloadRoom(Room& room, int transitionActorSceneID)
 {
 	//deallocate temporary actors from old room (bombs, bugs, etc.) and reset temp actor vector
 	for (Node* actor : temporaryActors)
@@ -418,6 +467,12 @@ void Heap::UnloadRoom(Room& room)
 
 	for (Node* actor : room.GetCurrentlyLoadedActors())
 	{
+		if (actor->IsTransitionActor() && actor->GetSceneTransitionID() == transitionActorSceneID)
+		{
+			//while unloading old room, if the actor you've come across is a transition actor AND is the transition actor
+			//being used to transfer rooms, do nothing.
+			continue;
+		}
 		if (!actor->IsSingleton())
 		{
 			Deallocate(actor);
@@ -580,23 +635,14 @@ void Heap::PrintHeap(char setting) const
 				<< std::setw(6) << std::setfill('0') << curr->GetSize() << " "
 				<< std::setw(1) << curr->GetType() << " "
 				<< std::setw(4) << curr->GetID() << " "
-				<< std::setw(1) << std::dec << curr->GetPriority()
+				<< std::setw(1) << std::dec << curr->GetPriority() << " "
+				<< std::setw(2) << std::dec << curr->GetSceneTransitionID() << " "
 				<< std::endl;
 		}
 		
 
 		curr = curr->GetNext();
 		
-	}
-}
-
-void Heap::PrintHeapInReverse() const
-{
-	Node* curr = tail;
-	while (curr != nullptr)
-	{
-		std::cout << "Address: " << std::hex << "0x" << curr->GetAddress() << " " << curr->GetID() << " " << curr->GetType() << std::dec << std::endl;
-		curr = curr->GetPrev();
 	}
 }
 
@@ -671,9 +717,22 @@ void Heap::ResetLeaks()
 
 void Heap::ResetHeap()
 {
-	UnloadRoom(*scene->GetRoom(currentRoomNumber));
+	UnloadRoom(*scene->GetRoom(currentRoomNumber), 0);
 	ResetLeaks();
 	scene->ResetClearedActors();
+	
+
+	/*sloppy way to deallocate scene-level actors (i.e. transition actors)*/
+	Node* curr = head;
+	while (curr != nullptr)
+	{
+		if (curr->IsTransitionActor())
+		{
+			Deallocate(curr);
+		}
+
+		curr = curr->GetNext();
+	}
 
 	currentRoomNumber = -1;
 	currentRoom = nullptr;
@@ -704,316 +763,7 @@ std::vector<std::pair<int, int>> Heap::GetAddressesAndPrioritiesOfType(int actor
 
 void Heap::Solve(int solverType)
 {
-	//TODO - implement
-	switch (solverType)
-	{
-	case RandomAssortment:
-		break;
-	case SuccessiveActorSolver:
-		break;
-	case nop:
-		break;
-	case Test:
-		for (int i = 0; i < 100000; i++)
-		{
-			LoadInitialRoom(0);
-			ClearRandomActor();
-			AllocateRandomActor();
-			ChangeRoom(1);
-			ClearRandomActor();
-			AllocateRandomActor();
-			ResetHeap();
-		}
-		PrintHeap(1);
-	case DFSRM:
-	{
-		unsigned int seed = time(NULL);
-		srand(seed);
-
-		uint64_t totalPermutations = 0;
-		unsigned int totalSolutions = 0;
-
-		std::vector<std::pair<int, int>> solution;
-		
-		int MAX_ALLOCATIONS_PER_STEP = 4;
-
-		std::cout << "Seed: " << seed << std::endl;
-		std::cout << "Solving..." << std::endl;
-		while (true)
-		{
-			int roomLoads = (2 * (rand() % 5)) + 1;
-
-			LoadInitialRoom(0);
-			solution.push_back(std::make_pair(CHANGE_ROOM, 0x0));
-
-			for (int i = 1; i <= roomLoads; i++)
-			{
-				int deallocations = rand() % currentRoom->GetDeallocatableActors().size();
-
-				for (int j = 0; j <= deallocations; j++)
-				{
-					solution.push_back(DeallocateRandomActor());
-				}
-
-				int smokesRNG = rand() % 2;
-
-				if (smokesRNG == 0)
-				{
-					AllocateTemporaryActor(0xA2);
-					solution.push_back(std::make_pair(ALLOCATE, 0xA2));
-				}
-				
-				int allocations = rand() % MAX_ALLOCATIONS_PER_STEP;
-
-				for (int j = 0; j <= allocations; j++)
-				{
-					solution.push_back(std::make_pair(ALLOCATE, AllocateRandomActor()));
-				}
-
-				char rng = rand() % 3;
-
-				switch (rng)
-				{
-					case 0:
-						break;
-					case 1:
-						if (currentRoomNumber == 1)
-						{
-							AllocateTemporaryActor(0x3D);
-							solution.push_back(std::make_pair(ALLOCATE, 0x3D));
-							break;
-						}
-						else
-						{
-							break;
-						}
-						
-					case 2:
-						if (currentRoomNumber == 1)
-						{
-							AllocateTemporaryActor(0x35);
-							solution.push_back(std::make_pair(ALLOCATE, 0x35));
-							break;
-						}
-						else
-						{
-							break;
-						}
-						
-					default:
-						break;
-				}
-
-				ChangeRoom(i % 2);
-				solution.push_back(std::make_pair(CHANGE_ROOM, i % 2));
-			}
-
-			//we're now standing in chest room
-			
-			std::vector<std::pair<int, int>> rocks = GetAddressesAndPrioritiesOfType(0xB0, 'A');
-			std::vector<std::pair<int, int>> grass = GetAddressesAndPrioritiesOfType(0x90, 'A');
-			
-			AllocateTemporaryActor(0xA2);
-			ChangeRoom(0);
-			solution.push_back(std::make_pair(SUPERSLIDE, 0));
-
-			ChangeRoom(1);
-			solution.push_back(std::make_pair(CHANGE_ROOM, 1));
-
-			int chestOverlayAddress = GetAddressesAndPrioritiesOfType(0x6, 'O')[0].first;
-
-			ChangeRoom(0);
-			solution.push_back(std::make_pair(CHANGE_ROOM, 0));
-
-			int flowerOverlayAddress = GetAddressesAndPrioritiesOfType(0xB1, 'O')[0].first;
-			
-			if ((chestOverlayAddress & 0xFF0000) == (flowerOverlayAddress & 0xFF0000))
-			{
-				std::cout << "OVERLAYS MATCH" << std::endl;
-				std::vector<std::pair<int,int>> flowers = GetAddressesAndPrioritiesOfType(0xB1, 'A');
-				for (auto flower : flowers)
-				{
-					std::cout << std::hex << flower.first << " ";
-				}
-				std::cout << std::endl;
-				for (auto rock : rocks)
-				{
-					std::cout << std::hex << rock.first << " ";
-				}
-				for (auto gras : grass)
-				{
-					std::cout << std::hex << gras.first << " ";
-				}
-				std::cout << std::endl;
-				std::pair<std::pair<int, int>, std::pair<int, int>> solutionPair;
-				bool solutionFound = false;
-
-				for (auto flower : flowers)
-				{
-					for (auto rock : rocks)
-					{
-						if (rock.first - flower.first == 0x80)
-						{
-							std::cout << "O M G ";
-							solutionPair = std::make_pair(rock, flower);
-							solutionFound = true;
-						}
-					}
-
-					for (auto gras : grass)
-					{
-						if (gras.first - flower.first == 0x80)
-						{
-							std::cout << "O M G ";
-							solutionPair = std::make_pair(gras, flower);
-							solutionFound = true;
-						}
-					}
-				}
-
-				if (solutionFound)
-				{
-					std::cout << "SOLUTION FOUND\n";
-					totalSolutions++;
-
-					std::ofstream outputFile;
-					std::string outputFilename = "solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
-					outputFile.open(outputFilename);
-
-					for (auto step : solution)
-					{
-						if (step.first == CHANGE_ROOM)
-						{
-							outputFile << std::hex << "Load room: " << step.second << std::endl;
-						}
-						else if (step.first == ALLOCATE)
-						{
-							outputFile << std::hex << "Allocate: " << step.second << std::endl;
-						}
-						else if (step.first == SUPERSLIDE)
-						{
-							outputFile << std::hex << "Superslide into room " << step.second << " with smoke still loaded." << std::endl;
-						}
-						else
-						{
-							outputFile << std::hex << "Deallocate: " << step.first << " | Priority: " << step.second << std::endl;
-						}
-						
-					}
-
-					outputFile.close();
-				}
-
-
-			}
-
-			ResetHeap();
-			solution.clear();
-			totalPermutations++;
-
-			if (totalPermutations % 100000 == 0)
-			{
-				std::cout << std::dec << "Total permutations: " << totalPermutations << " | Total Solutions: " << totalSolutions << std::endl;
-			}
-
-		}
-	}
-	case OneRandomPerm:
-	{
-		unsigned int seed = time(NULL);
-		srand(seed);
-
-		int roomLoads = (2 * (rand() % 5)) + 1;
-		std::cout << std::hex;
-		LoadInitialRoom(0);
-		std::cout << "Loaded Room 0" << std::endl;
-
-		for (int i = 1; i <= roomLoads; i++)
-		{
-			int deallocations = rand() % currentRoom->GetDeallocatableActors().size();
-
-			for (int j = 0; j <= deallocations; j++)
-			{
-				auto a = DeallocateRandomActor();
-				std::cout << "Deallocate: " << a.first << " | Priority: " << a.second << std::endl;
-			}
-
-			int smokesRNG = rand() % 2;
-
-			if (smokesRNG == 0)
-			{
-				AllocateTemporaryActor(0xA2);
-				std::cout << "Allocate: smoke" << std::endl;
-			}
-
-			int allocations = rand() % 4;
-
-			for (int j = 0; j <= allocations; j++)
-			{
-				auto a = AllocateRandomActor();
-				std::cout << "Allocate: " << a << std::endl;
-			}
-
-			char rng = rand() % 3;
-
-			switch (rng)
-			{
-			case 0:
-				break;
-			case 1:
-				if (currentRoomNumber == 1)
-				{
-					AllocateTemporaryActor(0x3D);
-					std::cout << "Allocate: hookshot" << std::endl;
-					break;
-				}
-				else
-				{
-					break;
-				}
-
-			case 2:
-				if (currentRoomNumber == 1)
-				{
-					AllocateTemporaryActor(0x35);
-					std::cout << "Allocate: spin attack" << std::endl;
-					break;
-				}
-				else
-				{
-					break;
-				}
-
-			default:
-				break;
-			}
-
-			ChangeRoom(i % 2);
-			std::cout << "Load Room " << i % 2 << std::endl;
-		}
-
-		//we're now standing in chest room
-
-		std::vector<std::pair<int, int>> rocks = GetAddressesAndPrioritiesOfType(0xB0, 'A');
-		std::vector<std::pair<int, int>> grass = GetAddressesAndPrioritiesOfType(0x90, 'A');
-
-		AllocateTemporaryActor(0xA2);
-		ChangeRoom(0);
-		std::cout << "Load Room " << 0 << std::endl;
-
-		ChangeRoom(1);
-		std::cout << "Load Room " << 1 << std::endl;
-
-		int chestOverlayAddress = GetAddressesAndPrioritiesOfType(0x6, 'O')[0].first;
-
-		ChangeRoom(0);
-		std::cout << "Load Room " << 0 << std::endl;
-		std::cout << std::dec;
-	}
-		break;
-	default:
-		break;
-	}
+	//this kinda needs to be hardcoded per situation
 }
 
 int Heap::GetCurrentRoomNumber() const

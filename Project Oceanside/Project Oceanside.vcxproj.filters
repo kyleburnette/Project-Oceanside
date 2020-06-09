@@ -54,4 +54,7 @@
     <CopyFileToFolders Include="oot_actors.json" />
     <CopyFileToFolders Include="scene.json" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="scene_2.json" />
+  </ItemGroup>
 </Project>

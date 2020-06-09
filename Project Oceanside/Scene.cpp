@@ -48,6 +48,19 @@ void Scene::LoadScene()
 
 			Node* newActor = new Node(actorID, actorIDString, actorJson, actor, actorCount[actorID]);
 			newRoom->AddActor(newActor);
+
+			//we need to add scene level transition actors to the scene transition actor map
+			if (newActor->IsTransitionActor())
+			{
+				//but only if there isn't a copy in the map with this ID already
+				//this prevents adding corresponding actors to the map more than once (i.e. from more than 1 room)
+				if (transitionActors.find(newActor->GetSceneTransitionID()) == transitionActors.end())
+				{
+					//TODO - this shouldn't leak since this only runs once, but clean up at end of program
+					Node* transitionActorSceneLevelCopy = new Node(*newActor);
+					transitionActors[newActor->GetSceneTransitionID()] = transitionActorSceneLevelCopy;
+				}
+			}
 		}
 
 		std::cout << "Room " << roomCount << " completed!" << std::endl;
@@ -87,6 +100,9 @@ void Scene::ParseActorJson(char version)
 		break;
 	case MM_US:
 		actorFile = "mm_u_actors.json";
+		break;
+	case MM_JP_GC:
+		actorFile = "mm_j_gc_actors.json";
 		break;
 	default:
 		std::cerr << "Invalid version" << std::endl;
@@ -130,11 +146,26 @@ void Scene::DumpSceneInfo() const
 	for (auto room : rooms)
 	{
 		std::cout << "Room " << roomNumber << std::endl;
-		for (auto actor : room->GetCurrentlyLoadedActors())
+		for (auto actor : room->GetAllActors())
 		{
-			std::cout << std::hex << "Actor: " << actor->GetID() << " | " << "Priority: " << actor->GetPriority() << std::endl;
+			std::cout << std::hex << "Actor: " << actor->GetID();
+				if (actor->IsTransitionActor())
+				{
+					std::cout << " | " << "SceneID: " << actor->GetSceneTransitionID() << std::endl;
+				}
+				else
+				{
+					std::cout << " | " << "Priority: " << actor->GetPriority() << std::endl;
+				}
 		}
 		roomNumber++;
+	}
+
+	std::cout << "Scene Level Transition Actors:\n";
+	std::cout << "Total Transition Actors: " << transitionActors.size() << "\n";
+	for (auto actor : transitionActors)
+	{
+		std::cout << std::hex << "Transition Actor: " << actor.second->GetID() << " | " << "ID: " << actor.second->GetSceneTransitionID() << std::endl;
 	}
 }
 
@@ -144,4 +175,14 @@ void Scene::ResetClearedActors()
 	{
 		room->ResetClearedActors();
 	}
+}
+
+std::map<int, Node*> Scene::GetTransitionActors() const
+{
+	return transitionActors;
+}
+
+int Scene::NumberOfTransitionActors() const
+{
+	return transitionActors.size();
 }

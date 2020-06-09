@@ -32,6 +32,10 @@ void Room::AddActor(Node* actor)
 			deallocatableActors.push_back(offspring);
 		}
 	}
+	if (actor->IsTransitionActor())
+	{
+		AddTransitionActor(actor);
+	}
 }
 
 void Room::AddCurrentlyLoadedActor(Node* actor)
@@ -109,6 +113,11 @@ void Room::AddRandomAllocatableActor(int timesCanAllocate, Node* actor)
 	possibleTemporaryActorsIDs.push_back(actor->GetID());
 }
 
+void Room::AddTransitionActor(Node* actor)
+{
+	transitionActors[actor->GetSceneTransitionID()] = actor;
+}
+
 std::map<int, std::pair<int, Node*>> Room::GetPossibleTemporaryActors() const
 {
 	return possibleTemporaryActors;
@@ -148,7 +157,7 @@ void Room::DumpRoomInfo() const
 	std::cout << "---All Actors---\n";
 	for (auto actor : allActors)
 	{
-		std::cout << actor->GetID() << std::endl;
+		std::cout << actor->GetID() << " " << std::endl;
 	}
 
 	std::cout << "---Currently Loaded Actors---\n";
@@ -186,10 +195,22 @@ void Room::DumpRoomInfo() const
 	{
 		std::cout << actor->GetID() << std::endl;
 	}
+
+	std::cout << "---Current Transition Actors---\n";
+	for (auto actor : transitionActors)
+	{
+		std::cout << actor.second->GetID() << std::endl;
+	}
+
 	std::cout << std::dec;
 }
 
 void Room::AddDeallocatableActor(Node* actor)
 {
 	deallocatableActors.push_back(actor);
+}
+
+std::map<int, Node*> Room::GetTransitionActors() const
+{
+	return transitionActors;
 }
