@@ -173,6 +173,12 @@ void Heap::LoadInitialRoom(int roomNumber)
 
 	for (Node* actor : newRoom->GetAllActors())
 	{
+		if (actor->IsTransitionActor())
+		{
+			Allocate(scene->GetTransitionActors()[actor->GetSceneTransitionID()]);
+			//newRoom->AddCurrentlyLoadedActor(actor);
+			continue;
+		}
 		if (actor->GetID() == 0xCA)
 		{
 			scarecrow = true;
@@ -268,11 +274,10 @@ void Heap::AllocateNewRoom(Room& newRoom, Room& oldRoom, int transitionActorScen
 {
 	if (transitionActorSceneID > scene->NumberOfTransitionActors() - 1)
 	{
-
 		std::cerr << "TransitionActorID not in list of transition actors (most likely a number higher than the number of total transition actors\n";
 		return;
 	}
-	std::vector<Node*> reallocatingTransitionActors;
+	
 	//allocate new room first
 	for (Node* actor : newRoom.GetAllActors())
 	{
@@ -320,7 +325,7 @@ void Heap::AllocateNewRoom(Room& newRoom, Room& oldRoom, int transitionActorScen
 		{
 			int actorID = actor->GetID();
 
-			std::cout << std::hex << "Allocating: " << actor->GetID() << std::endl;
+			//std::cout << std::hex << "Allocating: " << actor->GetID() << std::endl;
 			Allocate(actor);
 			newRoom.AddCurrentlyLoadedActor(actor);
 
@@ -339,11 +344,6 @@ void Heap::AllocateNewRoom(Room& newRoom, Room& oldRoom, int transitionActorScen
 				default:
 					break;
 			}
-		}
-
-		for (auto actor : reallocatingTransitionActors)
-		{
-			Allocate(scene->GetTransitionActors()[actor->GetSceneTransitionID()]);
 		}
 	}
 }
@@ -479,6 +479,17 @@ void Heap::UnloadRoom(Room& room, int transitionActorSceneID)
 			room.RemoveCurrentlyLoadedActor(actor);
 		}	
 	}
+
+	PrintHeap(1);
+
+	for (auto actor : reallocatingTransitionActors)
+	{
+		Allocate(scene->GetTransitionActors()[actor->GetSceneTransitionID()]);
+	}
+
+	PrintHeap(1);
+
+	reallocatingTransitionActors.clear();
 
 	room.ResetCurrentlyLoadedActors();
 	room.ReplenishDeallocatableActors();

@@ -64,5 +64,6 @@ private:
 	std::vector<Node*> singletons;
 
 	std::vector<Node*> singletonsAttemptingToReallocate;
+	std::vector<Node*> reallocatingTransitionActors;
 };
 
