@@ -469,7 +469,8 @@ void Heap::UnloadRoom(Room& room, int transitionActorSceneID)
 	{
 		if (actor.second->IsTransitionActor() && actor.second->GetSceneTransitionID() != transitionActorSceneID)
 		{
-			Deallocate(scene->GetTransitionActors()[actor.first]); //will not crash
+			auto actortmp= scene->GetTransitionActors()[actor.first];
+			Deallocate(actortmp);
 		}
 	}
 
@@ -518,6 +519,7 @@ void Heap::Deallocate(int actorID, int priority)
 		if (curr->GetID() == actorID && curr->GetType() == 'A' && curr->GetPriority() == priority)
 		{
 			Deallocate(curr);
+			scene->GetRoom(currentRoomNumber)->RemoveCurrentlyLoadedActor(curr);
 			break;
 		}
 
