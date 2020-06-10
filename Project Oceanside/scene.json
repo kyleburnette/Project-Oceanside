@@ -1676,8 +1676,42 @@
           "isSingleton": false
         },
         {
+          "actorID": "0183",
+          "description": "Deku Flower",
+          "numberOfOffspring": 0,
+          "offspringActorID": 0,
+          "isDeallocatable": false,
+          "isClearable": false,
+          "canStartCleared": false,
+          "startCleared": false,
+          "transition": -1,
+          "sceneTransitionID": 0,
+          "itemsDroppedOnDeallocate": [],
+          "category": 0,
+          "considerForSRM": false,
+          "reallocateOnRoomChange": false,
+          "isSingleton": false
+        },
+        {
           "actorID": "013C",
           "description": "Elevator",
+          "numberOfOffspring": 0,
+          "offspringActorID": 0,
+          "isDeallocatable": false,
+          "isClearable": false,
+          "canStartCleared": false,
+          "startCleared": false,
+          "transition": -1,
+          "sceneTransitionID": 0,
+          "itemsDroppedOnDeallocate": [],
+          "category": 0,
+          "considerForSRM": false,
+          "reallocateOnRoomChange": false,
+          "isSingleton": false
+        },
+        {
+          "actorID": "0183",
+          "description": "Deku Flower",
           "numberOfOffspring": 0,
           "offspringActorID": 0,
           "isDeallocatable": false,
@@ -1963,42 +1997,7 @@
           "considerForSRM": false,
           "reallocateOnRoomChange": false,
           "isSingleton": false
-        },
-        {
-          "actorID": "0183",
-          "description": "Deku Flower",
-          "numberOfOffspring": 0,
-          "offspringActorID": 0,
-          "isDeallocatable": false,
-          "isClearable": false,
-          "canStartCleared": false,
-          "startCleared": false,
-          "transition": -1,
-          "sceneTransitionID": 0,
-          "itemsDroppedOnDeallocate": [],
-          "category": 0,
-          "considerForSRM": false,
-          "reallocateOnRoomChange": false,
-          "isSingleton": false
-        },
-        {
-          "actorID": "0183",
-          "description": "Deku Flower",
-          "numberOfOffspring": 0,
-          "offspringActorID": 0,
-          "isDeallocatable": false,
-          "isClearable": false,
-          "canStartCleared": false,
-          "startCleared": false,
-          "transition": -1,
-          "sceneTransitionID": 0,
-          "itemsDroppedOnDeallocate": [],
-          "category": 0,
-          "considerForSRM": false,
-          "reallocateOnRoomChange": false,
-          "isSingleton": false
         }
-
       ]
     }
   }

@@ -23,7 +23,7 @@ Heap::~Heap()
 	DeleteHeap();
 }
 
-void Heap::AllocateTemporaryActor(int actorID)
+Node* Heap::AllocateTemporaryActor(int actorID)
 {
 	//get list of all possible temporary actors in the currently loaded room
 	auto possibleTempActors = scene->GetRoom(currentRoomNumber)->GetPossibleTemporaryActors();
@@ -64,6 +64,8 @@ void Heap::AllocateTemporaryActor(int actorID)
 		temporaryActors.push_back(newTempActor);
 		break;
 	}
+
+	return newTempActor;
 }
 
 void Heap::DeallocateTemporaryActor(int actorID)
@@ -248,8 +250,10 @@ void Heap::LoadInitialRoom(int roomNumber)
 	AllocateSpawnerOffspring();
 }
 
-void Heap::ChangeRoom(int newRoomNumber, int transitionActorSceneID)
+void Heap::ChangeRoom(int newRoomNumber, int transitionActorSceneID, Node* carryActor)
 {
+	this->carryActor = carryActor;
+
 	if (newRoomNumber == currentRoomNumber)
 	{
 		std::cerr << "Room number " << newRoomNumber << " is already loaded!\n";
@@ -261,13 +265,25 @@ void Heap::ChangeRoom(int newRoomNumber, int transitionActorSceneID)
 
 	this->currentRoomNumber = newRoomNumber;
 	this->currentRoom = scene->GetRoom(currentRoomNumber);
-	
-	AllocateNewRoom(*newRoom, *oldRoom, transitionActorSceneID);
-	UnloadRoom(*oldRoom, transitionActorSceneID);
 
-	DeallocateClearedActors();
-	AllocateSpawnerOffspring();
-	DeallocateReallocatingActors();
+	if (carryActor)
+	{
+		AllocateNewRoom(*newRoom, *oldRoom, transitionActorSceneID);
+		UnloadRoom(*oldRoom, transitionActorSceneID, carryActor);
+
+		DeallocateClearedActors();
+		AllocateSpawnerOffspring();
+		DeallocateReallocatingActors();
+	}
+	else
+	{
+		AllocateNewRoom(*newRoom, *oldRoom, transitionActorSceneID);
+		UnloadRoom(*oldRoom, transitionActorSceneID, nullptr);
+
+		DeallocateClearedActors();
+		AllocateSpawnerOffspring();
+		DeallocateReallocatingActors();
+	}
 }
 
 void Heap::AllocateNewRoom(Room& newRoom, Room& oldRoom, int transitionActorSceneID)
@@ -369,6 +385,14 @@ void Heap::AllocateSpawnerOffspring()
 		room->AddCurrentlyLoadedActor(offspring);
 	}
 
+	if (this->carryActor)
+	{
+		Deallocate(this->carryActor);
+		this->carryActor = nullptr;
+		ClearTemporaryActors();
+	}
+	
+
 	offspringToAllocate.clear();
 }
 
@@ -455,15 +479,30 @@ std::pair<int, int> Heap::ClearRandomActor()
 	return std::make_pair(clearableActorToDeallocate->GetID(), clearableActorToDeallocate->GetPriority());
 }
 
-void Heap::UnloadRoom(Room& room, int transitionActorSceneID)
+void Heap::UnloadRoom(Room& room, int transitionActorSceneID, Node* carryActor)
 {
 	//deallocate temporary actors from old room (bombs, bugs, etc.) and reset temp actor vector
-	for (Node* actor : temporaryActors)
+
+	if (carryActor)
 	{
-		Deallocate(actor);
+		for (Node* actor : temporaryActors)
+		{
+			if (actor != carryActor)
+			{
+				Deallocate(actor);
+			}
+		}
 	}
 
-	ClearTemporaryActors();
+	else
+	{
+		for (Node* actor : temporaryActors)
+		{
+			Deallocate(actor);
+
+		}
+		ClearTemporaryActors();
+	}
 
 	for (auto actor : room.GetTransitionActors())
 	{
@@ -728,11 +767,10 @@ void Heap::ResetLeaks()
 
 void Heap::ResetHeap()
 {
-	UnloadRoom(*scene->GetRoom(currentRoomNumber), 0);
+	UnloadRoom(*scene->GetRoom(currentRoomNumber), 0, nullptr);
 	ResetLeaks();
 	scene->ResetClearedActors();
 	
-
 	/*sloppy way to deallocate scene-level actors (i.e. transition actors)*/
 	Node* curr = head;
 	while (curr != nullptr)

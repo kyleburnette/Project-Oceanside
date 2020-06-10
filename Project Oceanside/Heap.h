@@ -9,13 +9,13 @@ public:
 	Heap(Scene* scene, int start, int linkSize);
 	~Heap();
 	void Allocate(Node* node);
-	void AllocateTemporaryActor(int actorID);
+	Node* AllocateTemporaryActor(int actorID);
 	void Deallocate(int actorID, int priority);
 	void Deallocate(Node* node);
 	void DeallocateTemporaryActor(int actorID);
 	void LoadInitialRoom(int roomNumber);
-	void UnloadRoom(Room& room, int transitionActorSceneID);
-	void ChangeRoom(int newRoomNumber, int transitionActorSceneID);
+	void UnloadRoom(Room& room, int transitionActorSceneID, Node* carryActor);
+	void ChangeRoom(int newRoomNumber, int transitionActorSceneID, Node* carryActor);
 	void PrintHeap(char setting) const;
 	void DeleteHeap();
 	Node* FindSuitableGap(Node* newNode) const;
@@ -65,5 +65,7 @@ private:
 
 	std::vector<Node*> singletonsAttemptingToReallocate;
 	std::vector<Node*> reallocatingTransitionActors;
+
+	Node* carryActor = nullptr;
 };
 
