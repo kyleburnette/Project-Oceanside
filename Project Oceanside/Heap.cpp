@@ -465,14 +465,16 @@ void Heap::UnloadRoom(Room& room, int transitionActorSceneID)
 
 	ClearTemporaryActors();
 
+	for (auto actor : room.GetTransitionActors())
+	{
+		if (actor.second->IsTransitionActor() && actor.second->GetSceneTransitionID() != transitionActorSceneID)
+		{
+			Deallocate(scene->GetTransitionActors()[actor.first]); //will not crash
+		}
+	}
+
 	for (Node* actor : room.GetCurrentlyLoadedActors())
 	{
-		if (actor->IsTransitionActor() && actor->GetSceneTransitionID() == transitionActorSceneID)
-		{
-			//while unloading old room, if the actor you've come across is a transition actor AND is the transition actor
-			//being used to transfer rooms, do nothing.
-			continue;
-		}
 		if (!actor->IsSingleton())
 		{
 			Deallocate(actor);
@@ -480,14 +482,10 @@ void Heap::UnloadRoom(Room& room, int transitionActorSceneID)
 		}	
 	}
 
-	PrintHeap(1);
-
 	for (auto actor : reallocatingTransitionActors)
 	{
 		Allocate(scene->GetTransitionActors()[actor->GetSceneTransitionID()]);
 	}
-
-	PrintHeap(1);
 
 	reallocatingTransitionActors.clear();
 

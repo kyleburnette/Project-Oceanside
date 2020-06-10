@@ -4,7 +4,8 @@
     "0": {
       "possibleAllocatableActors": {
         "0009":  1,
-        "018C": 1
+        "018C": 1,
+        "00A2": 1
       },
       "actorList": [
         {
@@ -811,7 +812,8 @@
     "1": {
       "possibleAllocatableActors": {
         "0009": 1,
-        "018C": 1
+        "018C": 1,
+        "00A2": 1
       },
       "actorList": [
         {
@@ -1397,7 +1399,8 @@
     "2": {
       "possibleAllocatableActors": {
         "0009": 1,
-        "018C": 1
+        "018C": 1,
+        "00A2": 1
       },
       "actorList": [
         {
