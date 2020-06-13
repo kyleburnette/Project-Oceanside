@@ -29,7 +29,7 @@ public:
 	int AllocateRandomActor();
 	std::pair<int, int> ClearRandomActor();
 	int GetRoomNumber() const;
-	void Solve(int solverType);
+	void Solve();
 	int GetCurrentRoomNumber() const;
 	void ResetLeaks();
 	std::vector<std::pair<int, int>> GetAddressesAndPrioritiesOfType(int actorID, char type);
@@ -52,6 +52,8 @@ private:
 	const char LINK_TYPE = 'L';
 	const char OVERLAY_TYPE = 'O';
 
+	const int MAX_EXPLOSIVES_PER_ROOM = 1;
+
 	bool initialLoad = true;
 
 	Room* currentRoom;
@@ -67,5 +69,7 @@ private:
 	std::vector<Node*> reallocatingTransitionActors;
 
 	Node* carryActor = nullptr;
+
+	int allocatedExplosiveCount;
 };
 
