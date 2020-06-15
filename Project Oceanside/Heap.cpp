@@ -449,7 +449,11 @@ int Heap::AllocateRandomActor()
 		newID = possibleActors[rng];
 	}
 
-	if ((newID == 0x0009 || newID == 0x006A) && allocatedExplosiveCount >= MAX_EXPLOSIVES_PER_ROOM)
+	if ((newID == 0x0009) && allocatedExplosiveCount >= MAX_EXPLOSIVES_PER_ROOM)
+	{
+		return 0;
+	}
+	else if (newID == 0x006A && allocatedExplosiveCount >= MAX_EXPLOSIVES_PER_ROOM || allocatedChuCount >= MAX_CHUS)
 	{
 		return 0;
 	}
@@ -457,9 +461,14 @@ int Heap::AllocateRandomActor()
 	else
 	{
 		AllocateTemporaryActor(newID);
-		if (newID == 0x0009 || newID == 0x006A)
+		if (newID == 0x0009)
 		{
 			allocatedExplosiveCount++;
+		}
+		else if (newID == 0x006A)
+		{
+			allocatedExplosiveCount++;
+			allocatedChuCount++;
 		}
 	}
 
@@ -800,6 +809,7 @@ void Heap::ResetHeap()
 
 	currentRoomNumber = -1;
 	currentRoom = nullptr;
+	allocatedChuCount = 0;
 }
 
 int Heap::GetRoomNumber() const
@@ -834,8 +844,10 @@ void Heap::Solve()
 	unsigned int totalSolutions = 0;
 
 	bool smoke = false;
-	bool fins = false;
+	bool fins = true;
 	bool endAllocationStep = true;
+	bool postSSRoomChange = true;
+	bool breakRocks = true;
 
 	std::vector<std::pair<int, int>> solution;
 
@@ -846,7 +858,7 @@ void Heap::Solve()
 	//imbued "C:\\Users\\doldop\\Documents\\Bizhawk RAM Watch\\kylf\\Heap_Manip_Outputs\\";
 	//me "C:\\Users\\Kyle\\Desktop\\Heap_Manip_Outputs\\";
 	//geek "F:\kyle\"
-	auto newContainerFolder = "F:\\kyle\\"; //lol but seriously why not 
+	auto newContainerFolder = "C:\\Users\\Kyle\\Desktop\\Heap_Manip_Outputs\\";
 	auto newSubFolder = newContainerFolder + std::to_string(seed) + "\\";
 	_mkdir(newContainerFolder);
 	_mkdir(newSubFolder.c_str());
@@ -858,6 +870,26 @@ void Heap::Solve()
 		LoadInitialRoom(0);
 		solution.push_back(std::make_pair(LOAD_INITIAL_ROOM, 0));
 
+		if (breakRocks)
+		{
+			char rockRNG = rand() % 2;
+			if (rockRNG)
+			{
+				char rock1 = rand() % 2;
+				char rock2 = rand() % 2;
+				if (rock1)
+				{
+					Deallocate(0x0092, 0);
+					solution.push_back(std::make_pair(DEALLOCATE, 0x92));
+				}
+				if (rock2)
+				{
+					Deallocate(0x0092, 1);
+					solution.push_back(std::make_pair(DEALLOCATE, 0x92));
+				}
+
+			}
+		}
 		if (fins)
 		{
 			int finsRNG = rand() % 2;
@@ -1029,6 +1061,29 @@ void Heap::Solve()
 			solution.push_back(std::make_pair(CHANGE_ROOM, 2));
 			solution.push_back(std::make_pair(USE_PLANE, nextPlane));
 		}
+
+		if (postSSRoomChange)
+		{
+			if (currentRoomNumber == 1)
+			{
+				ChangeRoom(0, nextPlane, nullptr); //go back through plane you just used back to room 0
+				solution.push_back(std::make_pair(CHANGE_ROOM, 0));
+				solution.push_back(std::make_pair(USE_PLANE, nextPlane));
+				ChangeRoom(2, 3, nullptr); //go to room 2
+				solution.push_back(std::make_pair(CHANGE_ROOM, 2));
+				solution.push_back(std::make_pair(USE_PLANE, 3));
+			}
+			else if (currentRoomNumber == 2)
+			{
+				ChangeRoom(0, nextPlane, nullptr); //go back through plane you just used back to room 0
+				solution.push_back(std::make_pair(CHANGE_ROOM, 0));
+				solution.push_back(std::make_pair(USE_PLANE, nextPlane));
+				ChangeRoom(1, 2, nullptr); //go to room 1
+				solution.push_back(std::make_pair(CHANGE_ROOM, 1));
+				solution.push_back(std::make_pair(USE_PLANE, 2));
+			}
+			
+		}
 		
 		std::vector<std::pair<int, int>> guards = GetAddressesAndPrioritiesOfType(0x17A, 'A');
 			
@@ -1045,6 +1100,7 @@ void Heap::Solve()
 				{
 					solutionFound = true;
 					solutionPair = std::make_pair(pot, guard);
+
 				}
 			}
 

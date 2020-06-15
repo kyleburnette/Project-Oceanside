@@ -53,6 +53,7 @@ private:
 	const char OVERLAY_TYPE = 'O';
 
 	const int MAX_EXPLOSIVES_PER_ROOM = 1;
+	const int MAX_CHUS = 2;
 
 	bool initialLoad = true;
 
@@ -71,5 +72,6 @@ private:
 	Node* carryActor = nullptr;
 
 	int allocatedExplosiveCount;
+	int allocatedChuCount;
 };
 
