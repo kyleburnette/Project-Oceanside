@@ -1306,7 +1306,7 @@
           "isDeallocatable": false,
           "isClearable": false,
           "canStartCleared": false,
-          "startCleared": false,
+          "startCleared": true,
           "transition": -1,
           "sceneTransitionID": 1,
           "itemsDroppedOnDeallocate": [],
@@ -1371,6 +1371,7 @@
     "1": {
       "possibleAllocatableActors": {
         "0057": 1
+
       },
       "actorList": [
         {

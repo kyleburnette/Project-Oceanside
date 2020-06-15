@@ -849,18 +849,13 @@ void Heap::Solve()
 	uint64_t totalPermutations = 0;
 	unsigned int totalSolutions = 0;
 
-	bool smoke = false;
-	bool endAllocationStep = true;
-
 	std::vector<std::pair<int, int>> solution;
 
-	int MAX_ALLOCATIONS_PER_STEP = 1;
+	int MAX_ALLOCATIONS_PER_STEP = 6;
 
 	std::cout << "Seed: " << seed << std::endl;
 	std::cout << "Solving..." << std::endl;
-	//imbued "C:\\Users\\doldop\\Documents\\Bizhawk RAM Watch\\kylf\\Heap_Manip_Outputs\\";
-	//me "C:\\Users\\Kyle\\Desktop\\Heap_Manip_Outputs\\";
-	//geek "F:\kyle\"
+
 	auto newContainerFolder = "C:\\Users\\Kyle\\Desktop\\Heap_Manip_Outputs\\";
 	auto newSubFolder = newContainerFolder + std::to_string(seed) + "\\";
 	_mkdir(newContainerFolder);

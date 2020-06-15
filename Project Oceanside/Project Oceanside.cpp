@@ -17,10 +17,7 @@ int main()
 	//Scene* scene = new Scene(MM_US);
 	//Heap* heap = new Heap(scene, MM_US0_START, MM_US0_LINK_SIZE);
 
-	heap->LoadInitialRoom(0);
-	heap->ChangeRoom(1, 1, nullptr);
-	heap->ChangeRoom(0, 1, nullptr);//matches Spectrum Poggers
-	heap->PrintHeap(1);
+	heap->Solve();
 
 	delete(scene);
 	delete(heap);
