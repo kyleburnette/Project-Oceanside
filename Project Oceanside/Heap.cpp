@@ -443,7 +443,7 @@ int Heap::AllocateRandomActor()
 	char rng = rand() % possibleActors.size();
 	auto newID = possibleActors[rng];
 
-	while ((newID == 0x7B || newID == 0x35 || newID == 0xA2 || newID == 0x3D || newID == 0x018C || newID == 0x20))
+	while ((newID == 0x7B || newID == 0x35 || newID == 0xA2 || newID == 0x3D || newID == 0x20 || newID == 0xDA || newID == 0x0183))
 	{
 		rng = rand() % possibleActors.size();
 		newID = possibleActors[rng];
@@ -453,7 +453,6 @@ int Heap::AllocateRandomActor()
 	{
 		return 0;
 	}
-
 	else
 	{
 		AllocateTemporaryActor(newID);
@@ -462,6 +461,21 @@ int Heap::AllocateRandomActor()
 			allocatedExplosiveCount++;
 		}
 	}
+
+	if ((newID == 0x18C) && allocatedISOTCount >= MAX_ISOT)
+	{
+		return 0;
+	}
+	else
+	{
+		AllocateTemporaryActor(newID);
+		if (newID == 0x018C)
+		{
+			allocatedISOTCount++;
+		}
+	}
+
+	
 
 	return possibleActors[rng];
 }
@@ -800,6 +814,8 @@ void Heap::ResetHeap()
 
 	currentRoomNumber = -1;
 	currentRoom = nullptr;
+	allocatedExplosiveCount = 0;
+	allocatedISOTCount = 0;
 }
 
 int Heap::GetRoomNumber() const
@@ -834,40 +850,28 @@ void Heap::Solve()
 	unsigned int totalSolutions = 0;
 
 	bool smoke = false;
-	bool fins = false;
 	bool endAllocationStep = true;
 
 	std::vector<std::pair<int, int>> solution;
 
-	int MAX_ALLOCATIONS_PER_STEP = 9;
+	int MAX_ALLOCATIONS_PER_STEP = 1;
 
 	std::cout << "Seed: " << seed << std::endl;
 	std::cout << "Solving..." << std::endl;
 	//imbued "C:\\Users\\doldop\\Documents\\Bizhawk RAM Watch\\kylf\\Heap_Manip_Outputs\\";
 	//me "C:\\Users\\Kyle\\Desktop\\Heap_Manip_Outputs\\";
 	//geek "F:\kyle\"
-	auto newContainerFolder = "F:\\kyle\\"; //lol but seriously why not 
+	auto newContainerFolder = "C:\\Users\\Kyle\\Desktop\\Heap_Manip_Outputs\\";
 	auto newSubFolder = newContainerFolder + std::to_string(seed) + "\\";
 	_mkdir(newContainerFolder);
 	_mkdir(newSubFolder.c_str());
 
 	while (true)
 	{
-		int roomLoads = (2 * (rand() % 2)) + 1;
+		int roomLoads = (2 * (rand() % 6)) + 1;
 
 		LoadInitialRoom(0);
 		solution.push_back(std::make_pair(LOAD_INITIAL_ROOM, 0));
-
-		if (fins)
-		{
-			int finsRNG = rand() % 2;
-			if (finsRNG == 0)
-			{
-				AllocateTemporaryActor(0x20);
-				AllocateTemporaryActor(0x20);
-				solution.push_back(std::make_pair(ALLOCATE, 0x20));
-			}
-		}
 
 		for (int i = 0; i <= roomLoads; i++)
 		{
@@ -1040,7 +1044,7 @@ void Heap::Solve()
 			for (auto pot : pots)
 			{
 				if (pot.first - guard.first == 0x200 && 
-					((currentRoomNumber == 2 && (guard.second == 3 || guard.second == 2)) ||
+					((currentRoomNumber == 2 && (guard.second == 2 || guard.second == 3)) ||
 					(currentRoomNumber == 1 && (guard.second == 2 || guard.second == 1 || guard.second == 0))))
 				{
 					solutionFound = true;

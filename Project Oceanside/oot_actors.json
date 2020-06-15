@@ -287,7 +287,7 @@
   "0039": {
     "instanceSize": "0x1C0",
     "overlaySize": "0x0",
-    "overlayType": 0
+    "overlayType": 2
   },
   "003A": {
     "instanceSize": "0x2D0",
@@ -311,7 +311,7 @@
   },
   "003E": {
     "instanceSize": "0x160",
-    "overlaySize": "0x1650",
+    "overlaySize": "0x1660",
     "overlayType": 0
   },
   "003F": {

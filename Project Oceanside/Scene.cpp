@@ -71,7 +71,7 @@ void Scene::LoadScene()
 
 void Scene::ParseSceneJson()
 {
-	std::string sceneFile = "scene.json";
+	std::string sceneFile = "scene_3.json";
 	std::string successMessage = " loaded";
 
 	try
@@ -101,6 +101,9 @@ void Scene::ParseActorJson(char version)
 		break;
 	case MM_JP_GC:
 		actorFile = "mm_j_gc_actors.json";
+		break;
+	case OoT_N2:
+		actorFile = "oot_actors.json";
 		break;
 	default:
 		std::cerr << "Invalid version" << std::endl;
