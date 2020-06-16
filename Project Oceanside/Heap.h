@@ -15,7 +15,7 @@ public:
 	void DeallocateTemporaryActor(int actorID);
 	void LoadInitialRoom(int roomNumber);
 	void UnloadRoom(Room& room, int transitionActorSceneID, Node* carryActor);
-	void ChangeRoom(int newRoomNumber, int transitionActorSceneID, Node* carryActor);
+	void ChangeRoom(int newRoomNumber, int transitionActorSceneID, Node* carryActor, bool spawners);
 	void PrintHeap(char setting) const;
 	void DeleteHeap();
 	Node* FindSuitableGap(Node* newNode) const;
@@ -33,7 +33,8 @@ public:
 	int GetCurrentRoomNumber() const;
 	void ResetLeaks();
 	std::vector<std::pair<int, int>> GetAddressesAndPrioritiesOfType(int actorID, char type);
-
+	std::vector<std::pair<int, int>> GetAllAddresses(char type);
+	int GetOverlayAddress(int actorID);
 private:
 	void AllocateNewRoom(Room& newRoom, Room& oldRoom, int transitionActorSceneID);
 	void DeallocateClearedActors();

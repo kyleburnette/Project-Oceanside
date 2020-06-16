@@ -251,7 +251,7 @@ void Heap::LoadInitialRoom(int roomNumber)
 	AllocateSpawnerOffspring();
 }
 
-void Heap::ChangeRoom(int newRoomNumber, int transitionActorSceneID, Node* carryActor)
+void Heap::ChangeRoom(int newRoomNumber, int transitionActorSceneID, Node* carryActor, bool spawners)
 {
 	this->carryActor = carryActor;
 
@@ -274,7 +274,15 @@ void Heap::ChangeRoom(int newRoomNumber, int transitionActorSceneID, Node* carry
 
 		DeallocateClearedActors();
 		DeallocateReallocatingActors();
-		AllocateSpawnerOffspring();
+		if (spawners)
+		{
+			AllocateSpawnerOffspring();
+		}
+		offspringToAllocate.clear();
+
+		Deallocate(this->carryActor);
+		this->carryActor = nullptr;
+		ClearTemporaryActors();
 	}
 	else
 	{
@@ -283,7 +291,11 @@ void Heap::ChangeRoom(int newRoomNumber, int transitionActorSceneID, Node* carry
 
 		DeallocateClearedActors();
 		DeallocateReallocatingActors();
-		AllocateSpawnerOffspring();
+		if (spawners)
+		{
+			AllocateSpawnerOffspring();
+		}
+		offspringToAllocate.clear();
 	}
 
 	allocatedExplosiveCount = 0;
@@ -387,16 +399,6 @@ void Heap::AllocateSpawnerOffspring()
 		Allocate(offspring);
 		room->AddCurrentlyLoadedActor(offspring);
 	}
-
-	if (this->carryActor)
-	{
-		Deallocate(this->carryActor);
-		this->carryActor = nullptr;
-		ClearTemporaryActors();
-	}
-	
-
-	offspringToAllocate.clear();
 }
 
 std::pair<int, int> Heap::DeallocateRandomActor()
@@ -849,9 +851,11 @@ void Heap::Solve()
 	uint64_t totalPermutations = 0;
 	unsigned int totalSolutions = 0;
 
+	bool endAllocationStep = true;
+
 	std::vector<std::pair<int, int>> solution;
 
-	int MAX_ALLOCATIONS_PER_STEP = 6;
+	int MAX_ALLOCATIONS_PER_STEP = 9;
 
 	std::cout << "Seed: " << seed << std::endl;
 	std::cout << "Solving..." << std::endl;
@@ -863,12 +867,12 @@ void Heap::Solve()
 
 	while (true)
 	{
-		int roomLoads = (2 * (rand() % 6)) + 1;
+		int roomLoads = (2 * (rand() % 8)) + 1;
 
 		LoadInitialRoom(0);
 		solution.push_back(std::make_pair(LOAD_INITIAL_ROOM, 0));
 
-		for (int i = 0; i <= roomLoads; i++)
+		for (int i = 1; i <= roomLoads; i++)
 		{
 			int deallocations = 0;
 			int currentRoomDeallocations = currentRoom->GetDeallocatableActors().size();
@@ -886,16 +890,6 @@ void Heap::Solve()
 				solution.push_back(DeallocateRandomActor());
 			}
 
-			if (smoke)
-			{
-				int smokesRNG = rand() % 2;
-				if (smokesRNG == 0)
-				{
-					AllocateTemporaryActor(0xA2);
-					solution.push_back(std::make_pair(ALLOCATE, 0xA2));
-				}
-			}
-
 			int allocations = 0;
 			if (MAX_ALLOCATIONS_PER_STEP == 0)
 			{
@@ -911,143 +905,66 @@ void Heap::Solve()
 				solution.push_back(std::make_pair(ALLOCATE, AllocateRandomActor()));
 			}
 			
+			bool spinattack = false;
 			if (endAllocationStep)
 			{
-				char rng = rand() % 3;
+				char rng = rand() % 2;
 
 				switch (rng)
 				{
 				case 0:
 					break;
 				case 1:
-					AllocateTemporaryActor(0x3D);
-					solution.push_back(std::make_pair(ALLOCATE, 0x3D));
-					break;
-				case 2:
-					AllocateTemporaryActor(0x35);
-					solution.push_back(std::make_pair(ALLOCATE, 0x35));
+					solution.push_back(std::make_pair(ALLOCATE, 0x57));
+					spinattack = true;
 					break;
 				default:
 					break;
 				}
 			}
 			
-			int nextRoom;
-			int nextPlane;
-			//after all allocations are done, we need to change rooms.
-
-			//if we are in room 2, the only plane we should use is plane 3
-			if (currentRoomNumber == 2)
-			{
-				nextPlane = 3;
-			}
-			//if we are in room 1, the only plane we should use is plane 2
-			else if (currentRoomNumber == 1)
-			{
-				nextPlane = 2;
-			}
-
-			//if we are currently in room 0, we need to randomly choose room 1 or 2 to go to
-			if (currentRoomNumber == 0)
-			{
-				nextRoom = (rand() > RAND_MAX / 2) ? 1 : 2;
-				//if we're choosing to go to room 2, we need to use plane 3
-				if (nextRoom == 2)
-				{
-					nextPlane = 3;
-				}
-				//if we're choosing to go to room 1, we need to use plane 2
-				else if (nextRoom == 1)
-				{
-					nextPlane = 2;
-				}
-			}
-
-			//if we are currently in room 1 or 2, the only room we can go to is room 0 (and in this case
-			//the plane to use was selected already)
-			else
-			{
-				nextRoom = 0;
-			}
-
 			//actually perform room change using chosen room and plane
-			ChangeRoom(nextRoom, nextPlane, nullptr);
-			solution.push_back(std::make_pair(CHANGE_ROOM, nextRoom));
-			solution.push_back(std::make_pair(USE_PLANE, nextPlane));
-		}
-
-		//we're now standing in room 0
-
-		//get back to pot room
-		ChangeRoom(1, 2, nullptr);
-		solution.push_back(std::make_pair(CHANGE_ROOM, 1));
-		solution.push_back(std::make_pair(USE_PLANE, 2));
-
-		//we're now standing in pot room
-		std::vector<std::pair<int, int>> pots = GetAddressesAndPrioritiesOfType(0x82, 'A');
-
-		AllocateTemporaryActor(0xA2);
-		ChangeRoom(0, 0, nullptr);
-		solution.push_back(std::make_pair(SUPERSLIDE, 0));
-
-		//standing in main room now with SRM
-
-		//now we need to randomly choose which room to end up in for guard SRM
-		int nextRoom = (rand() > RAND_MAX / 2) ? 1 : 2;
-		int nextPlaneRNG = rand() % 2;
-		int nextPlane = 0;
-
-		if (nextRoom == 1)
-		{
-			//if we randomly chose room 1 to finish in, we need to pick which plane to use
-			if (nextPlaneRNG == 0)
+			if (spinattack)
 			{
-				nextPlane = 0;
+				ChangeRoom(i % 2, 0, AllocateTemporaryActor(0x57), false);
 			}
 			else
 			{
-				nextPlane = 2;
+				ChangeRoom(i % 2, 0, nullptr, false);
 			}
+			
+			solution.push_back(std::make_pair(CHANGE_ROOM, i));
+			solution.push_back(std::make_pair(USE_PLANE, 0));
+		}
 
-			ChangeRoom(1, nextPlane, nullptr);
-			solution.push_back(std::make_pair(CHANGE_ROOM, 1));
-			solution.push_back(std::make_pair(USE_PLANE, nextPlane));
-		}
-		else if (nextRoom == 2)
+		//in room 1 right now - let's go to main room with spawner active
+		ChangeRoom(0, 0, nullptr, true);
+
+		std::vector<std::pair<int, int>> rocks = GetAddressesAndPrioritiesOfType(0x14E, 'A');
+
+		ChangeRoom(1, 0, nullptr, false);
+		ChangeRoom(0, 0, nullptr, false);
+
+		std::vector<std::pair<int, int>> all = GetAllAddresses('A');
+
+		for (auto rock : rocks)
 		{
-			//if we randomly chose room 2 to finish in, we need to pick which plane to use
-			if (nextPlaneRNG == 0)
+			for (auto thing : all)
 			{
-				nextPlane = 1;
+				if (rock.first - thing.first == 0x80)
+				{
+					if (((GetOverlayAddress(0x0141) + 0x2F34) & 0xFF0000) == 0xACA4)
+					{
+						std::cout << "SUCCESS ";
+					}
+				}
 			}
-			else
-			{
-				nextPlane = 3;
-			}
-			ChangeRoom(2, nextPlane, nullptr);
-			solution.push_back(std::make_pair(CHANGE_ROOM, 2));
-			solution.push_back(std::make_pair(USE_PLANE, nextPlane));
 		}
-		
-		std::vector<std::pair<int, int>> guards = GetAddressesAndPrioritiesOfType(0x17A, 'A');
 			
 		bool solutionFound = false;
 		std::pair<std::pair<int, int>, std::pair<int, int>> solutionPair;
 
-		for (auto guard : guards)
-		{
-			for (auto pot : pots)
-			{
-				if (pot.first - guard.first == 0x200 && 
-					((currentRoomNumber == 2 && (guard.second == 2 || guard.second == 3)) ||
-					(currentRoomNumber == 1 && (guard.second == 2 || guard.second == 1 || guard.second == 0))))
-				{
-					solutionFound = true;
-					solutionPair = std::make_pair(pot, guard);
-				}
-			}
 
-		}
 
 		if (solutionFound)
 		{
@@ -1114,4 +1031,41 @@ void Heap::Solve()
 int Heap::GetCurrentRoomNumber() const
 {
 	return currentRoomNumber;
+}
+
+std::vector<std::pair<int, int>> Heap::GetAllAddresses(char type)
+{
+	std::vector<std::pair<int, int>> results;
+	Node* curr = head;
+
+	while (curr != nullptr)
+	{
+		if (curr->GetType() == type)
+		{
+			results.push_back(std::make_pair(curr->GetAddress(), curr->GetPriority()));
+		}
+
+		curr = curr->GetNext();
+	}
+
+	return results;
+}
+
+int Heap::GetOverlayAddress(int actorID)
+{
+	int result;
+	Node* curr = head;
+
+	while (curr != nullptr)
+	{
+		if (curr->GetID() == actorID && curr->GetType() == 'O')
+		{
+			result = curr->GetAddress();
+			return result;
+		}
+
+		curr = curr->GetNext();
+	}
+
+	
 }
