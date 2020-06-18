@@ -53,7 +53,7 @@ private:
 	const char OVERLAY_TYPE = 'O';
 
 	const int MAX_EXPLOSIVES_PER_ROOM = 1;
-	const int MAX_CHUS = 2;
+	const int MAX_CHUS = 1;
 
 	bool initialLoad = true;
 

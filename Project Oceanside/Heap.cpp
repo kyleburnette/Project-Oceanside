@@ -214,7 +214,7 @@ void Heap::LoadInitialRoom(int roomNumber)
 			continue;
 		}
 
-		if (actor->GetID() == 0x0183)
+		/*if (actor->GetID() == 0x0183)
 		{
 			if (flowerCount < 2)
 			{
@@ -240,7 +240,7 @@ void Heap::LoadInitialRoom(int roomNumber)
 				continue;
 			}
 			
-		}
+		}*/
 		
 		if (actor->IsSingleton())
 		{
@@ -885,7 +885,7 @@ void Heap::Solve()
 	uint64_t totalPermutations = 0;
 	unsigned int totalSolutions = 0;
 
-	bool smoke = true;
+	bool smoke = false;
 	bool fins = false;
 	bool endAllocationStep = true;
 	bool postSSRoomChange = false;
@@ -893,7 +893,7 @@ void Heap::Solve()
 
 	std::vector<std::pair<int, int>> solution;
 
-	int MAX_ALLOCATIONS_PER_STEP = 12;
+	int MAX_ALLOCATIONS_PER_STEP = 3;
 
 	std::cout << "Seed: " << seed << std::endl;
 	std::cout << "Solving..." << std::endl;
@@ -907,10 +907,14 @@ void Heap::Solve()
 
 	while (true)
 	{
-		int roomLoads = (2 * (rand() % 2)) + 1;
+		int roomLoads = (2 * (rand() % 3)) + 1;
 
-		LoadInitialRoom(1);
-		solution.push_back(std::make_pair(LOAD_INITIAL_ROOM, 1));
+		LoadInitialRoom(0);
+		solution.push_back(std::make_pair(LOAD_INITIAL_ROOM, 0));
+
+		ChangeRoom(1, 2, nullptr);
+		solution.push_back(std::make_pair(CHANGE_ROOM, 1));
+		solution.push_back(std::make_pair(USE_PLANE, 2));
 
 		if (breakRocks)
 		{
@@ -1014,12 +1018,12 @@ void Heap::Solve()
 			//if we are in room 2, the only plane we should use is plane 3
 			if (currentRoomNumber == 2)
 			{
-				nextPlane = 3;
+				nextPlane = 1;
 			}
 			//if we are in room 1, the only plane we should use is plane 2
 			else if (currentRoomNumber == 1)
 			{
-				nextPlane = 2;
+				nextPlane = 0;
 			}
 
 			//if we are currently in room 0, we need to randomly choose room 1 or 2 to go to
@@ -1029,12 +1033,12 @@ void Heap::Solve()
 				//if we're choosing to go to room 2, we need to use plane 3
 				if (nextRoom == 2)
 				{
-					nextPlane = 3;
+					nextPlane = 1;
 				}
 				//if we're choosing to go to room 1, we need to use plane 2
 				else if (nextRoom == 1)
 				{
-					nextPlane = 2;
+					nextPlane = 0;
 				}
 			}
 
@@ -1054,9 +1058,9 @@ void Heap::Solve()
 		//we're now standing in room 0
 
 		//get back to pot room
-		ChangeRoom(1, 2, nullptr);
+		ChangeRoom(1, 0, nullptr);
 		solution.push_back(std::make_pair(CHANGE_ROOM, 1));
-		solution.push_back(std::make_pair(USE_PLANE, 2));
+		solution.push_back(std::make_pair(USE_PLANE, 0));
 
 		//we're now standing in pot room
 		std::vector<std::pair<int, int>> pots = GetAddressesAndPrioritiesOfType(0x82, 'A');
