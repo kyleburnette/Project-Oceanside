@@ -10,8 +10,7 @@
         "007B": 1,
         "003D": 1,
         "00A8": 1,
-        "0020": 1,
-        "006A":  1
+        "0020": 1
       },
       "actorList": [
         {
@@ -823,8 +822,7 @@
         "0035": 1,
         "007B": 1,
         "003D": 1,
-        "0020": 1,
-        "006A": 1
+        "0020": 1
       },
       "actorList": [
         {
@@ -1415,8 +1413,7 @@
         "0035": 1,
         "007B": 1,
         "003D": 1,
-        "0020": 1,
-        "006A": 1
+        "0020": 1
       },
       "actorList": [
         {
@@ -1526,7 +1523,7 @@
           "description": "rubin",
           "numberOfOffspring": 0,
           "offspringActorID": 0,
-          "isDeallocatable": true,
+          "isDeallocatable": false,
           "isClearable": true,
           "canStartCleared": false,
           "startCleared": false,

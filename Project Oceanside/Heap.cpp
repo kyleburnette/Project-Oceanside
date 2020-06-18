@@ -174,6 +174,11 @@ void Heap::LoadInitialRoom(int roomNumber)
 	bool badbat = false;
 	std::vector<Node*> extraBats;
 
+	bool flowers = false;
+	std::vector<Node*> elevatorFlowers;
+	std::vector<Node*> extraFlowers;
+	int flowerCount = 0;
+
 	for (Node* actor : newRoom->GetAllActors())
 	{
 		if (actor->IsTransitionActor())
@@ -209,6 +214,34 @@ void Heap::LoadInitialRoom(int roomNumber)
 			continue;
 		}
 
+		if (actor->GetID() == 0x0183)
+		{
+			if (flowerCount < 2)
+			{
+				elevatorFlowers.push_back(actor);
+				flowerCount++;
+				continue;
+			}
+			else if (flowerCount == 2)
+			{
+				flowerCount++;
+				for (auto flower : elevatorFlowers)
+				{
+					Allocate(flower);
+					newRoom->AddCurrentlyLoadedActor(flower);
+				}
+				extraFlowers.push_back(actor);
+				continue;
+			}
+			else if (flowerCount > 2)
+			{
+				flowerCount++;
+				extraFlowers.push_back(actor);
+				continue;
+			}
+			
+		}
+		
 		if (actor->IsSingleton())
 		{
 			singletons.push_back(actor);
@@ -244,6 +277,15 @@ void Heap::LoadInitialRoom(int roomNumber)
 		{
 			Allocate(bat);
 			newRoom->AddCurrentlyLoadedActor(bat);
+		}
+	}
+
+	if (!extraFlowers.empty())
+	{
+		for (auto flower : extraFlowers)
+		{
+			Allocate(flower);
+			newRoom->AddCurrentlyLoadedActor(flower);
 		}
 	}
 
@@ -843,15 +885,15 @@ void Heap::Solve()
 	uint64_t totalPermutations = 0;
 	unsigned int totalSolutions = 0;
 
-	bool smoke = false;
-	bool fins = true;
+	bool smoke = true;
+	bool fins = false;
 	bool endAllocationStep = true;
-	bool postSSRoomChange = true;
-	bool breakRocks = true;
+	bool postSSRoomChange = false;
+	bool breakRocks = false;
 
 	std::vector<std::pair<int, int>> solution;
 
-	int MAX_ALLOCATIONS_PER_STEP = 9;
+	int MAX_ALLOCATIONS_PER_STEP = 12;
 
 	std::cout << "Seed: " << seed << std::endl;
 	std::cout << "Solving..." << std::endl;
@@ -867,8 +909,8 @@ void Heap::Solve()
 	{
 		int roomLoads = (2 * (rand() % 2)) + 1;
 
-		LoadInitialRoom(0);
-		solution.push_back(std::make_pair(LOAD_INITIAL_ROOM, 0));
+		LoadInitialRoom(1);
+		solution.push_back(std::make_pair(LOAD_INITIAL_ROOM, 1));
 
 		if (breakRocks)
 		{
@@ -901,7 +943,7 @@ void Heap::Solve()
 			}
 		}
 
-		for (int i = 0; i <= roomLoads; i++)
+		for (int i = 0; i < roomLoads; i++)
 		{
 			int deallocations = 0;
 			int currentRoomDeallocations = currentRoom->GetDeallocatableActors().size();
