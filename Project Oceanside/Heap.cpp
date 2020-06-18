@@ -174,6 +174,8 @@ void Heap::LoadInitialRoom(int roomNumber)
 	bool badbat = false;
 	std::vector<Node*> extraBats;
 
+	std::vector<Node*> stupidCleareds;
+
 	for (Node* actor : newRoom->GetAllActors())
 	{
 		if (actor->IsTransitionActor())
@@ -214,6 +216,15 @@ void Heap::LoadInitialRoom(int roomNumber)
 			singletons.push_back(actor);
 		}
 
+		if (actor->GetID() == 0x0112)
+		{
+			int priority = actor->GetPriority();
+			if (priority == 0 || priority == 2 || priority == 3 || priority == 4 || priority == 5 || priority == 7 || priority == 8 || priority == 9)
+			{
+				stupidCleareds.push_back(actor);
+			}
+		}
+
 		Allocate(actor);
 		newRoom->AddCurrentlyLoadedActor(actor);
 	}
@@ -247,8 +258,14 @@ void Heap::LoadInitialRoom(int roomNumber)
 		}
 	}
 
-	DeallocateClearedActors();
+	for (auto cleared : stupidCleareds)
+	{
+		Deallocate(cleared);
+		currentRoom->RemoveCurrentlyLoadedActor(cleared);
+	}
 	AllocateSpawnerOffspring();
+	DeallocateClearedActors();
+	
 }
 
 void Heap::ChangeRoom(int newRoomNumber, int transitionActorSceneID, Node* carryActor, bool spawners)
