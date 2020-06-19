@@ -33,7 +33,9 @@ public:
 	int GetCurrentRoomNumber() const;
 	void ResetLeaks();
 	std::vector<std::pair<int, int>> GetAddressesAndPrioritiesOfType(int actorID, char type);
-
+	std::vector<std::pair<int, int>> GetAllAddresses(char type);
+	int GetOverlayAddress(int actorID);
+	
 private:
 	void AllocateNewRoom(Room& newRoom, Room& oldRoom, int transitionActorSceneID);
 	void DeallocateClearedActors();
@@ -73,5 +75,7 @@ private:
 
 	int allocatedExplosiveCount;
 	int allocatedChuCount;
+
+	std::pair<Node*, int> heldActor;
 };
 

@@ -1217,3 +1217,40 @@ int Heap::GetCurrentRoomNumber() const
 {
 	return currentRoomNumber;
 }
+
+std::vector<std::pair<int, int>> Heap::GetAllAddresses(char type)
+{
+	std::vector<std::pair<int, int>> results;
+	Node* curr = head;
+
+	while (curr != nullptr)
+	{
+		if (curr->GetType() == type)
+		{
+			results.push_back(std::make_pair(curr->GetAddress(), curr->GetPriority()));
+		}
+
+		curr = curr->GetNext();
+	}
+
+	return results;
+}
+
+int Heap::GetOverlayAddress(int actorID)
+{
+	int result;
+	Node* curr = head;
+
+	while (curr != nullptr)
+	{
+		if (curr->GetID() == actorID && curr->GetType() == 'O')
+		{
+			result = curr->GetAddress();
+			return result;
+		}
+
+		curr = curr->GetNext();
+	}
+
+
+}
