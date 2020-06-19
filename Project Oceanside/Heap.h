@@ -52,8 +52,8 @@ private:
 	const char LINK_TYPE = 'L';
 	const char OVERLAY_TYPE = 'O';
 
-	const int MAX_EXPLOSIVES_PER_ROOM = 1;
-	const int MAX_CHUS = 1;
+	const int MAX_EXPLOSIVES_PER_ROOM = 0;
+	const int MAX_CHUS = 0;
 
 	bool initialLoad = true;
 

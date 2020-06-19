@@ -893,7 +893,7 @@ void Heap::Solve()
 
 	std::vector<std::pair<int, int>> solution;
 
-	int MAX_ALLOCATIONS_PER_STEP = 3;
+	int MAX_ALLOCATIONS_PER_STEP = 6;
 
 	std::cout << "Seed: " << seed << std::endl;
 	std::cout << "Solving..." << std::endl;
@@ -1018,12 +1018,12 @@ void Heap::Solve()
 			//if we are in room 2, the only plane we should use is plane 3
 			if (currentRoomNumber == 2)
 			{
-				nextPlane = 1;
+				nextPlane = 3;
 			}
 			//if we are in room 1, the only plane we should use is plane 2
 			else if (currentRoomNumber == 1)
 			{
-				nextPlane = 0;
+				nextPlane = 2;
 			}
 
 			//if we are currently in room 0, we need to randomly choose room 1 or 2 to go to
@@ -1033,12 +1033,12 @@ void Heap::Solve()
 				//if we're choosing to go to room 2, we need to use plane 3
 				if (nextRoom == 2)
 				{
-					nextPlane = 1;
+					nextPlane = 3;
 				}
 				//if we're choosing to go to room 1, we need to use plane 2
 				else if (nextRoom == 1)
 				{
-					nextPlane = 0;
+					nextPlane = 2;
 				}
 			}
 
@@ -1058,9 +1058,9 @@ void Heap::Solve()
 		//we're now standing in room 0
 
 		//get back to pot room
-		ChangeRoom(1, 0, nullptr);
+		ChangeRoom(1, 2, nullptr);
 		solution.push_back(std::make_pair(CHANGE_ROOM, 1));
-		solution.push_back(std::make_pair(USE_PLANE, 0));
+		solution.push_back(std::make_pair(USE_PLANE, 2));
 
 		//we're now standing in pot room
 		std::vector<std::pair<int, int>> pots = GetAddressesAndPrioritiesOfType(0x82, 'A');
@@ -1128,7 +1128,6 @@ void Heap::Solve()
 				solution.push_back(std::make_pair(CHANGE_ROOM, 1));
 				solution.push_back(std::make_pair(USE_PLANE, 2));
 			}
-			
 		}
 		
 		std::vector<std::pair<int, int>> guards = GetAddressesAndPrioritiesOfType(0x17A, 'A');
@@ -1141,7 +1140,7 @@ void Heap::Solve()
 			for (auto pot : pots)
 			{
 				if (pot.first - guard.first == 0x200 && 
-					((currentRoomNumber == 2 && (guard.second == 3 || guard.second == 2)) ||
+					((currentRoomNumber == 2 && (guard.second == 3 || guard.second == 2 || guard.second == 1)) ||
 					(currentRoomNumber == 1 && (guard.second == 2 || guard.second == 1 || guard.second == 0))))
 				{
 					solutionFound = true;
