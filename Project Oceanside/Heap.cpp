@@ -495,7 +495,7 @@ int Heap::AllocateRandomActor()
 	{
 		return 0;
 	}
-	else if (newID == 0x006A && allocatedExplosiveCount >= MAX_EXPLOSIVES_PER_ROOM || allocatedChuCount >= MAX_CHUS)
+	else if (newID == 0x006A && allocatedExplosiveCount >= (MAX_EXPLOSIVES_PER_ROOM || allocatedChuCount >= MAX_CHUS))
 	{
 		return 0;
 	}
@@ -885,15 +885,13 @@ void Heap::Solve()
 	uint64_t totalPermutations = 0;
 	unsigned int totalSolutions = 0;
 
-	bool smoke = false;
-	bool fins = false;
 	bool endAllocationStep = true;
 	bool postSSRoomChange = false;
 	bool breakRocks = false;
 
 	std::vector<std::pair<int, int>> solution;
 
-	int MAX_ALLOCATIONS_PER_STEP = 6;
+	int MAX_ALLOCATIONS_PER_STEP = 3;
 
 	std::cout << "Seed: " << seed << std::endl;
 	std::cout << "Solving..." << std::endl;
@@ -907,45 +905,10 @@ void Heap::Solve()
 
 	while (true)
 	{
-		int roomLoads = (2 * (rand() % 3)) + 1;
+		int roomLoads = (2 * (rand() % 3));
 
 		LoadInitialRoom(0);
 		solution.push_back(std::make_pair(LOAD_INITIAL_ROOM, 0));
-
-		ChangeRoom(1, 2, nullptr);
-		solution.push_back(std::make_pair(CHANGE_ROOM, 1));
-		solution.push_back(std::make_pair(USE_PLANE, 2));
-
-		if (breakRocks)
-		{
-			char rockRNG = rand() % 2;
-			if (rockRNG)
-			{
-				char rock1 = rand() % 2;
-				char rock2 = rand() % 2;
-				if (rock1)
-				{
-					Deallocate(0x0092, 0);
-					solution.push_back(std::make_pair(DEALLOCATE, 0x92));
-				}
-				if (rock2)
-				{
-					Deallocate(0x0092, 1);
-					solution.push_back(std::make_pair(DEALLOCATE, 0x92));
-				}
-
-			}
-		}
-		if (fins)
-		{
-			int finsRNG = rand() % 2;
-			if (finsRNG == 0)
-			{
-				AllocateTemporaryActor(0x20);
-				AllocateTemporaryActor(0x20);
-				solution.push_back(std::make_pair(ALLOCATE, 0x20));
-			}
-		}
 
 		for (int i = 0; i < roomLoads; i++)
 		{
@@ -985,9 +948,10 @@ void Heap::Solve()
 				allocations = rand() % MAX_ALLOCATIONS_PER_STEP;
 			}
 			 
-			for (int j = 0; j < allocations; j++)
+			for (int j = 0; j <= allocations; j++)
 			{
-				solution.push_back(std::make_pair(ALLOCATE, AllocateRandomActor()));
+				auto allocate = AllocateRandomActor();
+				solution.push_back(std::make_pair(ALLOCATE, allocate));
 			}
 			
 			if (endAllocationStep)
@@ -1029,7 +993,8 @@ void Heap::Solve()
 			//if we are currently in room 0, we need to randomly choose room 1 or 2 to go to
 			if (currentRoomNumber == 0)
 			{
-				nextRoom = (rand() > RAND_MAX / 2) ? 1 : 2;
+				nextRoom = 1;
+				//nextRoom = (rand() > RAND_MAX / 2) ? 1 : 2;
 				//if we're choosing to go to room 2, we need to use plane 3
 				if (nextRoom == 2)
 				{
@@ -1139,9 +1104,9 @@ void Heap::Solve()
 		{
 			for (auto pot : pots)
 			{
-				if (pot.first - guard.first == 0x200 && 
+				if (pot.first - guard.first == 0x200/* && 
 					((currentRoomNumber == 2 && (guard.second == 3 || guard.second == 2 || guard.second == 1)) ||
-					(currentRoomNumber == 1 && (guard.second == 2 || guard.second == 1 || guard.second == 0))))
+					(currentRoomNumber == 1 && (guard.second == 2 || guard.second == 1 || guard.second == 0)))*/)
 				{
 					solutionFound = true;
 					solutionPair = std::make_pair(pot, guard);
