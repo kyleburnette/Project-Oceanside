@@ -923,7 +923,7 @@ void Heap::Solve()
 				deallocations = 0;
 			}
 
-			for (int j = 0; j <= deallocations; j++)
+			for (int j = 0; j < deallocations; j++)
 			{
 				solution.push_back(DeallocateRandomActor());
 			}
