@@ -928,16 +928,6 @@ void Heap::Solve()
 				solution.push_back(DeallocateRandomActor());
 			}
 
-			if (smoke)
-			{
-				int smokesRNG = rand() % 2;
-				if (smokesRNG == 0)
-				{
-					AllocateTemporaryActor(0xA2);
-					solution.push_back(std::make_pair(ALLOCATE, 0xA2));
-				}
-			}
-
 			int allocations = 0;
 			if (MAX_ALLOCATIONS_PER_STEP == 0)
 			{
@@ -993,8 +983,8 @@ void Heap::Solve()
 			//if we are currently in room 0, we need to randomly choose room 1 or 2 to go to
 			if (currentRoomNumber == 0)
 			{
-				nextRoom = 1;
-				//nextRoom = (rand() > RAND_MAX / 2) ? 1 : 2;
+				nextRoom = nextRoom = (rand() > RAND_MAX / 2) ? 1 : 2;
+				//
 				//if we're choosing to go to room 2, we need to use plane 3
 				if (nextRoom == 2)
 				{
