@@ -938,7 +938,7 @@ void Heap::Solve()
 				allocations = rand() % MAX_ALLOCATIONS_PER_STEP;
 			}
 			 
-			for (int j = 0; j <= allocations; j++)
+			for (int j = 0; j < allocations; j++)
 			{
 				auto allocate = AllocateRandomActor();
 				solution.push_back(std::make_pair(ALLOCATE, allocate));
