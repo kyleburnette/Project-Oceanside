@@ -972,19 +972,21 @@ void Heap::Solve()
 			//if we are in room 2, the only plane we should use is plane 3
 			if (currentRoomNumber == 2)
 			{
+				nextRoom = 0;
 				nextPlane = 3;
 			}
 			//if we are in room 1, the only plane we should use is plane 2
 			else if (currentRoomNumber == 1)
 			{
+				nextRoom = 0;
 				nextPlane = 2;
 			}
 
 			//if we are currently in room 0, we need to randomly choose room 1 or 2 to go to
-			if (currentRoomNumber == 0)
+			else if (currentRoomNumber == 0)
 			{
-				nextRoom = nextRoom = (rand() > RAND_MAX / 2) ? 1 : 2;
-				//
+				nextRoom = (rand() > RAND_MAX / 2) ? 1 : 2;
+
 				//if we're choosing to go to room 2, we need to use plane 3
 				if (nextRoom == 2)
 				{
@@ -995,13 +997,6 @@ void Heap::Solve()
 				{
 					nextPlane = 2;
 				}
-			}
-
-			//if we are currently in room 1 or 2, the only room we can go to is room 0 (and in this case
-			//the plane to use was selected already)
-			else
-			{
-				nextRoom = 0;
 			}
 
 			//actually perform room change using chosen room and plane
