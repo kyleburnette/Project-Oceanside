@@ -14,7 +14,7 @@ std::map<int, Node*> overlayMap = {
 Node::Node(int actorID, std::string s_actorID, nlohmann::json& actorJson, nlohmann::json& actorParameters, int priority)
 {
 	std::string actorIDString = actorJson[s_actorID]["instanceSize"];
-	
+
 	this->size = strtol(actorIDString.c_str(), nullptr, 16);
 	this->ID = actorID;
 	this->type = 'A';
@@ -27,6 +27,20 @@ Node::Node(int actorID, std::string s_actorID, nlohmann::json& actorJson, nlohma
 	this->considerForSRM = actorParameters["considerForSRM"];
 	this->reallocateOnRoomChange = actorParameters["reallocateOnRoomChange"];
 	this->isSingleton = actorParameters["isSingleton"];
+
+	//if actor is transition actor, set up relevant information
+	if (actorParameters["transition"] != -1)
+	{
+		this->isTransitionActor = true;
+		roomsConnectedByTransition.first = actorParameters["transition"][0];
+		roomsConnectedByTransition.second = actorParameters["transition"][1];
+		this->sceneTransitionID = actorParameters["sceneTransitionID"];
+	}
+
+	else
+	{
+		this->isTransitionActor = false;
+	}
 	
 	if (actorParameters["numberOfOffspring"] > 0)
 	{
@@ -117,6 +131,20 @@ Node::Node(const Node& copy)
 	this->considerForSRM = copy.ConsiderForSRM();
 	this->reallocateOnRoomChange = copy.ReallocateOnRoomChange();
 	this->isSpawner = copy.IsSpawner();
+
+	//if actor is transition actor, set up relevant information
+	if (copy.IsTransitionActor() != -1)
+	{
+		this->isTransitionActor = true;
+		this->roomsConnectedByTransition.first = copy.roomsConnectedByTransition.first;
+		this->roomsConnectedByTransition.second = copy.roomsConnectedByTransition.second;
+		this->sceneTransitionID = copy.GetSceneTransitionID();
+	}
+
+	else
+	{
+		this->isTransitionActor = false;
+	}
 }
 
 Node::Node(int size, int ID, char type, Node* overlay)
@@ -266,4 +294,19 @@ void Node::SetCleared(bool clearStatus)
 bool Node::IsSingleton() const
 {
 	return isSingleton;
+}
+
+bool Node::IsTransitionActor() const
+{
+	return isTransitionActor;
+}
+
+std::pair<int, int> Node::GetRoomsConnectedByTransition() const
+{
+	return roomsConnectedByTransition;
+}
+
+int Node::GetSceneTransitionID() const
+{
+	return sceneTransitionID;
 }

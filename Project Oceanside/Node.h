@@ -44,6 +44,9 @@ public:
 	int GetOffspringActorID() const;
 	bool IsSpawner() const;
 	bool IsSingleton() const;
+	bool IsTransitionActor() const;
+	std::pair<int,int> GetRoomsConnectedByTransition() const;
+	int GetSceneTransitionID() const;
 
 private:
 	Node* next = nullptr;
@@ -58,6 +61,11 @@ private:
 	bool isClearable;
 	bool isDeallocatable;
 	bool canStartCleared;
+
+	bool isTransitionActor = false;
+	std::pair<int, int> roomsConnectedByTransition;
+	int sceneTransitionID = -1;
+
 	bool startCleared;
 	bool considerForSRM;
 	bool reallocateOnRoomChange;

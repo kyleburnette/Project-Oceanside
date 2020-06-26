@@ -1,13 +1,11 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <chrono>
-#include <algorithm>
+#include <direct.h>
 
 #include "Heap.h"
 #include "Room.h"
 #include "Constants.h"
-#include "windows.h"
 
 Heap::Heap(Scene* scene, int start, int linkSize) : start_address(start), scene(scene), linkSize(linkSize)
 {
@@ -26,7 +24,7 @@ Heap::~Heap()
 	DeleteHeap();
 }
 
-void Heap::AllocateTemporaryActor(int actorID)
+Node* Heap::AllocateTemporaryActor(int actorID)
 {
 	//get list of all possible temporary actors in the currently loaded room
 	auto possibleTempActors = scene->GetRoom(currentRoomNumber)->GetPossibleTemporaryActors();
@@ -67,6 +65,8 @@ void Heap::AllocateTemporaryActor(int actorID)
 		temporaryActors.push_back(newTempActor);
 		break;
 	}
+
+	return newTempActor;
 }
 
 void Heap::DeallocateTemporaryActor(int actorID)
@@ -174,8 +174,19 @@ void Heap::LoadInitialRoom(int roomNumber)
 	bool badbat = false;
 	std::vector<Node*> extraBats;
 
+	bool flowers = false;
+	std::vector<Node*> elevatorFlowers;
+	std::vector<Node*> extraFlowers;
+	int flowerCount = 0;
+
 	for (Node* actor : newRoom->GetAllActors())
 	{
+		if (actor->IsTransitionActor())
+		{
+			Allocate(scene->GetTransitionActors()[actor->GetSceneTransitionID()]);
+			//newRoom->AddCurrentlyLoadedActor(actor);
+			continue;
+		}
 		if (actor->GetID() == 0xCA)
 		{
 			scarecrow = true;
@@ -203,6 +214,34 @@ void Heap::LoadInitialRoom(int roomNumber)
 			continue;
 		}
 
+		/*if (actor->GetID() == 0x0183)
+		{
+			if (flowerCount < 2)
+			{
+				elevatorFlowers.push_back(actor);
+				flowerCount++;
+				continue;
+			}
+			else if (flowerCount == 2)
+			{
+				flowerCount++;
+				for (auto flower : elevatorFlowers)
+				{
+					Allocate(flower);
+					newRoom->AddCurrentlyLoadedActor(flower);
+				}
+				extraFlowers.push_back(actor);
+				continue;
+			}
+			else if (flowerCount > 2)
+			{
+				flowerCount++;
+				extraFlowers.push_back(actor);
+				continue;
+			}
+			
+		}*/
+		
 		if (actor->IsSingleton())
 		{
 			singletons.push_back(actor);
@@ -241,35 +280,115 @@ void Heap::LoadInitialRoom(int roomNumber)
 		}
 	}
 
+	if (!extraFlowers.empty())
+	{
+		for (auto flower : extraFlowers)
+		{
+			Allocate(flower);
+			newRoom->AddCurrentlyLoadedActor(flower);
+		}
+	}
+
 	DeallocateClearedActors();
 	AllocateSpawnerOffspring();
-
-	initialLoad = false;
-
-	//reimplement situations where initial scene load is different from subsequent loads of initial room
 }
 
-void Heap::ChangeRoom(int newRoomNumber)
+void Heap::ChangeRoom(int newRoomNumber, int transitionActorSceneID, Node* carryActor, bool spawners)
 {
+	this->carryActor = carryActor;
+
+	if (newRoomNumber == currentRoomNumber)
+	{
+		std::cerr << "Room number " << newRoomNumber << " is already loaded!\n";
+		return;
+	}
+
 	Room* oldRoom = scene->GetRoom(currentRoomNumber);
 	Room* newRoom = scene->GetRoom(newRoomNumber);
 
 	this->currentRoomNumber = newRoomNumber;
 	this->currentRoom = scene->GetRoom(currentRoomNumber);
-	
-	AllocateNewRoom(*newRoom);
-	UnloadRoom(*oldRoom);
 
-	DeallocateClearedActors();
-	AllocateSpawnerOffspring();
-	DeallocateReallocatingActors();
+	if (carryActor)
+	{
+		AllocateNewRoom(*newRoom, *oldRoom, transitionActorSceneID);
+		UnloadRoom(*oldRoom, transitionActorSceneID, carryActor);
+
+		DeallocateClearedActors();
+		DeallocateReallocatingActors();
+		if (spawners)
+		{
+			AllocateSpawnerOffspring();
+		}
+		offspringToAllocate.clear();
+
+		Deallocate(this->carryActor);
+		this->carryActor = nullptr;
+		ClearTemporaryActors();
+	}
+	else
+	{
+		AllocateNewRoom(*newRoom, *oldRoom, transitionActorSceneID);
+		UnloadRoom(*oldRoom, transitionActorSceneID, nullptr);
+
+		DeallocateClearedActors();
+		DeallocateReallocatingActors();
+		if (spawners)
+		{
+			AllocateSpawnerOffspring();
+		}
+		offspringToAllocate.clear();
+	}
+
+	allocatedExplosiveCount = 0;
+	allocatedArrowCount = 0;
 }
 
-void Heap::AllocateNewRoom(Room& newRoom)
+void Heap::AllocateNewRoom(Room& newRoom, Room& oldRoom, int transitionActorSceneID)
 {
+	if (transitionActorSceneID > scene->NumberOfTransitionActors() - 1)
+	{
+		std::cerr << "TransitionActorID not in list of transition actors (most likely a number higher than the number of total transition actors\n";
+		return;
+	}
+	
 	//allocate new room first
 	for (Node* actor : newRoom.GetAllActors())
 	{
+		if (actor->IsTransitionActor())
+		{
+			int currentActorSceneID = actor->GetSceneTransitionID();
+
+			//Is its scene ID the one being used to switch rooms?
+			if (currentActorSceneID == transitionActorSceneID)
+			{
+				/*if yes: do nothing(needs to stay allocated since you're going through it)
+				also, since this is the corresponding loading plane in the new room, you need
+				to not reallocate it AND you don't need to keep track of it. Do nothing.*/
+				;
+			}
+			else
+			{
+				//if no:
+				//is this scene ID in the last room as well(i.e.shared by the rooms, but you're not going through it?)
+				auto transitionActorsOldRoom = oldRoom.GetTransitionActors();
+				if (transitionActorsOldRoom.find(currentActorSceneID) != transitionActorsOldRoom.end())
+				{
+					/*if yes*/
+					//hold onto it(don't allocate until end)
+					reallocatingTransitionActors.push_back(scene->GetTransitionActors()[currentActorSceneID]);
+				}
+				else
+				{
+					/*if no:
+					//allocate normally (but allocate the copy held in the scene (this is probably stupid, but...))*/
+					Allocate(scene->GetTransitionActors()[currentActorSceneID]);
+				}
+			}		
+
+			//none of the rest of this applies if this is a transition actor, so continue to next actor in list
+			continue;
+		}
 		if (actor->IsSingleton() && actor->ReallocateOnRoomChange())
 		{
 			Node* newSingleton = new Node(*actor);
@@ -280,6 +399,7 @@ void Heap::AllocateNewRoom(Room& newRoom)
 		{
 			int actorID = actor->GetID();
 
+			//std::cout << std::hex << "Allocating: " << actor->GetID() << std::endl;
 			Allocate(actor);
 			newRoom.AddCurrentlyLoadedActor(actor);
 
@@ -322,6 +442,14 @@ void Heap::AllocateSpawnerOffspring()
 		Allocate(offspring);
 		room->AddCurrentlyLoadedActor(offspring);
 	}
+
+	if (this->carryActor)
+	{
+		Deallocate(this->carryActor);
+		this->carryActor = nullptr;
+		ClearTemporaryActors();
+	}
+	
 
 	offspringToAllocate.clear();
 }
@@ -370,13 +498,51 @@ int Heap::AllocateRandomActor()
 	char rng = rand() % possibleActors.size();
 	auto newID = possibleActors[rng];
 
-	while ((newID == 0x7B || newID == 0x35 || newID == 0xA2 || newID == 0x3D))
+	while ((newID == 0x7B || newID == 0x35 || newID == 0xA2 || newID == 0x3D || newID == 0x20 || newID == 0xDA || newID == 0x183 || newID == 0xE))
 	{
 		rng = rand() % possibleActors.size();
 		newID = possibleActors[rng];
 	}
 
-	AllocateTemporaryActor(newID);
+	if (newID == 0x0009 && (allocatedExplosiveCount >= MAX_EXPLOSIVES_PER_ROOM || allocatedBombCount >= MAX_BOMBS))
+	{
+		return 0;
+	}
+	else if (newID == 0x006A && (allocatedExplosiveCount >= MAX_EXPLOSIVES_PER_ROOM || allocatedChuCount >= MAX_CHUS))
+	{
+		return 0;
+	}
+	else if (newID == 0x18C && allocatedISoTCount >= MAX_ISOT)
+	{
+		return 0;
+	}
+	else if (newID == 0x000F && allocatedArrowCount >= MAX_ARROWS_PER_ROOM)
+	{
+		return 0;
+	}
+
+	else
+	{
+		AllocateTemporaryActor(newID);
+		if (newID == 0x0009)
+		{
+			allocatedExplosiveCount++;
+			allocatedBombCount++;
+		}
+		else if (newID == 0x006A)
+		{
+			allocatedExplosiveCount++;
+			allocatedChuCount++;
+		}
+		else if (newID == 0x018C)
+		{
+			allocatedISoTCount++;
+		}
+		else if (newID == 0x000F)
+		{
+			allocatedArrowCount++;
+		}
+	}
 
 	return possibleActors[rng];
 }
@@ -409,15 +575,39 @@ std::pair<int, int> Heap::ClearRandomActor()
 	return std::make_pair(clearableActorToDeallocate->GetID(), clearableActorToDeallocate->GetPriority());
 }
 
-void Heap::UnloadRoom(Room& room)
+void Heap::UnloadRoom(Room& room, int transitionActorSceneID, Node* carryActor)
 {
 	//deallocate temporary actors from old room (bombs, bugs, etc.) and reset temp actor vector
-	for (Node* actor : temporaryActors)
+
+	if (carryActor)
 	{
-		Deallocate(actor);
+		for (Node* actor : temporaryActors)
+		{
+			if (actor != carryActor)
+			{
+				Deallocate(actor);
+			}
+		}
 	}
 
-	ClearTemporaryActors();
+	else
+	{
+		for (Node* actor : temporaryActors)
+		{
+			Deallocate(actor);
+
+		}
+		ClearTemporaryActors();
+	}
+
+	for (auto actor : room.GetTransitionActors())
+	{
+		if (actor.second->IsTransitionActor() && actor.second->GetSceneTransitionID() != transitionActorSceneID)
+		{
+			auto actortmp= scene->GetTransitionActors()[actor.first];
+			Deallocate(actortmp);
+		}
+	}
 
 	for (Node* actor : room.GetCurrentlyLoadedActors())
 	{
@@ -427,6 +617,13 @@ void Heap::UnloadRoom(Room& room)
 			room.RemoveCurrentlyLoadedActor(actor);
 		}	
 	}
+
+	for (auto actor : reallocatingTransitionActors)
+	{
+		Allocate(scene->GetTransitionActors()[actor->GetSceneTransitionID()]);
+	}
+
+	reallocatingTransitionActors.clear();
 
 	room.ResetCurrentlyLoadedActors();
 	room.ReplenishDeallocatableActors();
@@ -457,7 +654,7 @@ void Heap::Deallocate(int actorID, int priority)
 		if (curr->GetID() == actorID && curr->GetType() == 'A' && curr->GetPriority() == priority)
 		{
 			Deallocate(curr);
-			scene->GetRoom(currentRoomNumber)->DeallocateActor(curr);
+			scene->GetRoom(currentRoomNumber)->RemoveCurrentlyLoadedActor(curr);
 			break;
 		}
 
@@ -584,23 +781,14 @@ void Heap::PrintHeap(char setting) const
 				<< std::setw(6) << std::setfill('0') << curr->GetSize() << " "
 				<< std::setw(1) << curr->GetType() << " "
 				<< std::setw(4) << curr->GetID() << " "
-				<< std::setw(1) << std::dec << curr->GetPriority()
+				<< std::setw(1) << std::dec << curr->GetPriority() << " "
+				<< std::setw(2) << std::dec << curr->GetSceneTransitionID() << " "
 				<< std::endl;
 		}
 		
 
 		curr = curr->GetNext();
 		
-	}
-}
-
-void Heap::PrintHeapInReverse() const
-{
-	Node* curr = tail;
-	while (curr != nullptr)
-	{
-		std::cout << "Address: " << std::hex << "0x" << curr->GetAddress() << " " << curr->GetID() << " " << curr->GetType() << std::dec << std::endl;
-		curr = curr->GetPrev();
 	}
 }
 
@@ -675,12 +863,27 @@ void Heap::ResetLeaks()
 
 void Heap::ResetHeap()
 {
-	UnloadRoom(*scene->GetRoom(currentRoomNumber));
+	UnloadRoom(*scene->GetRoom(currentRoomNumber), 0, nullptr);
 	ResetLeaks();
 	scene->ResetClearedActors();
+	
+	/*sloppy way to deallocate scene-level actors (i.e. transition actors)*/
+	Node* curr = head;
+	while (curr != nullptr)
+	{
+		if (curr->IsTransitionActor())
+		{
+			Deallocate(curr);
+		}
+
+		curr = curr->GetNext();
+	}
 
 	currentRoomNumber = -1;
 	currentRoom = nullptr;
+	allocatedChuCount = 0;
+	allocatedBombCount = 0;
+	allocatedISoTCount = 0;
 }
 
 int Heap::GetRoomNumber() const
@@ -706,290 +909,208 @@ std::vector<std::pair<int, int>> Heap::GetAddressesAndPrioritiesOfType(int actor
 	return results;
 }
 
-void Heap::Solve(int solverType)
+void Heap::Solve()
 {
-	std::cout << std::hex << "Node size: " << linkSize << std::endl;
-	std::cout << "Starting node: " << MM_US0_START << std::endl;
+	unsigned int seed = time(NULL);
+	srand(seed);
 
-	//TODO - implement
-	switch (solverType)
+	uint64_t totalPermutations = 0;
+	unsigned int totalSolutions = 0;
+	
+	std::vector<std::pair<int, int>> solution;
+
+	std::cout << "Seed: " << seed << std::endl;
+	std::cout << "Solving..." << std::endl;
+	//imbued "C:\\Users\\doldop\\Documents\\Bizhawk RAM Watch\\kylf\\Heap_Manip_Outputs\\";
+	//me "C:\\Users\\Kyle\\Desktop\\Heap_Manip_Outputs\\";
+	//geek "F:\kyle\"
+	auto newContainerFolder = "C:\\Users\\Kyle\\Desktop\\Heap_Manip_Outputs\\";
+	auto newSubFolder = newContainerFolder + std::to_string(seed) + "\\";
+	_mkdir(newContainerFolder);
+	_mkdir(newSubFolder.c_str());
+
+	while (true)
 	{
-	case RandomAssortment:
-		break;
-	case SuccessiveActorSolver:
-		break;
-	case nop:
-		break;
-	case Test:
+		int roomLoads = (2 * (rand() % LOAD_MODIFIER));
+
 		LoadInitialRoom(0);
-		Deallocate(0xED, 0x0);
-		Deallocate(0xED, 0x1);
-		Deallocate(0x265, 0x0);
-		Deallocate(0x265, 0x1);
-		Deallocate(0x265, 0x2);
-		ChangeRoom(1);
-		scene->GetRoom(1)->DumpRoomInfo();
-		Deallocate(0x90, 0xC8);
-		Deallocate(0x90, 0xCC);
-		Deallocate(0xB0, 0x6A);
-		AllocateTemporaryActor(0x0009);
-		AllocateTemporaryActor(0x000F);
-		ChangeRoom(0);
-		Deallocate(0xED, 0x0);
-		Deallocate(0xED, 0x1);
-		Deallocate(0xED, 0x2);
-		Deallocate(0x265, 0x1);
-		Deallocate(0x265, 0x2);
-		ChangeRoom(1);
-		AllocateTemporaryActor(0x0009);
-		ChangeRoom(0);
-		Deallocate(0xED, 0x0);
-		Deallocate(0xED, 0x1);
-		Deallocate(0x265, 0x2);
-		Deallocate(0x265, 0x1);
-		Deallocate(0x265, 0x0);
-		ChangeRoom(1);
-		AllocateTemporaryActor(0x00A2);
-		ChangeRoom(0);
-		ChangeRoom(1);
-		ChangeRoom(0);
+		solution.push_back(std::make_pair(LOAD_INITIAL_ROOM, 0));
 
-		PrintHeap(1);
-		break;
-	case DFSRM:
-	{
-		uint64_t seed = GetTickCount64();
-		srand(seed);
-
-		uint64_t totalPermutations = 0;
-		unsigned int totalSolutions = 0;
-
-		std::vector<std::pair<int, int>> solution;
-		
-		int MAX_ALLOCATIONS_PER_STEP = 4;
-
-		std::cout << "Seed: " << seed << std::endl;
-		std::cout << "Solving..." << std::endl;
-		while (true)
+		if (breakRocks)
 		{
-			int roomLoads = (2 * (rand() % 3)) + 1;
-
-			LoadInitialRoom(0);
-			solution.push_back(std::make_pair(CHANGE_ROOM, 0x0));
-
-			for (int i = 1; i <= roomLoads; i++)
+			char rockRNG = rand() % 4;
+			if (rockRNG == 0)
 			{
-				int deallocations = rand() % currentRoom->GetDeallocatableActors().size();
+				Deallocate(0x92, 0);
+				solution.push_back(std::make_pair(0x92, 0));
 
-				for (int j = 0; j <= deallocations; j++)
+			}
+			else if (rockRNG == 1)
+			{
+				Deallocate(0x92, 1);
+				solution.push_back(std::make_pair(0x92, 1));
+			}
+			else if (rockRNG == 2)
+			{
+				Deallocate(0x92, 0);
+				Deallocate(0x92, 1);
+				solution.push_back(std::make_pair(0x92, 0));
+				solution.push_back(std::make_pair(0x92, 1));
+			}
+		}
+
+		if (fins)
+		{
+			AllocateTemporaryActor(0x20);
+			AllocateTemporaryActor(0x20);
+			solution.push_back(std::make_pair(ALLOCATE, 0x20));
+		}
+
+		for (int i = 0; i < roomLoads; i++)
+		{
+			int deallocations = 0;
+			int currentRoomDeallocations = currentRoom->GetDeallocatableActors().size();
+			if (currentRoomDeallocations)
+			{
+				 deallocations = rand() % currentRoomDeallocations;
+			}
+			else
+			{
+				deallocations = 0;
+			}
+
+			for (int j = 0; j < deallocations; j++)
+			{
+				solution.push_back(DeallocateRandomActor());
+			}
+
+			if (madScrub)
+			{
+				char scrubRNG = rand() % 2;
+				if (scrubRNG && currentRoomNumber != 0)
 				{
-					solution.push_back(DeallocateRandomActor());
+					AllocateTemporaryActor(0x183);
+					Deallocate(0x3B, 1);
+					solution.push_back(std::make_pair(ALLOCATE, 0x183));
 				}
+			}
 
-				int smokesRNG = rand() % 2;
-
-				if (smokesRNG == 0)
+			if (smoke)
+			{
+				char smokeRNG = rand() % 2;
+				if (smokeRNG)
 				{
 					AllocateTemporaryActor(0xA2);
 					solution.push_back(std::make_pair(ALLOCATE, 0xA2));
 				}
-				
-				int allocations = rand() % MAX_ALLOCATIONS_PER_STEP;
+			}
 
-				for (int j = 0; j <= allocations; j++)
-				{
-					solution.push_back(std::make_pair(ALLOCATE, AllocateRandomActor()));
-				}
-
-				/*char rng = rand() % 3;
+			int allocations = 0;
+			if (MAX_ALLOCATIONS_PER_STEP == 0)
+			{
+				allocations = 0;
+			}
+			else
+			{
+				allocations = rand() % MAX_ALLOCATIONS_PER_STEP;
+			}
+			 
+			for (int j = 0; j < allocations; j++)
+			{
+				auto allocate = AllocateRandomActor();
+				solution.push_back(std::make_pair(ALLOCATE, allocate));
+			}
+			
+			if (endAllocationStep)
+			{
+				char rng = rand() % 3;
 
 				switch (rng)
 				{
-					case 0:
-						break;
-					case 1:
-						if (currentRoomNumber == 1)
-						{
-							AllocateTemporaryActor(0x3D);
-							solution.push_back(std::make_pair(ALLOCATE, 0x3D));
-							break;
-						}
-						else
-						{
-							break;
-						}
-						
-					case 2:
-						if (currentRoomNumber == 1)
-						{
-							AllocateTemporaryActor(0x35);
-							solution.push_back(std::make_pair(ALLOCATE, 0x35));
-							break;
-						}
-						else
-						{
-							break;
-						}
-						
-					default:
-						break;
-				}*/
-
-				ChangeRoom(i % 2);
-				solution.push_back(std::make_pair(CHANGE_ROOM, i % 2));
+				case 0:
+					break;
+				case 1:
+					AllocateTemporaryActor(0x3D);
+					solution.push_back(std::make_pair(ALLOCATE, 0x3D));
+					break;
+				case 2:
+					AllocateTemporaryActor(0x35);
+					solution.push_back(std::make_pair(ALLOCATE, 0x35));
+					break;
+				default:
+					break;
+				}
 			}
 
-			//we're now standing in chest room
-			
-			std::vector<std::pair<int, int>> rocks = GetAddressesAndPrioritiesOfType(0xB0, 'A');
-			std::vector<std::pair<int, int>> grass = GetAddressesAndPrioritiesOfType(0x90, 'A');
-			
-			AllocateTemporaryActor(0xA2);
-			ChangeRoom(0);
-			solution.push_back(std::make_pair(SUPERSLIDE, 0));
+			int nextRoom;
+			int nextPlane;
+			//after all allocations are done, we need to change rooms.
 
-			ChangeRoom(1);
-			solution.push_back(std::make_pair(CHANGE_ROOM, 1));
-
-			int chestOverlayAddress = GetAddressesAndPrioritiesOfType(0x6, 'O')[0].first;
-
-			ChangeRoom(0);
-			solution.push_back(std::make_pair(CHANGE_ROOM, 0));
-
-			int flowerOverlayAddress = GetAddressesAndPrioritiesOfType(0xB1, 'O')[0].first;
-			
-			if (((chestOverlayAddress + 0x10F8) & 0xFF0000) == ((flowerOverlayAddress + 0x48) & 0xFF0000))
+			//if we are in room 2, the only plane we should use is plane 3
+			if (currentRoomNumber == 2)
 			{
-				std::cout << "OVERLAYS MATCH" << std::endl;
-				std::cout << std::hex << chestOverlayAddress << " " << flowerOverlayAddress << std::endl;
-				std::vector<std::pair<int,int>> flowers = GetAddressesAndPrioritiesOfType(0xB1, 'A');
-				std::cout << "Flowers: ";
-				for (auto flower : flowers)
-				{
-					std::cout << std::hex << flower.first << " ";
-				}
-				std::cout << std::endl;
-				std::cout << "Rocks: ";
-				for (auto rock : rocks)
-				{
-					std::cout << std::hex << rock.first << " ";
-				}
-				std::cout << std::endl;
-				std::cout << "Grass: ";
-				for (auto gras : grass)
-				{
-					std::cout << std::hex << gras.first << " ";
-				}
-				std::cout << std::endl;
-				std::pair<std::pair<int, int>, std::pair<int, int>> solutionPair;
-				bool solutionFound = false;
-
-				for (auto flower : flowers)
-				{
-					for (auto rock : rocks)
-					{
-						if (rock.first - flower.first == 0x80)
-						{
-							std::cout << "O M G ";
-							solutionPair = std::make_pair(rock, flower);
-							solutionFound = true;
-						}
-					}
-
-					for (auto gras : grass)
-					{
-						if (gras.first - flower.first == 0x80)
-						{
-							std::cout << "O M G ";
-							solutionPair = std::make_pair(gras, flower);
-							solutionFound = true;
-						}
-					}
-				}
-
-				if (solutionFound)
-				{
-					std::cout << "SOLUTION FOUND\n";
-					totalSolutions++;
-
-					std::ofstream outputFile;
-					std::string outputFilename = "solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
-					outputFile.open(outputFilename);
-
-					for (auto step : solution)
-					{
-						if (step.first == CHANGE_ROOM)
-						{
-							outputFile << std::hex << "Load room: " << step.second << std::endl;
-						}
-						else if (step.first == ALLOCATE)
-						{
-							outputFile << std::hex << "Allocate: " << step.second << std::endl;
-						}
-						else if (step.first == SUPERSLIDE)
-						{
-							outputFile << std::hex << "Superslide into room " << step.second << " with smoke still loaded." << std::endl;
-						}
-						else
-						{
-							outputFile << std::hex << "Deallocate: " << step.first << " | Priority: " << step.second << std::endl;
-						}
-						
-					}
-
-					outputFile.close();
-				}
-
-
+				nextRoom = 0;
+				nextPlane = 3;
 			}
-
-			ResetHeap();
-			solution.clear();
-			totalPermutations++;
-
-			if (totalPermutations % 100000 == 0)
+			//if we are in room 1, the only plane we should use is plane 2
+			else if (currentRoomNumber == 1)
 			{
-				std::cout << std::dec << "Total permutations: " << totalPermutations << " | Total Solutions: " << totalSolutions << std::endl;
+				nextRoom = 0;
+				nextPlane = 2;
 			}
 
+			//if we are currently in room 0, we need to randomly choose room 1 or 2 to go to
+			else if (currentRoomNumber == 0)
+			{
+				nextRoom = 1;// (rand() > RAND_MAX / 2) ? 1 : 2;
+
+				//if we're choosing to go to room 2, we need to use plane 3
+				if (nextRoom == 2)
+				{
+					nextPlane = 3;
+				}
+				//if we're choosing to go to room 1, we need to use plane 2
+				else if (nextRoom == 1)
+				{
+					nextPlane = 2;
+				}
+			}
+
+			//also, should we allow the spawner to allocate or no?
+			bool allocateSpawners = false;
+			char spawnerRNG = rand() % 2;
+			if (spawnerRNG)
+			{
+				allocateSpawners = true;
+			}
+
+			//actually perform room change using chosen room and plane
+			ChangeRoom(nextRoom, nextPlane, nullptr, allocateSpawners);
+			solution.push_back(std::make_pair(CHANGE_ROOM, nextRoom));
+			solution.push_back(std::make_pair(SPAWNERS, allocateSpawners));
+			solution.push_back(std::make_pair(USE_PLANE, nextPlane));
 		}
-	}
-	case OneRandomPerm:
-	{
-		unsigned int seed = time(NULL);
-		srand(seed);
 
-		int roomLoads = (2 * (rand() % 5)) + 1;
-		std::cout << std::hex;
-		LoadInitialRoom(0);
-		std::cout << "Loaded Room 0" << std::endl;
+		//we're now standing in room 0
 
-		for (int i = 1; i <= roomLoads; i++)
+		int allocations = 0;
+		if (MAX_ALLOCATIONS_PER_STEP == 0)
 		{
-			int deallocations = rand() % currentRoom->GetDeallocatableActors().size();
+			allocations = 0;
+		}
+		else
+		{
+			allocations = rand() % MAX_ALLOCATIONS_PER_STEP;
+		}
 
-			for (int j = 0; j <= deallocations; j++)
-			{
-				auto a = DeallocateRandomActor();
-				std::cout << "Deallocate: " << a.first << " | Priority: " << a.second << std::endl;
-			}
+		for (int j = 0; j < allocations; j++)
+		{
+			auto allocate = AllocateRandomActor();
+			solution.push_back(std::make_pair(ALLOCATE, allocate));
+		}
 
-			int smokesRNG = rand() % 2;
-
-			if (smokesRNG == 0)
-			{
-				AllocateTemporaryActor(0xA2);
-				std::cout << "Allocate: smoke" << std::endl;
-			}
-
-			int allocations = rand() % 4;
-
-			for (int j = 0; j <= allocations; j++)
-			{
-				auto a = AllocateRandomActor();
-				std::cout << "Allocate: " << a << std::endl;
-			}
-
+		if (endAllocationStep)
+		{
 			char rng = rand() % 3;
 
 			switch (rng)
@@ -997,67 +1118,981 @@ void Heap::Solve(int solverType)
 			case 0:
 				break;
 			case 1:
-				if (currentRoomNumber == 1)
-				{
-					AllocateTemporaryActor(0x3D);
-					std::cout << "Allocate: hookshot" << std::endl;
-					break;
-				}
-				else
-				{
-					break;
-				}
-
+				AllocateTemporaryActor(0x3D);
+				solution.push_back(std::make_pair(ALLOCATE, 0x3D));
+				break;
 			case 2:
-				if (currentRoomNumber == 1)
-				{
-					AllocateTemporaryActor(0x35);
-					std::cout << "Allocate: spin attack" << std::endl;
-					break;
-				}
-				else
-				{
-					break;
-				}
-
+				AllocateTemporaryActor(0x35);
+				solution.push_back(std::make_pair(ALLOCATE, 0x35));
+				break;
 			default:
 				break;
 			}
-
-			ChangeRoom(i % 2);
-			std::cout << "Load Room " << i % 2 << std::endl;
 		}
 
-		//we're now standing in chest room
+		//get back to pot room
+		ChangeRoom(1, 2, nullptr, true);
+		solution.push_back(std::make_pair(CHANGE_ROOM, 1));
+		solution.push_back(std::make_pair(USE_PLANE, 2));
 
-		std::vector<std::pair<int, int>> rocks = GetAddressesAndPrioritiesOfType(0xB0, 'A');
-		std::vector<std::pair<int, int>> grass = GetAddressesAndPrioritiesOfType(0x90, 'A');
+		char potDestroyRNG = rand() % 3;
+		if (potDestroyRNG == 0)
+		{
+			Deallocate(0x82, 0);
+			solution.push_back(std::make_pair(0x82, 0));
+		}
+		else if (potDestroyRNG == 1)
+		{
+			Deallocate(0x82, 1);
+			solution.push_back(std::make_pair(0x82, 1));
+		}
+
+		//we're now standing in pot room
+		std::vector<std::pair<int, int>> pots = GetAddressesAndPrioritiesOfType(0x82, 'A');
 
 		AllocateTemporaryActor(0xA2);
-		ChangeRoom(0);
-		std::cout << "Superslide into Room " << 0 << std::endl;
+		ChangeRoom(0, 0, nullptr, true);
+		solution.push_back(std::make_pair(SUPERSLIDE, 0));
 
-		ChangeRoom(1);
-		std::cout << "Load Room " << 1 << std::endl;
+		//standing in main room now with SRM
 
-		int chestOverlayAddress = GetAddressesAndPrioritiesOfType(0x6, 'O')[0].first;
-		std::cout << std::hex << "Chest overlay address: " << chestOverlayAddress << std::endl;
-		//PrintHeap(1);
+		//now we need to randomly choose which room to end up in for guard SRM
+		int nextRoom = (rand() > RAND_MAX / 2) ? 1 : 2;
+		int nextPlaneRNG = rand() % 2;
+		int nextPlane = 0;
 
-		ChangeRoom(0);
-		std::cout << "Load Room " << 0 << std::endl;
-		std::cout << std::dec << std::endl;
+		if (nextRoom == 1)
+		{
+			//if we randomly chose room 1 to finish in, we need to pick which plane to use
+			if (nextPlaneRNG == 0)
+			{
+				nextPlane = 0;
+			}
+			else
+			{
+				nextPlane = 2;
+			}
 
-		PrintHeap(1);
-		while (true) {};
+			ChangeRoom(1, nextPlane, nullptr, true);
+			solution.push_back(std::make_pair(CHANGE_ROOM, 1));
+			solution.push_back(std::make_pair(USE_PLANE, nextPlane));
+		}
+		else if (nextRoom == 2)
+		{
+			//if we randomly chose room 2 to finish in, we need to pick which plane to use
+			if (nextPlaneRNG == 0)
+			{
+				nextPlane = 1;
+			}
+			else
+			{
+				nextPlane = 3;
+			}
+			ChangeRoom(2, nextPlane, nullptr, true);
+			solution.push_back(std::make_pair(CHANGE_ROOM, 2));
+			solution.push_back(std::make_pair(USE_PLANE, nextPlane));
+		}
+
+		if (postSSRoomChange)
+		{
+			char postSSRoomChangeRNG = rand() % 2;
+			if (postSSRoomChangeRNG)
+			{
+				if (currentRoomNumber == 1)
+				{
+					ChangeRoom(0, nextPlane, nullptr, true); //go back through plane you just used back to room 0
+					solution.push_back(std::make_pair(CHANGE_ROOM, 0));
+					solution.push_back(std::make_pair(USE_PLANE, nextPlane));
+					ChangeRoom(2, 3, nullptr, true); //go to room 2
+					solution.push_back(std::make_pair(CHANGE_ROOM, 2));
+					solution.push_back(std::make_pair(USE_PLANE, 3));
+				}
+				else if (currentRoomNumber == 2)
+				{
+					ChangeRoom(0, nextPlane, nullptr, true); //go back through plane you just used back to room 0
+					solution.push_back(std::make_pair(CHANGE_ROOM, 0));
+					solution.push_back(std::make_pair(USE_PLANE, nextPlane));
+					ChangeRoom(1, 2, nullptr, true); //go to room 1
+					solution.push_back(std::make_pair(CHANGE_ROOM, 1));
+					solution.push_back(std::make_pair(USE_PLANE, 2));
+				}
+			}
+		}
+		
+		std::vector<std::pair<int, int>> guards = GetAddressesAndPrioritiesOfType(0x17A, 'A');
+			
+		bool solutionFound = false;
+		std::pair<std::pair<int, int>, std::pair<int, int>> solutionPair;
+
+		for (auto guard : guards)
+		{
+			for (auto pot : pots)
+			{
+				if (pot.first - guard.first == 0x200 && 
+					((currentRoomNumber == 2 && (guard.second == 2 || guard.second == 3 || guard.second == 1)) ||
+						(currentRoomNumber == 1 && (guard.second == 2 || guard.second == 0))))
+				{
+					solutionFound = true;
+					solutionPair = std::make_pair(pot, guard);
+
+				}
+			}
+
+		}
+
+		if (solutionFound)
+		{
+			std::cout << "SOLUTION FOUND\n";
+			totalSolutions++;
+
+			std::ofstream outputFile;
+			std::string outputFilename = newSubFolder + "\\solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
+			outputFile.open(outputFilename);
+
+			outputFile << std::hex << "Pot Address | Priority: " << solutionPair.first.first << " | " << solutionPair.first.second <<
+				" Guard Address | Priority: " << solutionPair.second.first << " | " << solutionPair.second.second << std::dec << std::endl;
+
+			for (auto step : solution)
+			{
+				if (step.first == LOAD_INITIAL_ROOM)
+				{
+					outputFile << std::hex << "Load initial room: " << step.second << std::endl;
+				}
+				else if (step.first == CHANGE_ROOM)
+				{
+					outputFile << std::hex << "Load room: " << step.second;
+				}
+				else if (step.first == SPAWNERS)
+				{
+					outputFile << " | Spawners: " << step.second;
+				}
+				else if (step.first == USE_PLANE)
+				{
+					outputFile << " | Use plane: " << step.second << std::endl;
+				}
+				else if (step.first == ALLOCATE)
+				{
+					if (step.second != 0x0)
+					{
+						outputFile << std::hex << "Allocate: " << step.second << std::endl;
+					}	
+				}
+				else if (step.first == SUPERSLIDE)
+				{
+					outputFile << std::hex << "Superslide into room " << step.second << " with smoke still loaded using plane 0." << std::endl;
+				}
+				else if (step.first == 0)
+				{
+					;
+				}
+				else
+				{
+					outputFile << std::hex << "Dealloc: " << std::setw(2) << step.first << ", " << step.second << std::endl;
+				}
+
+			}
+			outputFile.close();
+		}
+
+		ResetHeap();
+		solution.clear();
+		totalPermutations++;
+
+		if (totalPermutations % 100000 == 0)
+		{
+			std::cout << std::dec << "Total permutations: " << totalPermutations << " | Total Solutions: " << totalSolutions << std::endl;
+		}
+
 	}
-		break;
-	default:
-		break;
+}
+
+void Heap::SolveObservatory()
+{
+	unsigned int seed = time(NULL);
+	srand(seed);
+
+	uint64_t totalPermutations = 0;
+	unsigned int totalSolutions = 0;
+
+	std::vector<std::pair<int, int>> solution;
+
+	std::cout << "Seed: " << seed << std::endl;
+	std::cout << "Solving..." << std::endl;
+	//imbued "C:\\Users\\doldop\\Documents\\Bizhawk RAM Watch\\kylf\\Heap_Manip_Outputs\\";
+	//me "C:\\Users\\Kyle\\Desktop\\Heap_Manip_Outputs\\";
+	//geek "F:\kyle\"
+	auto newContainerFolder = "C:\\Users\\Kyle\\Desktop\\Heap_Manip_Outputs\\";
+	auto newSubFolder = newContainerFolder + std::to_string(seed) + "\\";
+	_mkdir(newContainerFolder);
+	_mkdir(newSubFolder.c_str());
+
+	while (true)
+	{
+		int roomLoads = (2 * (rand() % LOAD_MODIFIER));
+
+		LoadInitialRoom(1);
+		solution.push_back(std::make_pair(LOAD_INITIAL_ROOM, 1));
+
+		for (int i = 0; i < roomLoads; i++)
+		{
+			int deallocations = 0;
+			int currentRoomDeallocations = currentRoom->GetDeallocatableActors().size();
+			if (currentRoomDeallocations)
+			{
+				deallocations = rand() % currentRoomDeallocations;
+			}
+			else
+			{
+				deallocations = 0;
+			}
+
+			for (int j = 0; j < deallocations; j++)
+			{
+				auto dealloc = DeallocateRandomActor();
+				solution.push_back(dealloc);
+
+			}
+
+			if (smoke)
+			{
+				char smokeRNG = rand() % 2;
+				if (smokeRNG)
+				{
+					AllocateTemporaryActor(0xA2);
+					solution.push_back(std::make_pair(ALLOCATE, 0xA2));
+				}
+			}
+
+			int allocations = 0;
+			if (MAX_ALLOCATIONS_PER_STEP == 0)
+			{
+				allocations = 0;
+			}
+			else
+			{
+				allocations = rand() % MAX_ALLOCATIONS_PER_STEP;
+			}
+
+			for (int j = 0; j < allocations; j++)
+			{
+				auto allocate = AllocateRandomActor();
+				solution.push_back(std::make_pair(ALLOCATE, allocate));
+			}
+
+			if (endAllocationStep)
+			{
+				char rng = rand() % 2;
+
+				switch (rng)
+				{
+				case 0:
+					break;
+				/*case 1:
+					AllocateTemporaryActor(0x3D);
+					solution.push_back(std::make_pair(ALLOCATE, 0x3D));
+					break;*/
+				case 1:
+					AllocateTemporaryActor(0x35);
+					solution.push_back(std::make_pair(ALLOCATE, 0x35));
+					break;
+				default:
+					break;
+				}
+			}
+
+			int nextRoom = 0;
+			int nextPlane = 0;
+
+			if (currentRoomNumber == 0)
+			{
+				nextRoom = 1;
+				nextPlane = 0;
+			}
+			else if (currentRoomNumber == 1)
+			{
+				nextRoom = 0;
+				nextPlane = 0;
+			}
+
+			//actually perform room change using chosen room and plane
+			ChangeRoom(nextRoom, nextPlane, nullptr, false);
+			solution.push_back(std::make_pair(CHANGE_ROOM, nextRoom));
+			solution.push_back(std::make_pair(SPAWNERS, false));
+			solution.push_back(std::make_pair(USE_PLANE, nextPlane));
+		}
+
+		//we're now standing in room 1
+
+		char potDestroyRNG = rand() % 4;
+		if (potDestroyRNG == 0)
+		{
+			Deallocate(0x82, 0);
+			solution.push_back(std::make_pair(0x82, 0));
+
+		}
+		else if (potDestroyRNG == 1)
+		{
+			Deallocate(0x82, 1);
+			solution.push_back(std::make_pair(0x82, 1));
+		}
+		else if (potDestroyRNG == 2)
+		{
+			Deallocate(0x82, 2);
+			solution.push_back(std::make_pair(0x82, 2));
+		}
+
+		std::vector<std::pair<int, int>> pots = GetAddressesAndPrioritiesOfType(0x82, 'A');
+
+		AllocateTemporaryActor(0xA2);
+		ChangeRoom(0, 0, nullptr, false);
+		solution.push_back(std::make_pair(SUPERSLIDE, 0));
+
+		//standing in chest room now, but we need to swap rooms twice to have a chance of things lining up
+		ChangeRoom(1, 0, nullptr, false);
+		solution.push_back(std::make_pair(CHANGE_ROOM, 1));
+		ChangeRoom(0, 0, nullptr, false);
+		solution.push_back(std::make_pair(CHANGE_ROOM, 0));
+
+		std::vector<std::pair<int, int>> chest = GetAddressesAndPrioritiesOfType(0x6, 'A');
+
+		bool solutionFound = false;
+		std::pair<std::pair<int, int>, std::pair<int, int>> solutionPair;
+
+		for (auto c : chest)
+		{
+			for (auto pot : pots)
+			{
+				if (pot.first - c.first == 0x160)
+				{
+					solutionFound = true;
+					solutionPair = std::make_pair(pot, c);
+				}
+			}
+
+		}
+
+		if (solutionFound)
+		{
+			std::cout << "SOLUTION FOUND\n";
+			totalSolutions++;
+
+			std::ofstream outputFile;
+			std::string outputFilename = newSubFolder + "\\solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
+			outputFile.open(outputFilename);
+
+			outputFile << std::hex << "Pot Address | Priority: " << solutionPair.first.first << " | " << solutionPair.first.second <<
+				" Guard Address | Priority: " << solutionPair.second.first << " | " << solutionPair.second.second << std::dec << std::endl;
+
+			for (auto step : solution)
+			{
+				if (step.first == LOAD_INITIAL_ROOM)
+				{
+					outputFile << std::hex << "Load initial room: " << step.second << std::endl;
+				}
+				else if (step.first == CHANGE_ROOM)
+				{
+					outputFile << std::hex << "Load room: " << step.second;
+				}
+				else if (step.first == SPAWNERS)
+				{
+					outputFile << " | Spawners: " << step.second;
+				}
+				else if (step.first == USE_PLANE)
+				{
+					outputFile << " | Use plane: " << step.second << std::endl;
+				}
+				else if (step.first == ALLOCATE)
+				{
+					if (step.second != 0x0)
+					{
+						outputFile << std::hex << "Allocate: " << step.second << std::endl;
+					}
+				}
+				else if (step.first == SUPERSLIDE)
+				{
+					outputFile << std::hex << "Superslide into room " << step.second << " with smoke still loaded using plane 0." << std::endl;
+				}
+				else if (step.first == 0)
+				{
+					;
+				}
+				else
+				{
+					outputFile << std::hex << "Dealloc: " << std::setw(2) << step.first << ", " << step.second << std::endl;
+				}
+
+			}
+			outputFile.close();
+		}
+
+		ResetHeap();
+		solution.clear();
+		totalPermutations++;
+
+		if (totalPermutations % 100000 == 0)
+		{
+			std::cout << std::dec << "Total permutations: " << totalPermutations << " | Total Solutions: " << totalSolutions << std::endl;
+		}
+
+	}
+}
+
+void Heap::SolveGraveyard()
+{
+	unsigned int seed = time(NULL);
+	srand(seed);
+
+	uint64_t totalPermutations = 0;
+	unsigned int totalSolutions = 0;
+
+	std::vector<std::pair<int, int>> solution;
+
+	std::cout << "Seed: " << seed << std::endl;
+	std::cout << "Solving..." << std::endl;
+	//imbued "C:\\Users\\doldop\\Documents\\Bizhawk RAM Watch\\kylf\\Heap_Manip_Outputs\\";
+	//me "C:\\Users\\Kyle\\Desktop\\Heap_Manip_Outputs\\";
+	//geek "F:\kyle\"
+	auto newContainerFolder = "C:\\Users\\Kyle\\Desktop\\Heap_Manip_Outputs\\";
+	auto newSubFolder = newContainerFolder + std::to_string(seed) + "\\";
+	_mkdir(newContainerFolder);
+	_mkdir(newSubFolder.c_str());
+
+	while (true)
+	{
+		int roomLoads = (2 * (rand() % LOAD_MODIFIER));
+
+		LoadInitialRoom(1);
+		solution.push_back(std::make_pair(LOAD_INITIAL_ROOM, 1));
+
+		for (int i = 0; i < roomLoads; i++)
+		{
+			int deallocations = 0;
+			int currentRoomDeallocations = currentRoom->GetDeallocatableActors().size();
+			if (currentRoomDeallocations)
+			{
+				deallocations = rand() % currentRoomDeallocations;
+			}
+			else
+			{
+				deallocations = 0;
+			}
+
+			for (int j = 0; j < deallocations; j++)
+			{
+				auto dealloc = DeallocateRandomActor();
+				solution.push_back(dealloc);
+
+			}
+
+			if (smoke)
+			{
+				char smokeRNG = rand() % 2;
+				if (smokeRNG)
+				{
+					AllocateTemporaryActor(0xA2);
+					solution.push_back(std::make_pair(ALLOCATE, 0xA2));
+				}
+			}
+
+			int allocations = 0;
+			if (MAX_ALLOCATIONS_PER_STEP == 0)
+			{
+				allocations = 0;
+			}
+			else
+			{
+				allocations = rand() % MAX_ALLOCATIONS_PER_STEP;
+			}
+
+			for (int j = 0; j < allocations; j++)
+			{
+				auto allocate = AllocateRandomActor();
+				solution.push_back(std::make_pair(ALLOCATE, allocate));
+			}
+
+			if (endAllocationStep)
+			{
+				char rng = rand() % 2;
+
+				switch (rng)
+				{
+				case 0:
+					break;
+					/*case 1:
+						AllocateTemporaryActor(0x3D);
+						solution.push_back(std::make_pair(ALLOCATE, 0x3D));
+						break;*/
+				case 1:
+					AllocateTemporaryActor(0x35);
+					solution.push_back(std::make_pair(ALLOCATE, 0x35));
+					break;
+				default:
+					break;
+				}
+			}
+
+			int nextRoom = 0;
+			int nextPlane = 0;
+
+			if (currentRoomNumber == 0)
+			{
+				nextRoom = 1;
+				nextPlane = 0;
+			}
+			else if (currentRoomNumber == 1)
+			{
+				nextRoom = 0;
+				nextPlane = 0;
+			}
+
+			//actually perform room change using chosen room and plane
+			ChangeRoom(nextRoom, nextPlane, nullptr, false);
+			solution.push_back(std::make_pair(CHANGE_ROOM, nextRoom));
+			solution.push_back(std::make_pair(SPAWNERS, false));
+			solution.push_back(std::make_pair(USE_PLANE, nextPlane));
+		}
+
+		//we're now standing in room 1
+
+		char potDestroyRNG = rand() % 4;
+		if (potDestroyRNG == 0)
+		{
+			Deallocate(0x82, 0);
+			solution.push_back(std::make_pair(0x82, 0));
+
+		}
+		else if (potDestroyRNG == 1)
+		{
+			Deallocate(0x82, 1);
+			solution.push_back(std::make_pair(0x82, 1));
+		}
+		else if (potDestroyRNG == 2)
+		{
+			Deallocate(0x82, 2);
+			solution.push_back(std::make_pair(0x82, 2));
+		}
+
+		std::vector<std::pair<int, int>> grass = GetAddressesAndPrioritiesOfType(0x90, 'A');
+		std::vector<std::pair<int, int>> rocks = GetAddressesAndPrioritiesOfType(0xB0, 'A');
+
+
+		AllocateTemporaryActor(0xA2);
+		ChangeRoom(0, 0, nullptr, false);
+		solution.push_back(std::make_pair(SUPERSLIDE, 0));
+
+		//standing in chest room now, but we need to swap rooms twice to have a chance of things lining up
+		ChangeRoom(1, 0, nullptr, false);
+		solution.push_back(std::make_pair(CHANGE_ROOM, 1));
+		ChangeRoom(0, 0, nullptr, false);
+		solution.push_back(std::make_pair(CHANGE_ROOM, 0));
+
+		std::vector<std::pair<int, int>> chest = GetAddressesAndPrioritiesOfType(0x6, 'A');
+
+		bool solutionFound = false;
+		std::pair<std::pair<int, int>, std::pair<int, int>> solutionPair;
+
+		for (auto c : chest)
+		{
+			for (auto grasss : grass)
+			{
+				if (grasss.first - c.first == 0x160)
+				{
+					solutionFound = true;
+					solutionPair = std::make_pair(grasss, c);
+				}
+			}
+
+		}
+
+		for (auto c : chest)
+		{
+			for (auto rock : rocks)
+			{
+				if (rock.first - c.first == 0x160 && !solutionFound)
+				{
+					solutionFound = true;
+					solutionPair = std::make_pair(rock, c);
+				}
+			}
+
+		}
+
+		if (solutionFound)
+		{
+			std::cout << "SOLUTION FOUND\n";
+			totalSolutions++;
+
+			std::ofstream outputFile;
+			std::string outputFilename = newSubFolder + "\\solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
+			outputFile.open(outputFilename);
+
+			outputFile << std::hex << "Pot Address | Priority: " << solutionPair.first.first << " | " << solutionPair.first.second <<
+				" Guard Address | Priority: " << solutionPair.second.first << " | " << solutionPair.second.second << std::dec << std::endl;
+
+			for (auto step : solution)
+			{
+				if (step.first == LOAD_INITIAL_ROOM)
+				{
+					outputFile << std::hex << "Load initial room: " << step.second << std::endl;
+				}
+				else if (step.first == CHANGE_ROOM)
+				{
+					outputFile << std::hex << "Load room: " << step.second;
+				}
+				else if (step.first == SPAWNERS)
+				{
+					outputFile << " | Spawners: " << step.second;
+				}
+				else if (step.first == USE_PLANE)
+				{
+					outputFile << " | Use plane: " << step.second << std::endl;
+				}
+				else if (step.first == ALLOCATE)
+				{
+					if (step.second != 0x0)
+					{
+						outputFile << std::hex << "Allocate: " << step.second << std::endl;
+					}
+				}
+				else if (step.first == SUPERSLIDE)
+				{
+					outputFile << std::hex << "Superslide into room " << step.second << " with smoke still loaded using plane 0." << std::endl;
+				}
+				else if (step.first == 0)
+				{
+					;
+				}
+				else
+				{
+					outputFile << std::hex << "Dealloc: " << std::setw(2) << step.first << ", " << step.second << std::endl;
+				}
+
+			}
+			outputFile.close();
+		}
+
+		ResetHeap();
+		solution.clear();
+		totalPermutations++;
+
+		if (totalPermutations % 100000 == 0)
+		{
+			std::cout << std::dec << "Total permutations: " << totalPermutations << " | Total Solutions: " << totalSolutions << std::endl;
+		}
+
+	}
+}
+
+void Heap::SolveGrave()
+{
+	unsigned int seed = time(NULL);
+	srand(seed);
+
+	uint64_t totalPermutations = 0;
+	unsigned int totalSolutions = 0;
+
+	std::vector<std::pair<int, int>> solution;
+
+	std::cout << "Seed: " << seed << std::endl;
+	std::cout << "Solving..." << std::endl;
+	//imbued "C:\\Users\\doldop\\Documents\\Bizhawk RAM Watch\\kylf\\Heap_Manip_Outputs\\";
+	//me "C:\\Users\\Kyle\\Desktop\\Heap_Manip_Outputs\\";
+	//geek "F:\kyle\"
+	auto newContainerFolder = "C:\\Users\\Kyle\\Desktop\\Heap_Manip_Outputs\\";
+	auto newSubFolder = newContainerFolder + std::to_string(seed) + "\\";
+	_mkdir(newContainerFolder);
+	_mkdir(newSubFolder.c_str());
+
+	while (true)
+	{
+		int roomLoads = (2 * (rand() % LOAD_MODIFIER)) + 1;
+
+		LoadInitialRoom(0);
+		solution.push_back(std::make_pair(LOAD_INITIAL_ROOM, 0));
+
+		bool bats = true;
+		for (int i = 0; i < roomLoads; i++)
+		{
+			int deallocations = 0;
+			int currentRoomDeallocations = currentRoom->GetDeallocatableActors().size();
+			if (currentRoomDeallocations)
+			{
+				deallocations = rand() % currentRoomDeallocations;
+			}
+			else
+			{
+				deallocations = 0;
+			}
+
+			for (int j = 0; j < deallocations; j++)
+			{
+				auto dealloc = DeallocateRandomActor();
+				solution.push_back(dealloc);
+			}
+
+			if (currentRoomNumber == 1 && bats)
+			{
+				auto batts = GetAllActorsOfID(0x015B);
+				for (auto bat : batts)
+				{
+					Deallocate(bat);
+					scene->GetRoom(currentRoomNumber)->ClearActor(bat);
+				}
+				bats = false;
+			}
+
+			if (smoke)
+			{
+				char smokeRNG = rand() % 2;
+				if (smokeRNG)
+				{
+					AllocateTemporaryActor(0xA2);
+					solution.push_back(std::make_pair(ALLOCATE, 0xA2));
+				}
+			}
+
+			int allocations = 0;
+			if (MAX_ALLOCATIONS_PER_STEP == 0)
+			{
+				allocations = 0;
+			}
+			else
+			{
+				allocations = rand() % MAX_ALLOCATIONS_PER_STEP;
+			}
+
+			for (int j = 0; j < allocations; j++)
+			{
+				auto allocate = AllocateRandomActor();
+				solution.push_back(std::make_pair(ALLOCATE, allocate));
+			}
+
+			if (endAllocationStep)
+			{
+				char rng = rand() % 3;
+
+				switch (rng)
+				{
+				case 0:
+					break;
+				case 1:
+					AllocateTemporaryActor(0x3D);
+					solution.push_back(std::make_pair(ALLOCATE, 0x3D));
+					break;
+				case 2:
+					AllocateTemporaryActor(0x35);
+					solution.push_back(std::make_pair(ALLOCATE, 0x35));
+					break;
+				default:
+					break;
+				}
+			}
+
+			int nextRoom = 0;
+			int nextPlane = 0;
+
+			if (currentRoomNumber == 0)
+			{
+				nextRoom = 1;
+				nextPlane = 0;
+			}
+			else if (currentRoomNumber == 1)
+			{
+				nextRoom = 0;
+				nextPlane = 0;
+			}
+
+			//also, should we allow the spawner to allocate or no?
+			bool allocateSpawners = false;
+			char spawnerRNG = rand() % 2;
+			if (spawnerRNG)
+			{
+				allocateSpawners = true;
+			}
+
+			//actually perform room change using chosen room and plane
+			ChangeRoom(nextRoom, nextPlane, nullptr, allocateSpawners);
+			solution.push_back(std::make_pair(CHANGE_ROOM, nextRoom));
+			solution.push_back(std::make_pair(SPAWNERS, allocateSpawners));
+			solution.push_back(std::make_pair(USE_PLANE, nextPlane));
+		}
+
+		//we're now standing in room 1 (pot room)
+
+		char potDestroyRNG = rand() % 4;
+		if (potDestroyRNG == 0)
+		{
+			Deallocate(0x82, 0);
+			solution.push_back(std::make_pair(0x82, 0));
+
+		}
+		else if (potDestroyRNG == 1)
+		{
+			Deallocate(0x82, 1);
+			solution.push_back(std::make_pair(0x82, 1));
+		}
+		else if (potDestroyRNG == 2)
+		{
+			Deallocate(0x82, 2);
+			solution.push_back(std::make_pair(0x82, 2));
+		}
+
+		std::vector<std::pair<int, int>> pots = GetAddressesAndPrioritiesOfType(0x82, 'A');
+
+		//also, should we allow the spawner to allocate or no?
+		bool allocateSpawners = false;
+		char spawnerRNG = rand() % 2;
+		if (spawnerRNG)
+		{
+			allocateSpawners = true;
+		}
+
+		AllocateTemporaryActor(0xA2);
+		ChangeRoom(0, 0, nullptr, allocateSpawners);
+		solution.push_back(std::make_pair(SUPERSLIDE, 0));
+		solution.push_back(std::make_pair(SPAWNERS, allocateSpawners));
+
+		ChangeRoom(1, 0, nullptr, false);
+		solution.push_back(std::make_pair(CHANGE_ROOM, 1));
+
+		std::vector<std::pair<int, int>> chest = GetAddressesAndPrioritiesOfType(0x6, 'A');
+
+		bool solutionFound = false;
+		std::pair<std::pair<int, int>, std::pair<int, int>> solutionPair;
+
+		for (auto c : chest)
+		{
+			for (auto pot : pots)
+			{
+				if (pot.first - c.first == 0x160)
+				{
+					solutionFound = true;
+					solutionPair = std::make_pair(pot, c);
+				}
+			}
+
+		}
+
+		if (solutionFound)
+		{
+			std::cout << "SOLUTION FOUND\n";
+			totalSolutions++;
+
+			std::ofstream outputFile;
+			std::string outputFilename = newSubFolder + "\\solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
+			outputFile.open(outputFilename);
+
+			outputFile << std::hex << "Pot Address | Priority: " << solutionPair.first.first << " | " << solutionPair.first.second <<
+				" Guard Address | Priority: " << solutionPair.second.first << " | " << solutionPair.second.second << std::dec << std::endl;
+
+			for (auto step : solution)
+			{
+				if (step.first == LOAD_INITIAL_ROOM)
+				{
+					outputFile << std::hex << "Load initial room: " << step.second << std::endl;
+				}
+				else if (step.first == CHANGE_ROOM)
+				{
+					outputFile << std::hex << "Load room: " << step.second;
+				}
+				else if (step.first == SPAWNERS)
+				{
+					outputFile << " | Spawners: " << step.second;
+				}
+				else if (step.first == USE_PLANE)
+				{
+					outputFile << " | Use plane: " << step.second << std::endl;
+				}
+				else if (step.first == ALLOCATE)
+				{
+					if (step.second != 0x0)
+					{
+						outputFile << std::hex << "Allocate: " << step.second << std::endl;
+					}
+				}
+				else if (step.first == SUPERSLIDE)
+				{
+					outputFile << std::hex << "Superslide into room " << step.second << " with smoke still loaded using plane 0." << std::endl;
+				}
+				else if (step.first == 0)
+				{
+					;
+				}
+				else
+				{
+					outputFile << std::hex << "Dealloc: " << std::setw(2) << step.first << ", " << step.second << std::endl;
+				}
+
+			}
+			outputFile.close();
+		}
+
+		ResetHeap();
+		solution.clear();
+		totalPermutations++;
+
+		if (totalPermutations % 100000 == 0)
+		{
+			std::cout << std::dec << "Total permutations: " << totalPermutations << " | Total Solutions: " << totalSolutions << std::endl;
+		}
+
 	}
 }
 
 int Heap::GetCurrentRoomNumber() const
 {
 	return currentRoomNumber;
+}
+
+std::vector<std::pair<int, int>> Heap::GetAllAddresses(char type)
+{
+	std::vector<std::pair<int, int>> results;
+	Node* curr = head;
+
+	while (curr != nullptr)
+	{
+		if (curr->GetType() == type)
+		{
+			results.push_back(std::make_pair(curr->GetAddress(), curr->GetPriority()));
+		}
+
+		curr = curr->GetNext();
+	}
+
+	return results;
+}
+
+int Heap::GetOverlayAddress(int actorID)
+{
+	int result;
+	Node* curr = head;
+
+	while (curr != nullptr)
+	{
+		if (curr->GetID() == actorID && curr->GetType() == 'O')
+		{
+			result = curr->GetAddress();
+			return result;
+		}
+
+		curr = curr->GetNext();
+	}
+}
+
+std::vector<Node*> Heap::GetAllActorsOfID(int actorID)
+{
+	std::vector<Node*> results;
+	Node* curr = head;
+
+	while (curr != nullptr)
+	{
+		if (curr->GetID() == actorID && curr->GetType() == 'A')
+		{
+			results.push_back(curr);
+		}
+
+		curr = curr->GetNext();
+	}
+
+	return results;
 }

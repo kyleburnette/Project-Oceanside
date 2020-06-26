@@ -27,10 +27,15 @@ void Room::AddActor(Node* actor)
 	}
 	if (actor->IsSpawner())
 	{
+		//REMEMBER ME
 		for (auto offspring : actor->GetOffspring())
 		{
 			deallocatableActors.push_back(offspring);
 		}
+	}
+	if (actor->IsTransitionActor())
+	{
+		AddTransitionActor(actor);
 	}
 }
 
@@ -109,6 +114,11 @@ void Room::AddRandomAllocatableActor(int timesCanAllocate, Node* actor)
 	possibleTemporaryActorsIDs.push_back(actor->GetID());
 }
 
+void Room::AddTransitionActor(Node* actor)
+{
+	transitionActors[actor->GetSceneTransitionID()] = actor;
+}
+
 std::map<int, std::pair<int, Node*>> Room::GetPossibleTemporaryActors() const
 {
 	return possibleTemporaryActors;
@@ -148,31 +158,31 @@ void Room::DumpRoomInfo() const
 	std::cout << "---All Actors---\n";
 	for (auto actor : allActors)
 	{
-		std::cout << actor->GetID() << " " << actor->GetPriority() << std::endl;
+		std::cout << actor->GetID() << " " << std::endl;
 	}
 
 	std::cout << "---Currently Loaded Actors---\n";
 	for (auto actor : currentlyLoadedActors)
 	{
-		std::cout << actor->GetID() << " " << actor->GetPriority() << std::endl;
+		std::cout << actor->GetID() << std::endl;
 	}
 
 	std::cout << "---Deallocatable Actors---\n";
 	for (auto actor : deallocatableActors)
 	{
-		std::cout << actor->GetID() << " " << actor->GetPriority() << std::endl;
+		std::cout << actor->GetID() << std::endl;
 	}
 
 	std::cout << "---Clearable Actors---\n";
 	for (auto actor : clearableActors)
 	{
-		std::cout << actor->GetID() << " " << actor->GetPriority() << std::endl;
+		std::cout << actor->GetID() << std::endl;
 	}
 
 	std::cout << "---Cleared Actors---\n";
 	for (auto actor : clearedActors)
 	{
-		std::cout << actor->GetID() << " " << actor->GetPriority() << std::endl;
+		std::cout << actor->GetID() << std::endl;
 	}
 
 	std::cout << "---Possible Temporary Actors---\n";
@@ -184,12 +194,24 @@ void Room::DumpRoomInfo() const
 	std::cout << "---Currently Deallocated Actors---\n";
 	for (auto actor : currentlyDeallocatedActors)
 	{
-		std::cout << actor->GetID() << " " << actor->GetPriority() << std::endl;
+		std::cout << actor->GetID() << std::endl;
 	}
+
+	std::cout << "---Current Transition Actors---\n";
+	for (auto actor : transitionActors)
+	{
+		std::cout << actor.second->GetID() << std::endl;
+	}
+
 	std::cout << std::dec;
 }
 
 void Room::AddDeallocatableActor(Node* actor)
 {
 	deallocatableActors.push_back(actor);
+}
+
+std::map<int, Node*> Room::GetTransitionActors() const
+{
+	return transitionActors;
 }
