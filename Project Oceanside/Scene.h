@@ -8,7 +8,7 @@
 class Scene
 {
 public:
-	Scene(char version);
+	Scene(char version, const std::string& sceneFile);
 	Room* GetRoom(int roomNumber) const;
 	nlohmann::json GetActorJSON() const;
 	void DumpSceneInfo() const;
@@ -18,7 +18,7 @@ public:
 
 private:
 	void LoadScene();
-	void ParseSceneJson();
+	void ParseSceneJson(const std::string& filename);
 	void ParseActorJson(char version);
 	void OutputExceptionInformation(nlohmann::json::parse_error& error);
 	int roomCount = 0;

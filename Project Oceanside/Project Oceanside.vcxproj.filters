@@ -56,5 +56,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="scene_2.json" />
+    <None Include="scene_3.json" />
+    <None Include="scene_4.json" />
+    <None Include="scene_5.json" />
+    <None Include="scene_6.json" />
   </ItemGroup>
 </Project>

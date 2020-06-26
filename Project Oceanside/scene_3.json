@@ -1,0 +1,682 @@
+{
+  "sceneName": "English Observatory",
+  "rooms": {
+    "0": {
+      "possibleAllocatableActors": {
+        "0009": 1,
+        "00A2": 1,
+        "0035": 1,
+        "007B": 1,
+        "003D": 1,
+        "00A8": 1,
+        "006A": 1,
+        "018C": 1,
+        "00DA": 1,
+        "0020": 1,
+        "000F": 1
+      },
+      "actorList": [
+        {
+            "actorID": "0018",
+            "description": "loading plane",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": [ 0, 1 ],
+            "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "superslidable": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+
+        },
+        {
+
+            "actorID": "005F",
+            "description": "Majora balloon",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": true,
+            "isClearable": true,
+            "canStartCleared": true,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+       
+            "actorID": "0024",
+            "description": "Skulltula",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": true,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+     
+            "actorID": "0024",
+            "description": "Skulltula",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": true,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+          
+            "actorID": "004F",
+            "description": "Fish spawner",
+            "numberOfOffspring": 3,
+            "offspringActorID": "0017",
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+         
+            "actorID": "0170",
+            "description": "dripping water",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+          
+            "actorID": "0170",
+            "description": "dripping water",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+          
+            "actorID": "0170",
+            "description": "dripping water",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+     
+            "actorID": "0170",
+            "description": "dripping water",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+         
+            "actorID": "0170",
+            "description": "dripping water",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+         
+        },
+        {
+          
+            "actorID": "0004",
+            "description": "flame",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+          
+            "actorID": "0039",
+            "description": "torch stand",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+          
+            "actorID": "0039",
+            "description": "torch stand",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+          
+            "actorID": "0039",
+            "description": "torch stand",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+          
+            "actorID": "0039",
+            "description": "torch stand",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+         
+            "actorID": "0039",
+            "description": "torch stand",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+         
+            "actorID": "0039",
+            "description": "torch stand",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+          
+            "actorID": "0082",
+            "description": "pot",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": true,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+         
+            "actorID": "0082",
+            "description": "pot",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": true,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+          
+            "actorID": "0082",
+            "description": "pot",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": true,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+          
+            "actorID": "0082",
+            "description": "pot",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": true,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+          
+            "actorID": "015A",
+            "description": "clock",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": true
+          
+        },
+        {
+          
+            "actorID": "028D",
+            "description": "bombable wall",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": true,
+            "isClearable": true,
+            "canStartCleared": true,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+          
+            "actorID": "019C",
+            "description": "light beam",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        },
+        {
+          
+            "actorID": "0006",
+            "description": "treasure chest",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+          
+        }
+      ]
+    },
+    "1": {
+      "possibleAllocatableActors": {
+        "0009": 1,
+        "00A2": 1,
+        "0035": 1,
+        "007B": 1,
+        "003D": 1,
+        "00A8": 1,
+        "006A": 1,
+        "018C": 1,
+        "00DA": 1,
+        "0020": 1,
+        "000F": 1
+      },
+      "actorList": [
+        {
+            "actorID": "0005",
+            "description": "door",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+        },
+        {
+            "actorID": "0018",
+            "description": "loading plane",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": [ 0, 1 ],
+            "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "attemptsToReallocateOnRoomChange": false
+        },
+        {
+            "actorID": "0124",
+            "description": "astronomer",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+        },
+        {
+            "actorID": "00CA",
+            "description": "scarecrow",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+        },
+        {
+            "actorID": "0011",
+            "description": "cucco",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+        },
+        {
+            "actorID": "0283",
+            "description": "moon's tear",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+        },
+        {
+            "actorID": "0082",
+            "description": "pot",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": true,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": true,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+        },
+        {
+            "actorID": "0082",
+            "description": "pot",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": true,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": true,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+        },
+        {
+            "actorID": "0082",
+            "description": "pot",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": true,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": true,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+        },
+        {
+            "actorID": "015A",
+            "description": "clock",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": true
+        },
+        {
+            "actorID": "019C",
+            "description": "light beam",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+        },
+        {
+            "actorID": "00F0",
+            "description": "sound effect",
+            "numberOfOffspring": 0,
+            "offspringActorID": 0,
+            "isDeallocatable": false,
+            "isClearable": false,
+            "canStartCleared": false,
+            "startCleared": false,
+            "transition": -1, "sceneTransitionID": 0,
+            "itemsDroppedOnDeallocate": [],
+            "category": 0,
+            "considerForSRM": false,
+            "reallocateOnRoomChange": false,
+            "isSingleton": false
+        }
+      ]
+    }
+  }
+}

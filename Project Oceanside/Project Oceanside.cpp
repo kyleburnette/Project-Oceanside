@@ -13,7 +13,7 @@ int main()
 	//Heap* heap = new Heap(scene, MM_JP1_START, MM_JP1_LINK_SIZE);
 
 	//US
-	Scene* scene = new Scene(MM_US);
+	Scene* scene = new Scene(MM_US, "scene.json");
 	Heap* heap = new Heap(scene, MM_US0_START, MM_US0_LINK_SIZE);
 
 	heap->Solve();

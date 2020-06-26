@@ -5,9 +5,9 @@
 #include "./Constants.h"
 #include "./Node.h"
 
-Scene::Scene(char version)
+Scene::Scene(char version, const std::string& sceneFile)
 {
-	ParseSceneJson();
+	ParseSceneJson(sceneFile);
 	ParseActorJson(version);
 	LoadScene();
 }
@@ -69,9 +69,9 @@ void Scene::LoadScene()
 	std::cout << "Parsing actors complete" << std::endl;
 }
 
-void Scene::ParseSceneJson()
+void Scene::ParseSceneJson(const std::string& filename)
 {
-	std::string sceneFile = "scene.json";
+	std::string sceneFile = filename;
 	std::string successMessage = " loaded";
 
 	try
