@@ -58,8 +58,9 @@ private:
 	const char LINK_TYPE = 'L';
 	const char OVERLAY_TYPE = 'O';
 
-	const int MAX_ALLOCATIONS_PER_STEP = 9;
-	const int LOAD_MODIFIER = 4;
+	const int MAX_ALLOCATIONS_PER_STEP = 5;
+	const int LOAD_MODIFIER = 3;
+	const int INITIAL_ROOM_NUMBER = 1;
 
 	const int MAX_EXPLOSIVES_PER_ROOM = 3;
 	const int MAX_ARROWS_PER_ROOM = 1;

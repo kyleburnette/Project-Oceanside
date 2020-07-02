@@ -28,10 +28,10 @@ void Room::AddActor(Node* actor)
 	if (actor->IsSpawner())
 	{
 		//REMEMBER ME
-		for (auto offspring : actor->GetOffspring())
-		{
-			deallocatableActors.push_back(offspring);
-		}
+		//for (auto offspring : actor->GetOffspring())
+		//{
+			//deallocatableActors.push_back(offspring);
+		//}
 	}
 	if (actor->IsTransitionActor())
 	{

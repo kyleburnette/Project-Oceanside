@@ -8,9 +8,7 @@
         "0035": 1,
         "007B": 1,
         "003D": 1,
-        "000E": 1,
-        "000F": 1,
-        "018C": 1
+        "000F": 1
       },
       "actorList": [
         {
@@ -307,7 +305,7 @@
           "description": "pot",
           "numberOfOffspring": 0,
           "offspringActorID": 0,
-          "isDeallocatable": false,
+          "isDeallocatable": true,
           "isClearable": false,
           "canStartCleared": false,
           "startCleared": false,
@@ -324,7 +322,7 @@
           "description": "pot",
           "numberOfOffspring": 0,
           "offspringActorID": 0,
-          "isDeallocatable": false,
+          "isDeallocatable": true,
           "isClearable": false,
           "canStartCleared": false,
           "startCleared": false,
@@ -341,7 +339,7 @@
           "description": "pot",
           "numberOfOffspring": 0,
           "offspringActorID": 0,
-          "isDeallocatable": false,
+          "isDeallocatable": true,
           "isClearable": false,
           "canStartCleared": false,
           "startCleared": false,
@@ -358,7 +356,7 @@
           "description": "pot",
           "numberOfOffspring": 0,
           "offspringActorID": 0,
-          "isDeallocatable": false,
+          "isDeallocatable": true,
           "isClearable": false,
           "canStartCleared": false,
           "startCleared": false,
@@ -395,7 +393,7 @@
           "isDeallocatable": false,
           "isClearable": true,
           "canStartCleared": false,
-          "startCleared": false,
+          "startCleared": true,
           "transition": -1,
           "sceneTransitionID": 0,
           "itemsDroppedOnDeallocate": [],
@@ -447,9 +445,7 @@
         "0035": 1,
         "007B": 1,
         "003D": 1,
-        "000E": 1,
-        "000F": 1,
-        "018C": 1
+        "000F": 1
       },
       "actorList": [
         {
