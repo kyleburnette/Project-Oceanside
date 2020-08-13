@@ -24,12 +24,13 @@ enum Version
 
 enum SolverStep
 {
-	ALLOCATE = 0xdddd,
-	DEALLOCATE,
-	CHANGE_ROOM,
-	SUPERSLIDE,
-	USE_PLANE,
-	LOAD_INITIAL_ROOM,
-	CARRY,
-	SPAWNERS
+	ALLOCATE = 0xddd0,
+	DEALLOCATE = 0xddd1,
+	CHANGE_ROOM = 0xddd2,
+	SUPERSLIDE = 0xddd3,
+	USE_PLANE = 0xddd4,
+	LOAD_INITIAL_ROOM = 0xddd5,
+	CARRY = 0xddd6,
+	DROP = 0xddd7,
+	SPAWNERS = 0xddd8
 };

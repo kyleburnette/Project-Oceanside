@@ -131,9 +131,10 @@ Node::Node(const Node& copy)
 	this->considerForSRM = copy.ConsiderForSRM();
 	this->reallocateOnRoomChange = copy.ReallocateOnRoomChange();
 	this->isSpawner = copy.IsSpawner();
+	this->priority = copy.GetPriority();
 
 	//if actor is transition actor, set up relevant information
-	if (copy.IsTransitionActor() != -1)
+	if (copy.IsTransitionActor())
 	{
 		this->isTransitionActor = true;
 		this->roomsConnectedByTransition.first = copy.roomsConnectedByTransition.first;

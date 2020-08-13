@@ -15,7 +15,7 @@ public:
 	void DeallocateTemporaryActor(int actorID);
 	void LoadInitialRoom(int roomNumber);
 	void UnloadRoom(Room& room, int transitionActorSceneID, Node* carryActor);
-	void ChangeRoom(int newRoomNumber, int transitionActorSceneID, Node* carryActor, bool spawners);
+	void ChangeRoom(int newRoomNumber, int transitionActorSceneID, bool spawners);
 	void PrintHeap(char setting) const;
 	void DeleteHeap();
 	Node* FindSuitableGap(Node* newNode) const;
@@ -36,9 +36,15 @@ public:
 	std::vector<std::pair<int, int>> GetAllAddresses(char type);
 	int GetOverlayAddress(int actorID);
 	void SolveObservatory();
+	void SolveJPObservatory();
 	void SolveGrave();
 	void SolveGraveyard();
+	void SolveMV();
+	void SolveSwamp();
 	std::vector<Node*> GetAllActorsOfID(int actorID);
+	Node* GetActorByPriority(int actorID, int priority);
+	void PickUpPot(int priority);
+	void DropPot();
 	
 private:
 	void AllocateNewRoom(Room& newRoom, Room& oldRoom, int transitionActorSceneID);
@@ -58,19 +64,19 @@ private:
 	const char LINK_TYPE = 'L';
 	const char OVERLAY_TYPE = 'O';
 
-	const int MAX_ALLOCATIONS_PER_STEP = 5;
+	const int MAX_ALLOCATIONS_PER_STEP = 9;
 	const int LOAD_MODIFIER = 3;
 	const int INITIAL_ROOM_NUMBER = 1;
 
 	const int MAX_EXPLOSIVES_PER_ROOM = 3;
-	const int MAX_ARROWS_PER_ROOM = 1;
+	const int MAX_ARROWS_PER_ROOM = 0;
 	const int MAX_CHUS = 0;
 	const int MAX_ISOT = 0;
-	const int MAX_BOMBS = 6;
+	const int MAX_BOMBS = 10;
 
 	const bool smoke = true;
-	const bool endAllocationStep = true;
-	const bool postSSRoomChange = false;
+	const bool endAllocationStep = false; 
+	const bool postSSRoomChange = true;
 	const bool breakRocks = false;
 	const bool fins = false;
 	const bool nut = false;
@@ -85,12 +91,17 @@ private:
 	std::vector<Node*> offspringToAllocate;
 
 	std::vector<Node*> leaks;
+	std::vector<Node*> rupeeleaks;
 	std::vector<Node*> singletons;
 
 	std::vector<Node*> singletonsAttemptingToReallocate;
 	std::vector<Node*> reallocatingTransitionActors;
 
 	Node* carryActor = nullptr;
+	int carryActorRoomNumber = 0;
+	Node* carryActorCopy = nullptr;
+	int priorityDroppedActor = -1;
+	int roomDroppedActor = -1;
 
 	int allocatedExplosiveCount;
 	int allocatedChuCount;
@@ -98,6 +109,6 @@ private:
 	int allocatedBombCount;
 	int allocatedArrowCount;
 
-	std::pair<Node*, int> heldActor;
+	std::vector<std::pair<int, int>> solution;
 };
 

@@ -60,5 +60,8 @@
     <None Include="scene_4.json" />
     <None Include="scene_5.json" />
     <None Include="scene_6.json" />
+    <None Include="scene_69.json" />
+    <None Include="swamp.json" />
+    <None Include="mm_j1_actors.json" />
   </ItemGroup>
 </Project>
