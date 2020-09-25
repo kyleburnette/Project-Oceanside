@@ -8,15 +8,18 @@
 
 int main()
 {
-	/////*JP*/
-	Scene* scene = new Scene(MM_JP, "scene_69.json");
-	Heap* heap = new Heap(scene, MM_JP1_START, MM_JP1_LINK_SIZE);
+	///////*JP*/
+	//Scene* scene = new Scene(MM_JP, "scene_6.json");
+	//Heap* heap = new Heap(scene, MM_JP0_START, MM_JP0_LINK_SIZE);
 
-	//////US
-	//Scene* scene = new Scene(MM_US, "scene_4.json");
-	//Heap* heap = new Heap(scene, MM_US0_START, MM_US0_LINK_SIZE);
+	////US
+	Scene* scene = new Scene(MM_US, "scene_6.json");
+	Heap* heap = new Heap(scene, MM_US0_START, MM_US0_LINK_SIZE);
 
-	heap->SolveObservatory();
+	heap->LoadInitialRoom(0);
+	heap->ChangeRoom(1, 0, true);
+	heap->PrintHeap(0);
+	//heap->SolveGraveyard();
 
 	delete(scene);
 	delete(heap);

@@ -65,11 +65,11 @@ private:
 	const char OVERLAY_TYPE = 'O';
 
 	const int MAX_ALLOCATIONS_PER_STEP = 9;
-	const int LOAD_MODIFIER = 3;
-	const int INITIAL_ROOM_NUMBER = 1;
+	const int LOAD_MODIFIER = 5;
+	const int INITIAL_ROOM_NUMBER = 0;
 
 	const int MAX_EXPLOSIVES_PER_ROOM = 3;
-	const int MAX_ARROWS_PER_ROOM = 0;
+	const int MAX_ARROWS_PER_ROOM = 3;
 	const int MAX_CHUS = 0;
 	const int MAX_ISOT = 0;
 	const int MAX_BOMBS = 10;

@@ -459,13 +459,6 @@ std::pair<int, int> Heap::DeallocateRandomActor()
 	}
 	else
 	{
-		if ((actorToDeallocate->GetID() == 0x0033 || actorToDeallocate->GetID() == 0x0082) && rand() % 2)
-		{
-			Node* rupee = new Node(0x1B0, 0xE, 'E', nullptr);
-			Allocate(rupee);
-			rupeeleaks.push_back(rupee);
-			solution.push_back(std::make_pair(ALLOCATE, 0xE));
-		}
 		Deallocate(actorToDeallocate);
 		scene->GetRoom(currentRoomNumber)->DeallocateActor(actorToDeallocate);
 	}
@@ -2305,10 +2298,10 @@ void Heap::SolveGraveyard()
 	{
 		int roomLoads = (2 * (rand() % LOAD_MODIFIER));
 
-		LoadInitialRoom(1);
-		solution.push_back(std::make_pair(LOAD_INITIAL_ROOM, 1));
+		LoadInitialRoom(0);
+		solution.push_back(std::make_pair(LOAD_INITIAL_ROOM, 0));
 
-		for (int i = 0; i < roomLoads; i++)
+		for (int i = 0; i <= roomLoads; i++)
 		{
 			int deallocations = 0;
 			int currentRoomDeallocations = currentRoom->GetDeallocatableActors().size();
@@ -2362,11 +2355,11 @@ void Heap::SolveGraveyard()
 				{
 				case 0:
 					break;
-					/*case 1:
-						AllocateTemporaryActor(0x3D);
-						solution.push_back(std::make_pair(ALLOCATE, 0x3D));
-						break;*/
 				case 1:
+					AllocateTemporaryActor(0x3D);
+					solution.push_back(std::make_pair(ALLOCATE, 0x3D));
+					break;
+				case 2:
 					AllocateTemporaryActor(0x35);
 					solution.push_back(std::make_pair(ALLOCATE, 0x35));
 					break;
@@ -2390,72 +2383,51 @@ void Heap::SolveGraveyard()
 			}
 
 			//actually perform room change using chosen room and plane
-			ChangeRoom(nextRoom, nextPlane, false);
+			ChangeRoom(nextRoom, nextPlane, true);
 			solution.push_back(std::make_pair(CHANGE_ROOM, nextRoom));
-			solution.push_back(std::make_pair(SPAWNERS, false));
+			solution.push_back(std::make_pair(SPAWNERS, true));
 			solution.push_back(std::make_pair(USE_PLANE, nextPlane));
 		}
 
 		//we're now standing in room 1
 
-		char potDestroyRNG = rand() % 4;
-		if (potDestroyRNG == 0)
-		{
-			Deallocate(0x82, 0);
-			solution.push_back(std::make_pair(0x82, 0));
-
-		}
-		else if (potDestroyRNG == 1)
-		{
-			Deallocate(0x82, 1);
-			solution.push_back(std::make_pair(0x82, 1));
-		}
-		else if (potDestroyRNG == 2)
-		{
-			Deallocate(0x82, 2);
-			solution.push_back(std::make_pair(0x82, 2));
-		}
-
 		std::vector<std::pair<int, int>> grass = GetAddressesAndPrioritiesOfType(0x90, 'A');
 		std::vector<std::pair<int, int>> rocks = GetAddressesAndPrioritiesOfType(0xB0, 'A');
 
-
 		AllocateTemporaryActor(0xA2);
-		ChangeRoom(0, 0, false);
+		ChangeRoom(0, 0, true);
 		solution.push_back(std::make_pair(SUPERSLIDE, 0));
 
 		//standing in chest room now, but we need to swap rooms twice to have a chance of things lining up
-		ChangeRoom(1, 0, false);
+		ChangeRoom(1, 0, true);
 		solution.push_back(std::make_pair(CHANGE_ROOM, 1));
-		ChangeRoom(0, 0, false);
-		solution.push_back(std::make_pair(CHANGE_ROOM, 0));
 
-		std::vector<std::pair<int, int>> chest = GetAddressesAndPrioritiesOfType(0x6, 'A');
+		std::vector<std::pair<int, int>> grottos = GetAddressesAndPrioritiesOfType(0x55, 'O');
 
 		bool solutionFound = false;
 		std::pair<std::pair<int, int>, std::pair<int, int>> solutionPair;
 
-		for (auto c : chest)
+		for (auto g : grottos)
 		{
 			for (auto grasss : grass)
 			{
-				if (grasss.first - c.first == 0x160)
+				if (grasss.second > 0x10 && grasss.first - g.first == 0x5D0)
 				{
 					solutionFound = true;
-					solutionPair = std::make_pair(grasss, c);
+					solutionPair = std::make_pair(grasss, g);
 				}
 			}
 
 		}
 
-		for (auto c : chest)
+		for (auto g : grottos)
 		{
 			for (auto rock : rocks)
 			{
-				if (rock.first - c.first == 0x160 && !solutionFound)
+				if (rock.second > 0x10 && rock.first - g.first == 0x5D0)
 				{
 					solutionFound = true;
-					solutionPair = std::make_pair(rock, c);
+					solutionPair = std::make_pair(rock, g);
 				}
 			}
 
@@ -2647,7 +2619,7 @@ void Heap::SolveGrave()
 			}
 
 			//also, should we allow the spawner to allocate or no?
-			bool allocateSpawners = false;
+			bool allocateSpawners = true;
 			char spawnerRNG = rand() % 2;
 			if (spawnerRNG)
 			{
