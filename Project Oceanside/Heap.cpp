@@ -56,11 +56,28 @@ Node* Heap::AllocateTemporaryActor(int actorID)
 	case 0x0035:
 	{
 		Allocate(newTempActor);
-		temporaryActors.push_back(newTempActor);
+		memes.push_back(newTempActor);
 		AllocateTemporaryActor(0x007B);
 	}
 	break;
-
+	case 0x007B:
+	{
+		Allocate(newTempActor);
+		memes.push_back(newTempActor);
+	}
+	break;
+	case 0x000F:
+	{
+		Allocate(newTempActor);
+		memes.push_back(newTempActor);
+	}
+	break;
+	case 0x003D:
+	{
+		Allocate(newTempActor);
+		memes.push_back(newTempActor);
+	}
+	break;
 	default:
 		Allocate(newTempActor);
 		temporaryActors.push_back(newTempActor);
@@ -96,6 +113,17 @@ void Heap::ClearTemporaryActors()
 	}
 
 	temporaryActors.clear();
+}
+
+void Heap::ClearMemes()
+{
+	for (Node* actor : memes)
+	{
+		delete(actor);
+		actor = nullptr;
+	}
+
+	memes.clear();
 }
 
 void Heap::Allocate(Node* node)
@@ -313,12 +341,20 @@ void Heap::ChangeRoom(int newRoomNumber, int transitionActorSceneID, bool spawne
 
 	DeallocateClearedActors();
 	DeallocateReallocatingActors();
+
 	if (spawners)
 	{
 		AllocateSpawnerOffspring();
 	}
+	if (!memes.empty()) {
+		for (auto actor : memes) {
+			Deallocate(actor);
+		}
+	}
+
 	offspringToAllocate.clear();
-	ClearTemporaryActors();
+	//ClearTemporaryActors();
+	ClearMemes();
 
 	allocatedExplosiveCount = 0;
 	allocatedArrowCount = 0;
@@ -565,7 +601,6 @@ void Heap::UnloadRoom(Room& room, int transitionActorSceneID, Node* carryActor)
 	for (Node* actor : temporaryActors)
 	{
 		Deallocate(actor);
-
 	}
 	ClearTemporaryActors();
 
@@ -2349,16 +2384,16 @@ void Heap::SolveGraveyard()
 
 			if (endAllocationStep)
 			{
-				char rng = rand() % 2;
+				char rng = rand() % 3;
 
 				switch (rng)
 				{
 				case 0:
 					break;
-				case 1:
-					AllocateTemporaryActor(0x3D);
-					solution.push_back(std::make_pair(ALLOCATE, 0x3D));
-					break;
+				//case 1:
+				//	AllocateTemporaryActor(0x3D);
+				//	solution.push_back(std::make_pair(ALLOCATE, 0x3D));
+				//	break;
 				case 2:
 					AllocateTemporaryActor(0x35);
 					solution.push_back(std::make_pair(ALLOCATE, 0x35));
@@ -2402,89 +2437,89 @@ void Heap::SolveGraveyard()
 		ChangeRoom(1, 0, true);
 		solution.push_back(std::make_pair(CHANGE_ROOM, 1));
 
-		std::vector<std::pair<int, int>> grottos = GetAddressesAndPrioritiesOfType(0x55, 'O');
+		Node* grotto = GetOverlay(0x55);
 
 		bool solutionFound = false;
 		std::pair<std::pair<int, int>, std::pair<int, int>> solutionPair;
 
-		for (auto g : grottos)
+		for (auto grasss : grass)
 		{
-			for (auto grasss : grass)
+			if (grasss.second > 0x10 && grasss.first - grotto->GetAddress() == 0x5D0)
 			{
-				if (grasss.second > 0x10 && grasss.first - g.first == 0x5D0)
-				{
-					solutionFound = true;
-					solutionPair = std::make_pair(grasss, g);
-				}
+				solutionFound = true;
+				solutionPair = std::make_pair(grasss, std::make_pair(grotto->GetAddress(), grotto->GetPriority()));
 			}
-
 		}
 
-		for (auto g : grottos)
+		for (auto rock : rocks)
 		{
-			for (auto rock : rocks)
+			if (rock.second > 0x10 && rock.first - grotto->GetAddress() == 0x5D0)
 			{
-				if (rock.second > 0x10 && rock.first - g.first == 0x5D0)
-				{
-					solutionFound = true;
-					solutionPair = std::make_pair(rock, g);
-				}
+				solutionFound = true;
+				solutionPair = std::make_pair(rock, std::make_pair(grotto->GetAddress(), grotto->GetPriority()));
 			}
-
 		}
 
 		if (solutionFound)
 		{
-			std::cout << "SOLUTION FOUND\n";
-			totalSolutions++;
-
-			std::ofstream outputFile;
-			std::string outputFilename = newSubFolder + "\\solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
-			outputFile.open(outputFilename);
-
-			outputFile << std::hex << "Pot Address | Priority: " << solutionPair.first.first << " | " << solutionPair.first.second <<
-				" Guard Address | Priority: " << solutionPair.second.first << " | " << solutionPair.second.second << std::dec << std::endl;
-
-			for (auto step : solution)
+			//int node2 = grotto->GetNext()->GetNext()->GetAddress();
+			//int node1 = grotto->GetNext()->GetAddress();
+			//int diff = node2 = node1;
+			//if (grotto->GetNext()->GetNext()->GetType() == 'O' ||
+			//	(grotto->GetNext()->GetNext()->GetType() == 'L' && (diff == 0x10 || diff == 0x30 || diff == 0x50 || diff == 0x60)))
 			{
-				if (step.first == LOAD_INITIAL_ROOM)
-				{
-					outputFile << std::hex << "Load initial room: " << step.second << std::endl;
-				}
-				else if (step.first == CHANGE_ROOM)
-				{
-					outputFile << std::hex << "Load room: " << step.second;
-				}
-				else if (step.first == SPAWNERS)
-				{
-					outputFile << " | Spawners: " << step.second;
-				}
-				else if (step.first == USE_PLANE)
-				{
-					outputFile << " | Use plane: " << step.second << std::endl;
-				}
-				else if (step.first == ALLOCATE)
-				{
-					if (step.second != 0x0)
-					{
-						outputFile << std::hex << "Allocate: " << step.second << std::endl;
-					}
-				}
-				else if (step.first == SUPERSLIDE)
-				{
-					outputFile << std::hex << "Superslide into room " << step.second << " with smoke still loaded using plane 0." << std::endl;
-				}
-				else if (step.first == 0)
-				{
-					;
-				}
-				else
-				{
-					outputFile << std::hex << "Dealloc: " << std::setw(2) << step.first << ", " << step.second << std::endl;
-				}
+				std::cout << "SOLUTION FOUND\n";
+				totalSolutions++;
 
+				std::ofstream outputFile;
+				std::string outputFilename = newSubFolder + "\\solution" + std::to_string(totalSolutions) + "_seed_" + std::to_string(seed) + ".txt";
+				outputFile.open(outputFilename);
+
+				outputFile << std::hex << "Pot Address | Priority: " << solutionPair.first.first << " | " << solutionPair.first.second <<
+					" Guard Address | Priority: " << solutionPair.second.first << " | " << solutionPair.second.second << std::dec << std::endl;
+
+				for (auto step : solution)
+				{
+					if (step.first == LOAD_INITIAL_ROOM)
+					{
+						outputFile << std::hex << "Load initial room: " << step.second << std::endl;
+					}
+					else if (step.first == CHANGE_ROOM)
+					{
+						outputFile << std::hex << "Load room: " << step.second;
+					}
+					else if (step.first == SPAWNERS)
+					{
+						outputFile << " | Spawners: " << step.second;
+					}
+					else if (step.first == USE_PLANE)
+					{
+						outputFile << " | Use plane: " << step.second << std::endl;
+					}
+					else if (step.first == ALLOCATE)
+					{
+						if (step.second != 0x0)
+						{
+							outputFile << std::hex << "Allocate: " << step.second << std::endl;
+						}
+					}
+					else if (step.first == SUPERSLIDE)
+					{
+						outputFile << std::hex << "Superslide into room " << step.second << " with smoke still loaded using plane 0." << std::endl;
+					}
+					else if (step.first == 0)
+					{
+						;
+					}
+					else
+					{
+						outputFile << std::hex << "Dealloc: " << std::setw(2) << step.first << ", " << step.second << std::endl;
+					}
+
+				}
+				outputFile.close();
 			}
-			outputFile.close();
+			
 		}
 
 		ResetHeap();
@@ -3111,6 +3146,22 @@ Node* Heap::GetActorByPriority(int actorID, int priority)
 	while (curr != nullptr)
 	{
 		if (curr->GetID() == actorID && curr->GetPriority() == priority && curr->GetType() == 'A')
+		{
+			return curr;
+		}
+
+		curr = curr->GetNext();
+	}
+
+	return nullptr;
+}
+
+Node* Heap::GetOverlay(int actorID) {
+	Node* curr = head;
+
+	while (curr != nullptr)
+	{
+		if (curr->GetID() == actorID && curr->GetType() == 'O')
 		{
 			return curr;
 		}

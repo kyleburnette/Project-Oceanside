@@ -19,6 +19,7 @@ enum Version
 {
 	MM_US,
 	MM_JP,
+	MM_JP1,
 	MM_JP_GC
 };
 

@@ -96,6 +96,9 @@ void Scene::ParseActorJson(char version)
 	case MM_JP:
 		actorFile = "mm_j_actors.json";
 		break;
+	case MM_JP1:
+		actorFile = "mm_j1_actors.json";
+		break;
 	case MM_US:
 		actorFile = "mm_u_actors.json";
 		break;
